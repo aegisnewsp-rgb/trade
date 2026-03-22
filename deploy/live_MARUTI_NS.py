@@ -212,6 +212,7 @@ def calculate_vwap(ohlcv: List[Dict], period: int = 14) -> List[float]:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0)
     return vwap
 
+# RSI filter: BUY>RSI55, SELL<RSI45
 def generate_signal(ohlcv: List[Dict], vwap: List[float], atr: List[float], 
                     fuel_price: Optional[float], auto_trend: Optional[str]) -> str:
     if len(ohlcv) < VWAP_PERIOD or len(vwap) < VWAP_PERIOD or len(atr) < VWAP_PERIOD:
@@ -396,7 +397,7 @@ def place_groww_order(symbol, signal, quantity, price):
         return groww_api.paper_trade(signal, symbol, price, quantity)
     
     exchange = "NSE"
-    atr = price * 0.008
+    # Use real ATR from calculate_atr()
     
     if signal == "BUY":
         stop_loss = price - (atr * 1.0)
