@@ -180,27 +180,43 @@ def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
     return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
 
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
-    period        = params["vwap_period"]
-    atr_mult      = params["atr_multiplier"]
-    vwap_vals     = calculate_vwap(ohlcv, period)
-    atr_vals      = calculate_atr(ohlcv, period)
-    signals       = ["HOLD"] * len(ohlcv)
+    period     = params["vwap_period"]
+    atr_period = params.get("atr_period", 14)
+    atr_mult   = params["atr_multiplier"]
+    rsi_period = params["rsi_period"]
+    rsi_ob     = params["rsi_overbought"]   # 55
+    rsi_os     = params["rsi_oversold"]     # 45
+    vol_mult   = params["volume_multiplier"] # 1.2
 
-    for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+    vwap_vals = calculate_vwap(ohlcv, period)
+    atr_vals  = calculate_atr(ohlcv, atr_period)
+    rsi_vals  = calculate_rsi(ohlcv, rsi_period)
+    avg_vol   = calculate_avg_volume(ohlcv, 20)
+    signals   = ["HOLD"] * len(ohlcv)
+
+    for i in range(max(period, rsi_period), len(ohlcv)):
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
-        price    = ohlcv[i]["close"]
-        v        = vwap_vals[i]
-        a        = atr_vals[i]
-        if price > v + a * atr_mult:
+        price = ohlcv[i]["close"]
+        v     = vwap_vals[i]
+        a     = atr_vals[i]
+        r     = rsi_vals[i]
+        vol   = ohlcv[i]["volume"]
+
+        vol_ok     = vol >= avg_vol * vol_mult
+        rsi_buy_ok  = r < rsi_ob   # RSI below 55
+        rsi_sell_ok = r > rsi_os   # RSI above 45
+
+        if price > v + a * atr_mult and vol_ok and rsi_buy_ok:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult:
+        elif price < v - a * atr_mult and vol_ok and rsi_sell_ok:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return current_signal, current_price, current_atr
+    current_rsi    = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 50.0
+    return current_signal, current_price, current_atr, current_rsi
 
 def place_groww_order(symbol, signal, quantity, price):
     """
@@ -309,30 +325,32 @@ def main():
     
     # Detect strategy type and run appropriate signal
     signal = None
-    price = ohlcv_list[-1][2]  # close price
-    
+    price = ohlcv_list[-1][3]  # close price
+    current_rsi = 50.0
+
     try:
         # Try strategy functions in priority order
         if 'vwap_signal' in dir():
-            sig_result = vwap_signal(ohlcv_list, {})
+            sig_result = vwap_signal(ohlcv_list, PARAMS)
             if isinstance(sig_result, tuple) and len(sig_result) >= 2:
                 signal, price = sig_result[0], float(sig_result[1])
+                current_rsi = float(sig_result[3]) if len(sig_result) >= 4 else 50.0
             elif isinstance(sig_result, str):
                 signal = sig_result
         elif 'adx_signal' in dir():
-            sig_result = adx_signal(ohlcv_list, {})
+            sig_result = adx_signal(ohlcv_list, PARAMS)
             if isinstance(sig_result, tuple):
                 signal, price = sig_result[0], float(sig_result[1])
             elif isinstance(sig_result, str):
                 signal = sig_result
         elif 'rsi_signal' in dir():
-            sig_result = rsi_signal(ohlcv_list, {})
+            sig_result = rsi_signal(ohlcv_list, PARAMS)
             if isinstance(sig_result, tuple):
                 signal, price = sig_result[0], float(sig_result[1])
             elif isinstance(sig_result, str):
                 signal = sig_result
         elif 'macd_signal' in dir():
-            sig_result = macd_signal(ohlcv_list, {})
+            sig_result = macd_signal(ohlcv_list, PARAMS)
             if isinstance(sig_result, tuple):
                 signal, price = sig_result[0], float(sig_result[1])
             elif isinstance(sig_result, str):
@@ -349,10 +367,10 @@ def main():
                         elif isinstance(result, str):
                             signal = result
                         break
-        
+
         # Default fallback: calculate basic signals
         if not signal:
-            closes = [o[4] for o in ohlcv_list]
+            closes = [o[3] for o in ohlcv_list]
             if len(closes) >= 20:
                 sma20 = sum(closes[-20:]) / 20
                 current = closes[-1]
@@ -365,11 +383,11 @@ def main():
                 else:
                     signal = "HOLD"
                     price = current
-    
+
     except Exception as e:
         print(f"Signal generation error: {e}")
         signal = "HOLD"
-        price = ohlcv_list[-1][4]
+        price = ohlcv_list[-1][3]
     
     # Calculate ATR for risk management
     atr = price * 0.008  # fallback
@@ -388,7 +406,20 @@ def main():
     print(f"\nSignal: {signal}")
     print(f"Price:  Rs{price:.2f}")
     print(f"ATR:    Rs{atr:.2f}")
-    
+    print(f"RSI:    {current_rsi:.2f}")
+    print(f"Entry Window: {'YES' if in_best_entry_window() else 'NO'}")
+
+    risk = atr * 1.0
+    t1 = round(price + risk * TARGET_1_MULT, 2)
+    t2 = round(price + risk * TARGET_2_MULT, 2)
+    t3 = round(price + risk * TARGET_3_MULT, 2)
+    sl = round(price - risk * SL_ATR_MULT, 2)
+    print(f"SL:     Rs{sl:.2f}")
+    print(f"T1:     Rs{t1:.2f} (1.5x risk, exit 1/3)")
+    print(f"T2:     Rs{t2:.2f} (3.0x risk, exit 1/3)")
+    print(f"T3:     Rs{t3:.2f} (5.0x risk, exit remaining)")
+    print(f"Trail:  0.3x ATR trailing stop after 0.8% profit")
+
     if signal == "BUY":
         sl = round(price - atr * 1.0, 2)
         tgt = round(price + atr * 4.0, 2)
