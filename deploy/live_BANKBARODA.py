@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - BANKBARODA.NS
-Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: 63.64%
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Strategy: VWAP with Tightened Stop Loss
+Position: ₹7000 | Stop Loss: 0.5% (tightened) | Target: 4.0x | Daily Loss Cap: 0.3%
+Enhanced: Tighter stop loss for better risk management
 """
 
 import os
@@ -34,7 +34,7 @@ log = logging.getLogger("live_BANKBARODA")
 SYMBOL         = "BANKBARODA.NS"
 STRATEGY       = "VWAP"
 POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
+STOP_LOSS_PCT  = 0.005  # Tightened from 0.8% to 0.5%
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
@@ -207,7 +207,7 @@ def daily_loss_limit_hit() -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: 63.64%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s (Tightened Stop Loss: %.1f%%) ===", SYMBOL, STRATEGY, STOP_LOSS_PCT*100)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
@@ -231,20 +231,20 @@ def main():
     signal, price, atr = vwap_signal(ohlcv, PARAMS)
 
     if signal == "BUY":
-        stop_loss   = round(price * (1 - STOP_LOSS_PCT), 2)
-        target_prc  = round(price + TARGET_MULT * atr, 2)
+        stop_loss  = round(price * (1 - STOP_LOSS_PCT), 2)
+        target_prc = round(price + TARGET_MULT * atr, 2)
     elif signal == "SELL":
-        stop_loss   = round(price * (1 + STOP_LOSS_PCT), 2)
-        target_prc  = round(price - TARGET_MULT * atr, 2)
+        stop_loss  = round(price * (1 + STOP_LOSS_PCT), 2)
+        target_prc = round(price - TARGET_MULT * atr, 2)
     else:
-        stop_loss   = 0.0
-        target_prc  = 0.0
+        stop_loss  = 0.0
+        target_prc = 0.0
 
     quantity = max(1, int(POSITION / price))
 
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  STRATEGY : %s (Tightened SL: %.1f%%)", STRATEGY, STOP_LOSS_PCT*100)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
