@@ -597,7 +597,7 @@ def main():
         price = ohlcv_list[-1][4]
     
     # Calculate ATR for risk management
-    atr = price * 0.008  # fallback
+    # Use real ATR from calculate_atr()  # fallback
     if len(ohlcv_list) >= 14:
         trs = []
         for i in range(1, min(15, len(ohlcv_list))):
