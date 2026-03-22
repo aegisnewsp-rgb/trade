@@ -2,17 +2,18 @@
 """
 Live Trading Script for SHREECEM.NS
 Strategy: TSI + Multi-Filter (SMA Trend + EMA Confirm + RSI + Volume + Volatility)
-Win Rate: 58.06% -> Enhanced target: 60%+ (v2)
+Win Rate: 58.06% -> Enhanced target: 60%+ (v3)
 Position Size: ₹7,000 | Stop Loss: 0.65% ATR | Target: 4.0x ATR
 Daily Loss Cap: 0.3% of capital
 Max 1 trade per day
 
-v2 Enhancements applied:
-- Added EMA(20) dual confirmation alongside SMA(50) for faster trend detection
-- RSI thresholds tightened: oversold 35→42, overbought 65→60
-- Stop loss loosened: 0.5%→0.65% ATR to avoid cutting winners early
-- TSI signal period: 13→9 for faster crossover detection
-- Volume threshold raised: 1.2x→1.3x for higher-quality confirm
+v3 Enhancements applied:
+- Added ADX(14) trend strength filter: require ADX > 20 for valid signals
+- RSI thresholds tightened: oversold 42→45, overbought 60→58
+- TSI threshold raised: 3.0→4.5 to filter weaker crossovers
+- Added TSI momentum slope filter: slope must be positive for BUY, negative for SELL
+- Volume threshold raised: 1.3x→1.5x for higher-quality confirm
+- Added minimum TSI distance from zero line: |TSI| > 10 for stronger momentum
 
 ⚠️ FOR EDUCATIONAL/PAPER TRADING USE ⚠️
 Requires GROWW_API_KEY and GROWW_API_SECRET env vars for live orders.
@@ -36,7 +37,7 @@ except ImportError:
 # ============== CONFIGURATION ==============
 SYMBOL = "SHREECEM.NS"
 STRATEGY = "TSI_MULTI_FILTER"
-BENCHMARK_WIN_RATE = 0.5806   # v2 enhanced: targeting 60%+
+BENCHMARK_WIN_RATE = 0.5806   # v3 enhanced: targeting 60%+
 TARGET_WIN_RATE = 0.60
 
 POSITION_SIZE = 7000
@@ -48,14 +49,16 @@ TARGET_ATR_MULT = 4.0
 TSI_FAST = 13
 TSI_SLOW = 25
 TSI_SIGNAL = 9   # v2: was 13 - faster response, catch moves earlier
-TSI_THRESHOLD = 3.0        # Require |TSI - Signal| > threshold for valid signal
+TSI_THRESHOLD = 4.5        # v3: was 3.0 - filter weaker crossovers
+ADX_PERIOD = 14
+ADX_THRESHOLD = 20.0       # v3: require ADX > 20 for trend strength confirmation
 ATR_PERIOD = 14
 SMA_PERIOD = 50             # Trend filter period
 RSI_PERIOD = 14
-RSI_OVERSOLD = 42           # v2: was 35 - tighter, only buy in oversold
-RSI_OVERBOUGHT = 60        # v2: was 65 - tighter, sell before overbought
+RSI_OVERSOLD = 45           # v3: was 42 - tighter, only buy in stronger oversold
+RSI_OVERBOUGHT = 58        # v3: was 60 - tighter, sell before overbought
 VOLUME_MA_PERIOD = 20
-VOLUME_THRESHOLD = 1.3     # v2: was 1.2 - higher quality volume confirm
+VOLUME_THRESHOLD = 1.5     # v3: was 1.3 - higher quality volume confirm
 MIN_ATR_PCT = 0.015         # Min ATR as % of price (1.5%) - avoid low vol
 
 GROWW_API_KEY = os.getenv("GROWW_API_KEY")
@@ -233,14 +236,104 @@ def calculate_volume_ma(ohlcv: List[Dict], period: int = 20) -> List[float]:
             vol_ma.append(avg)
     return vol_ma
 
+def calculate_adx(ohlcv: List[Dict], period: int = 14) -> Tuple[List[float], List[float], List[float]]:
+    """
+    Calculate ADX (Average Directional Index) and directional indicators.
+    Returns (adx, plus_di, minus_di) tuples.
+    ADX > 20 indicates strong trend - we'll require this for valid signals.
+    """
+    if len(ohlcv) < period * 2:
+        return [20.0] * len(ohlcv), [0.0] * len(ohlcv), [0.0] * len(ohlcv)
+
+    high = [bar["high"] for bar in ohlcv]
+    low = [bar["low"] for bar in ohlcv]
+    close = [bar["close"] for bar in ohlcv]
+
+    plus_dm = []
+    minus_dm = []
+    tr_list = []
+
+    for i in range(1, len(ohlcv)):
+        # True Range
+        hl = high[i] - low[i]
+        hc = abs(high[i] - close[i-1])
+        lc = abs(low[i] - close[i-1])
+        tr = max(hl, hc, lc)
+        tr_list.append(tr)
+
+        # Directional Movement
+        up_move = high[i] - high[i-1]
+        down_move = low[i-1] - low[i]
+
+        if up_move > down_move and up_move > 0:
+            plus_dm.append(up_move)
+        else:
+            plus_dm.append(0)
+
+        if down_move > up_move and down_move > 0:
+            minus_dm.append(down_move)
+        else:
+            minus_dm.append(0)
+
+    # Smooth with Wilder's smoothing
+    def wilder_smooth(data, period):
+        if len(data) < period:
+            return [sum(data) / len(data)] * len(data)
+        result = []
+        result.append(sum(data[:period]) / period)
+        for i in range(period, len(data)):
+            result.append((result[-1] * (period - 1) + data[i]) / period)
+        return result
+
+    tr_smooth = wilder_smooth(tr_list, period)
+    plus_smooth = wilder_smooth(plus_dm, period)
+    minus_smooth = wilder_smooth(minus_dm, period)
+
+    plus_di = []
+    minus_di = []
+    dx = []
+
+    for i in range(len(tr_smooth)):
+        if tr_smooth[i] == 0:
+            plus_di.append(0)
+            minus_di.append(0)
+        else:
+            plus_di.append(100 * plus_smooth[i] / tr_smooth[i])
+            minus_di.append(100 * minus_smooth[i] / tr_smooth[i])
+
+        di_sum = plus_di[-1] + minus_di[-1]
+        if di_sum == 0:
+            dx.append(0)
+        else:
+            dx.append(100 * abs(plus_di[-1] - minus_di[-1]) / di_sum)
+
+    # ADX is the smoothed DX
+    adx_smooth = wilder_smooth(dx, period)
+
+    # Pad to match ohlcv length
+    adx = [20.0]  # First value unknown
+    adx.extend(adx_smooth)
+    plus_di = [0.0] + plus_di
+    minus_di = [0.0] + minus_di
+
+    # Ensure same length
+    while len(adx) < len(ohlcv):
+        adx.append(adx[-1])
+    while len(plus_di) < len(ohlcv):
+        plus_di.append(plus_di[-1])
+    while len(minus_di) < len(ohlcv):
+        minus_di.append(minus_di[-1])
+
+    return adx, plus_di, minus_di
+
 def generate_signal(ohlcv: List[Dict], tsi: List[float], signal_line: List[float],
                     sma_vals: List[float], ema_vals: List[float], rsi_vals: List[float],
-                    vol_ma: List[float], atr_vals: List[float]) -> Tuple[str, str]:
+                    vol_ma: List[float], atr_vals: List[float],
+                    adx_vals: List[float] = None) -> Tuple[str, str]:
     """
     Generate signal with multi-filter confirmation.
     Returns (signal, filter_reason) tuple.
-    v2: Added EMA(20) for faster trend detection alongside SMA(50).
-        Both must agree: price > EMA(20) for BUY, price < EMA(20) for SELL.
+    v3: Added ADX trend strength filter + TSI momentum slope for more selective entries.
     """
     if len(ohlcv) < 2 or len(tsi) < 2 or len(signal_line) < 2:
         return "HOLD", "insufficient_data"
@@ -262,40 +355,62 @@ def generate_signal(ohlcv: List[Dict], tsi: List[float], signal_line: List[float
     if avg_vol > 0 and (current_vol / avg_vol) < VOLUME_THRESHOLD:
         return "HOLD", "low_volume"
 
+    # Check ADX trend strength filter (v3)
+    if adx_vals and len(adx_vals) >= 2:
+        current_adx = adx_vals[-1] if adx_vals[-1] is not None else 20.0
+        if current_adx <= ADX_THRESHOLD:
+            return "HOLD", f"adx_weak({current_adx:.1f})"
+
     # Check SMA(50) trend filter - primary trend
     current_sma = sma_vals[-1] if sma_vals and sma_vals[-1] is not None else current_price
     above_sma = current_price > current_sma
 
-    # Check EMA(20) trend filter - faster confirmation (v2)
+    # Check EMA(20) trend filter - faster confirmation
     current_ema = ema_vals[-1] if ema_vals and ema_vals[-1] is not None else current_price
     above_ema = current_price > current_ema
 
     # Check RSI filter
     current_rsi = rsi_vals[-1] if rsi_vals and len(rsi_vals) >= 1 else 50.0
 
-    # Check TSI threshold (require meaningful crossover)
+    # Check TSI threshold (require meaningful crossover) - v3 tightened
     tsi_diff = abs(current_tsi - current_signal)
     strong_cross = tsi_diff >= TSI_THRESHOLD
 
-    # BUY signal: TSI crosses above signal + trend + RSI + volume filters
+    # v3: Check TSI distance from zero line for stronger momentum
+    strong_momentum = abs(current_tsi) > 10.0
+
+    # v3: Check TSI momentum slope (must be rising for BUY, falling for SELL)
+    # Use 3-bar slope for smoother momentum direction
+    tsi_slope_positive = len(tsi) >= 4 and tsi[-1] > tsi[-3]
+    tsi_slope_negative = len(tsi) >= 4 and tsi[-1] < tsi[-3]
+
+    # BUY signal: TSI crosses above signal + all filters
     if prev_tsi <= prev_signal and current_tsi > current_signal:
         if not strong_cross:
-            return "HOLD", f"tsi_weak_crossing"
+            return "HOLD", f"tsi_weak_crossing({tsi_diff:.2f})"
+        if not strong_momentum:
+            return "HOLD", f"tsi_weak_momentum({abs(current_tsi):.1f})"
+        if not tsi_slope_positive:
+            return "HOLD", "tsi_not_rising"
         if not above_sma:
             return "HOLD", "below_sma_trend"
-        if not above_ema:   # v2: dual trend confirmation with EMA
+        if not above_ema:
             return "HOLD", "below_ema_trend"
         if current_rsi < RSI_OVERSOLD:
             return "HOLD", f"rsi_oversold({current_rsi:.1f})"
         return "BUY", "all_filters_passed"
 
-    # SELL signal: TSI crosses below signal + trend + RSI + volume filters
+    # SELL signal: TSI crosses below signal + all filters
     elif prev_tsi >= prev_signal and current_tsi < current_signal:
         if not strong_cross:
-            return "HOLD", f"tsi_weak_crossing"
+            return "HOLD", f"tsi_weak_crossing({tsi_diff:.2f})"
+        if not strong_momentum:
+            return "HOLD", f"tsi_weak_momentum({abs(current_tsi):.1f})"
+        if not tsi_slope_negative:
+            return "HOLD", "tsi_not_falling"
         if above_sma:
-            return "HOLD", "above_sma_trend"  # Don't sell in uptrend
-        if above_ema:    # v2: don't sell if still above EMA(20)
+            return "HOLD", "above_sma_trend"
+        if above_ema:
             return "HOLD", "above_ema_trend"
         if current_rsi > RSI_OVERBOUGHT:
             return "HOLD", f"rsi_overbought({current_rsi:.1f})"
@@ -379,7 +494,7 @@ def main():
     logger.info("=" * 60)
     logger.info(f"LIVE TRADING - {SYMBOL} | {STRATEGY}")
     logger.info(f"Win Rate: {BENCHMARK_WIN_RATE * 100:.2f}% -> Target: {TARGET_WIN_RATE*100:.0f}% | Pos: ₹{POSITION_SIZE:,} | SL: {STOP_LOSS_ATR_MULT*100:.1f}% ATR | TGT: {TARGET_ATR_MULT}x ATR")
-    logger.info(f"Filters: SMA({SMA_PERIOD})+EMA(20) | RSI({RSI_PERIOD}) ovr:{RSI_OVERBOUGHT}/os:{RSI_OVERSOLD} | Vol:{VOLUME_THRESHOLD}x | TSI_sig:{TSI_SIGNAL}")
+    logger.info(f"Filters: SMA({SMA_PERIOD})+EMA(20) | ADX>{ADX_THRESHOLD:.0f} | RSI ovr:{RSI_OVERBOUGHT}/os:{RSI_OVERSOLD} | Vol:{VOLUME_THRESHOLD}x | TSI_th:{TSI_THRESHOLD}")
     logger.info("=" * 60)
     state = load_state()
     state = reset_daily_state(state)
@@ -392,18 +507,19 @@ def main():
     atr = calculate_atr(ohlcv, ATR_PERIOD)
     tsi, signal_line = calculate_tsi(ohlcv, TSI_FAST, TSI_SLOW, TSI_SIGNAL)
     sma_vals = calculate_sma(ohlcv, SMA_PERIOD)
-    ema_vals = calculate_ema(ohlcv, 20)     # v2: faster EMA(20) for trend confirm
+    ema_vals = calculate_ema(ohlcv, 20)
     rsi_vals = calculate_rsi(ohlcv, RSI_PERIOD)
     vol_ma = calculate_volume_ma(ohlcv, VOLUME_MA_PERIOD)
+    adx_vals, plus_di, minus_di = calculate_adx(ohlcv, ADX_PERIOD)  # v3: trend strength filter
     current_price = ohlcv[-1]["close"]
     current_atr = atr[-1] if atr[-1] else (current_price * 0.02)
-    signal, filter_reason = generate_signal(ohlcv, tsi, signal_line, sma_vals, ema_vals, rsi_vals, vol_ma, atr)
+    signal, filter_reason = generate_signal(ohlcv, tsi, signal_line, sma_vals, ema_vals, rsi_vals, vol_ma, atr, adx_vals)
     current_sma = sma_vals[-1] if sma_vals and sma_vals[-1] else 0
     current_ema = ema_vals[-1] if ema_vals and ema_vals[-1] else 0
     current_rsi = rsi_vals[-1] if rsi_vals and rsi_vals[-1] else 50.0
     current_vol = ohlcv[-1]["volume"]
     avg_vol = vol_ma[-1] if vol_ma and vol_ma[-1] else current_vol
-    logger.info(f"Price: ₹{current_price:.2f} | ATR: ₹{current_atr:.2f} | TSI: {tsi[-1]:.2f} | Signal: {signal} | Filter: {filter_reason}")
+    logger.info(f"Price: ₹{current_price:.2f} | ATR: ₹{current_atr:.2f} | TSI: {tsi[-1]:.2f} | ADX: {adx_vals[-1]:.1f} | Signal: {signal} | Filter: {filter_reason}")
     logger.info(f"  SMA({SMA_PERIOD}): ₹{current_sma:.2f} | EMA(20): ₹{current_ema:.2f} | RSI({RSI_PERIOD}): {current_rsi:.1f} | Vol Ratio: {current_vol/avg_vol:.2f}x")
     if signal != "HOLD":
         result = execute_trade(signal, current_price, current_atr, state, CAPITAL)
