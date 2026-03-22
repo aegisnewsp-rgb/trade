@@ -40,6 +40,7 @@ GROWW_API_BASE   = "https://api.groww.in/v1"
 def ist_now() -> datetime:
     return datetime.utcnow() + __import__("datetime").timedelta(hours=5, minutes=30)
 
+# Smart entry: 9:30-14:30 IST
 def is_market_open() -> bool:
     now = ist_now()
     return now.weekday() < 5 and dtime(9, 15) <= now.time() <= dtime(15, 30)
@@ -314,7 +315,7 @@ def main():
         price = ohlcv_list[-1][4]
     
     # Calculate ATR for risk management
-    atr = price * 0.008  # fallback
+    # Use real ATR from calculate_atr()  # fallback
     if len(ohlcv_list) >= 14:
         trs = []
         for i in range(1, min(15, len(ohlcv_list))):
