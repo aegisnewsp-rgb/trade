@@ -44,4 +44,4 @@
 **Compile results:** 471 OK, 0 FAIL  
 **Enhancements:** 3 scripts (ICICIBANK, SBILIFE_NS, DRREDDY) — regime-based filtering added  
 **README updated:** Yes (Iteration #14, regime-filter enhancements)  
-**Git commit:** Pending
+**Git commit:** 3a7a36f — loop interval 7→30min (iter 14)
