@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - DABUR.NS
-Strategy: ADX_TREND
-Win Rate: 57.32%
+Strategy: ADX_TREND_v2 (Enhanced: lower threshold + volume + trend filter)
+Win Rate: 57.32% -> Target 62%+ (v2 enhanced)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -24,12 +24,19 @@ logging.basicConfig(
 log = logging.getLogger("live_DABUR")
 
 SYMBOL         = "DABUR.NS"
-STRATEGY       = "ADX_TREND"
+STRATEGY       = "ADX_TREND_v2"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"adx_period": 14, "adx_threshold": 25}
+PARAMS = {
+    "adx_period": 14,
+    "adx_threshold": 20,         # lowered from 25 for more signals
+    "di_crossover": 8,           # lowered from 10 for more signals
+    "volume_multiplier": 1.2,    # new: volume confirmation
+    "trend_ma_period": 50,       # new: trend filter
+    "atr_period": 14,
+}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -49,7 +56,7 @@ def is_pre_market() -> bool:
     if now.weekday() >= 5: return False
     return dtime(9, 0) <= now.time() < dtime(9, 15)
 
-def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
+def fetch_recent_data(days: int = 120, retries: int = 3) -> list | None:
     for attempt in range(retries):
         try:
             ticker = yf.Ticker(SYMBOL)
@@ -125,18 +132,59 @@ def calculate_adx(ohlcv: list, period: int = 14) -> tuple[list, list, list]:
             adx_vals.append((adx_vals[-1]*(period-1)+dx)/period)
     return adx_vals, plus_di, minus_di
 
-def adx_trend_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period = params["adx_period"]; threshold = params["adx_threshold"]
+def calculate_ma(ohlcv: list, period: int) -> list:
+    ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            ma.append(None)
+        else:
+            ma.append(sum(ohlcv[j]["close"] for j in range(i - period + 1, i + 1)) / period)
+    return ma
+
+def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
+    if len(ohlcv) < period:
+        return 0
+    return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
+
+def adx_trend_signal_v2(ohlcv: list, params: dict) -> tuple[str, float, float]:
+    period       = params["adx_period"]
+    threshold    = params["adx_threshold"]
+    di_cross     = params["di_crossover"]
+    trend_period = params["trend_ma_period"]
+    vol_mult     = params["volume_multiplier"]
+
     adx_vals, plus_di, minus_di = calculate_adx(ohlcv, period)
+    ma_vals   = calculate_ma(ohlcv, trend_period)
+    avg_vol   = calculate_avg_volume(ohlcv, period)
+    atr_vals  = calculate_atr(ohlcv, params["atr_period"])
+
     signals = ["HOLD"] * len(ohlcv)
-    for i in range(period, len(ohlcv)):
-        if adx_vals[i] is None or adx_vals[i] < threshold: continue
-        if plus_di[i] is None or minus_di[i] is None: continue
-        if plus_di[i] > minus_di[i] and plus_di[i] - minus_di[i] > 10:
+    for i in range(period + trend_period, len(ohlcv)):
+        if adx_vals[i] is None or plus_di[i] is None or minus_di[i] is None:
+            continue
+        if ma_vals[i] is None:
+            continue
+
+        price   = ohlcv[i]["close"]
+        trend   = ma_vals[i]
+        vol     = ohlcv[i]["volume"]
+        volume_confirmed = vol > avg_vol * vol_mult
+
+        # Trend filter: only trade in direction of MA
+        bull_market = price > trend
+        bear_market = price < trend
+
+        # ADX must confirm trend strength
+        if adx_vals[i] < threshold:
+            continue
+
+        di_gap = plus_di[i] - minus_di[i] if plus_di[i] > minus_di[i] else minus_di[i] - plus_di[i]
+
+        if (plus_di[i] > minus_di[i] and di_gap > di_cross and bull_market and volume_confirmed):
             signals[i] = "BUY"
-        elif minus_di[i] > plus_di[i] and minus_di[i] - plus_di[i] > 10:
+        elif (minus_di[i] > plus_di[i] and di_gap > di_cross and bear_market and volume_confirmed):
             signals[i] = "SELL"
-    atr_vals = calculate_atr(ohlcv)
+
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
@@ -168,7 +216,6 @@ def log_signal(signal: str, price: float, atr: float):
         try: entries = json.loads(log_file.read_text())
         except Exception: pass
     entries.append({"timestamp": ist_now().isoformat(), "symbol": SYMBOL, "strategy": STRATEGY, "signal": signal, "price": round(price, 4), "atr": round(atr, 4)})
-    entries[-500:]
     log_file.write_text(json.dumps(entries[-500:], indent=2))
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
@@ -184,7 +231,7 @@ def daily_loss_limit_hit() -> bool:
     return False
 
 def main():
-    log.info("=== Live Trading: %s | %s | Win Rate: 57.32%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading: %s | %s | Win Rate: 57.32%% -> Target 62%%+ (v2 enhanced) ===", SYMBOL, STRATEGY)
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST..."); time.sleep(30)
     if not is_market_open():
@@ -192,10 +239,10 @@ def main():
     if daily_loss_limit_hit():
         log.warning("Daily loss cap (0.3%%) hit – skipping trading today."); return
     log.info("Market is open. Fetching data...")
-    ohlcv = fetch_recent_data(days=90)
-    if not ohlcv or len(ohlcv) < 30:
+    ohlcv = fetch_recent_data(days=120)
+    if not ohlcv or len(ohlcv) < 60:
         log.error("Insufficient data for %s", SYMBOL); return
-    signal, price, atr = adx_trend_signal(ohlcv, PARAMS)
+    signal, price, atr = adx_trend_signal_v2(ohlcv, PARAMS)
     if signal == "BUY":
         stop_loss  = round(price * (1 - STOP_LOSS_PCT), 2)
         target_prc = round(price + TARGET_MULT * atr, 2)
@@ -215,6 +262,7 @@ def main():
         log.info("  ATR      : %.4f", atr)
         log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
+    log.info("  v2 ENH   : ADX(20) + DI-gap(8) + Vol(1.2x) + MA50 trend filter")
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log_signal(signal, price, atr)
     if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
