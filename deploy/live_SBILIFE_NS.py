@@ -150,6 +150,7 @@ def calculate_rsi(ohlcv: List[Dict], period: int = 14) -> List[float]:
             rsi_values.append(rsi)
     return rsi_values
 
+# RSI filter: BUY>RSI55, SELL<RSI45
 def generate_signal(ohlcv: List[Dict], rsi: List[float]) -> str:
     if len(ohlcv) < LOOKBACK + 1 or len(rsi) < LOOKBACK + 1:
         return "HOLD"
