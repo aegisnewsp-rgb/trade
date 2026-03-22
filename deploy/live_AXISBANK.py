@@ -37,21 +37,30 @@ POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {
+    "vwap_period": 14,
+    "atr_period": 14,
+    "atr_multiplier": 1.5,
+    "rsi_period": 14,
+    "rsi_overbought": 55,   # BUY only when RSI < 55
+    "rsi_oversold": 45,     # SELL only when RSI > 45
+    "volume_multiplier": 1.2,
+}
 
 # 3-TIER EXIT SYSTEM (enhancement)
-SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
-MAX_SL_PCT       = 0.015   # Hard cap: 1.5% max stop
+SL_ATR_MULT       = 1.0     # Stop loss: 1.0x ATR
+MAX_SL_PCT        = 0.015  # Hard cap: 1.5% max stop
+TRAIL_ATR_MULT    = 0.3    # Trailing stop: 0.3x ATR
 TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
 
-TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
-TARGET_2_MULT    = 3.0     # T2: 3.0x risk → exit 1/3
-TARGET_3_MULT    = 5.0     # T3: 5.0x risk → exit remaining
+TARGET_1_MULT     = 1.5     # T1: 1.5x risk → exit 1/3
+TARGET_2_MULT     = 3.0     # T2: 3.0x risk → exit 1/3
+TARGET_3_MULT     = 5.0     # T3: 5.0x risk → exit remaining
 
 # Entry window (banking stocks have specific liquidity patterns)
-BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
-BEST_ENTRY_END   = dtime(14, 30) # 2:30 PM IST
-NO_ENTRY_AFTER   = dtime(14, 30) # No new entries after 2:30 PM
+BEST_ENTRY_START  = dtime(9, 30)  # 9:30 AM IST
+BEST_ENTRY_END    = dtime(14, 30) # 2:30 PM IST
+NO_ENTRY_AFTER    = dtime(14, 30) # No new entries after 2:30 PM
 
 def can_new_entry() -> bool:
     """Only allow entries during best entry window."""
@@ -147,7 +156,30 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    if len(ohlcv) < period + 1:
+        return [None] * len(ohlcv)
+    gains, losses = [], []
+    for i in range(1, len(ohlcv)):
+        delta = ohlcv[i]["close"] - ohlcv[i - 1]["close"]
+        gains.append(max(delta, 0))
+        losses.append(max(-delta, 0))
+    rsi = [None] * (period + 1)
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        rs = avg_gain / avg_loss if avg_loss != 0 else 0
+        rsi.append(100 - (100 / (1 + rs)))
+    return rsi
+
+def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
+    if len(ohlcv) < period:
+        return 0
+    return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
+
+def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
     vwap_vals     = calculate_vwap(ohlcv, period)
