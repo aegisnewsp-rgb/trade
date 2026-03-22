@@ -35,11 +35,19 @@ TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {
     "vwap_period": 14, "atr_period": 14, "atr_multiplier": 1.5,
-    "rsi_period": 14, "rsi_overbought": 60, "rsi_oversold": 40,
+    "rsi_period": 14, "rsi_overbought": 55, "rsi_oversold": 45,
     "volume_multiplier": 1.2, "trend_ma_period": 50,
     "usd_inr_warning": 83.5,  # Block BUY if USD/INR above this
     "usd_inr_support": 82.0,  # Strong BUY signal if below
 }
+
+# Trailing stop: 0.3x ATR
+TRAIL_ATR_MULT    = 0.3    # Trailing stop: 0.3x ATR
+TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
+
+TARGET_1_MULT     = 1.5     # T1: 1.5x risk → exit 1/3
+TARGET_2_MULT     = 3.0     # T2: 3.0x risk → exit 1/3
+TARGET_3_MULT     = 5.0     # T3: 5.0x risk → exit remaining
 
 # 3-TIER EXIT SYSTEM (v3 enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
@@ -372,14 +380,26 @@ def main():
     # Get signal
     signal, price, atr, rsi = vwap_rsi_signal_v2(ohlcv_dict, PARAMS)
     filtered_signal = apply_it_sector_filters(signal, usd_inr, nasdaq_trend, PARAMS)
-    
+
     print(f"\nSignal: {filtered_signal} (raw: {signal})")
     print(f"Price:  Rs{price:.2f}")
     print(f"ATR:    Rs{atr:.2f}")
     print(f"RSI:    {rsi:.2f}")
     print(f"USD/INR: {usd_inr:.4f if usd_inr else 'N/A'}")
     print(f"NASDAQ: {nasdaq_trend}")
-    
+    print(f"Entry Window: {'YES' if can_new_entry() else 'NO'}")
+
+    risk = atr * 1.0
+    t1 = round(price + risk * TARGET_1_MULT, 2)
+    t2 = round(price + risk * TARGET_2_MULT, 2)
+    t3 = round(price + risk * TARGET_3_MULT, 2)
+    sl = round(price - risk * 1.0, 2)
+    print(f"SL:     Rs{sl:.2f}")
+    print(f"T1:     Rs{t1:.2f} (1.5x risk, exit 1/3)")
+    print(f"T2:     Rs{t2:.2f} (3.0x risk, exit 1/3)")
+    print(f"T3:     Rs{t3:.2f} (5.0x risk, exit remaining)")
+    print(f"Trail:  0.3x ATR trailing stop after 0.8% profit")
+
     if filtered_signal == "BUY":
         sl = round(price - atr * 1.0, 2)
         tgt = round(price + atr * 4.0, 2)
