@@ -7,6 +7,7 @@ Win Rate: N/A -> Target 60%+
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
+from typing import Optional
 import os
 import sys
 import json
