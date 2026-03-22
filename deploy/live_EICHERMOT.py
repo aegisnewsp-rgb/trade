@@ -389,4 +389,3 @@ def place_order(symbol, signal, quantity, price):
     return place_groww_order(symbol, signal, quantity, price)
 
 if __name__ == "__main__":
-    main()
