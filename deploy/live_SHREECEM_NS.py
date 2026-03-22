@@ -327,6 +327,7 @@ def calculate_adx(ohlcv: List[Dict], period: int = 14) -> Tuple[List[float], Lis
 
     return adx, plus_di, minus_di
 
+# RSI filter: BUY>RSI55, SELL<RSI45
 def generate_signal(ohlcv: List[Dict], tsi: List[float], signal_line: List[float],
                     sma_vals: List[float], ema_vals: List[float], rsi_vals: List[float],
                     vol_ma: List[float], atr_vals: List[float],
