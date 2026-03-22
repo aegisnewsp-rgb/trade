@@ -242,7 +242,7 @@ def groww_place_order(symbol: str, transaction: str, quantity: int, price: float
     }
     for attempt in range(3):
         try:
-            resp = requests.post(f"{GROWW_API_BASE}/v1/orders", headers=headers, json=payload, timeout=GROWW_TIMEOUT)
+            resp = requests.post(f"GROWW_API_BASE/v1/orders", headers=headers, json=payload, timeout=GROWW_TIMEOUT)
             if resp.status_code in (200, 201):
                 result = resp.json()
                 log.info("Order placed: %s", result)

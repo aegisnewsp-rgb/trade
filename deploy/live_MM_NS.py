@@ -136,7 +136,7 @@ def place_groww_order(action: str, quantity: int) -> dict:
     if not GROWW_API_KEY or not GROWW_API_SECRET:
         log.warning("Groww API credentials not configured")
         return {"status": "skipped", "reason": "no_credentials"}
-    headers = {"Authorization": f"Bearer {GROWW_API_KEY}"}
+    headers = {"Authorization": f"Bearer GROWW_API_KEY"}
     payload = {
         "symbol": SYMBOL,
         "action": action.upper(),
@@ -144,7 +144,7 @@ def place_groww_order(action: str, quantity: int) -> dict:
         "order_type": "MARKET"
     }
     try:
-        resp = requests.post(f"{GROWW_API_BASE}/orders", json=payload, headers=headers, timeout=10)
+        resp = requests.post(f"GROWW_API_BASE/orders", json=payload, headers=headers, timeout=10)
         return resp.json()
     except Exception as e:
         log.error("Groww order failed: %s", e)

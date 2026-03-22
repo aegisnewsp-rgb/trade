@@ -28,9 +28,9 @@ TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
 
-{GROWW_API_KEY}    = os.getenv("{GROWW_API_KEY}")
-{GROWW_API_SECRET} = os.getenv("{GROWW_API_SECRET}")
-{GROWW_API_BASE}   = "https://api.groww.in/v1"
+GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
+GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
+GROWW_API_BASE   = "https://api.groww.in/v1"
 IST_TZ_OFFSET    = 5.5
 
 def ist_now() -> datetime:
@@ -98,11 +98,11 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
             atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0)
 
 def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
-    if not {GROWW_API_KEY} or not {GROWW_API_SECRET}: return None
-    url = f"{GROWW_API_BASE}/orders"
+    if not GROWW_API_KEY or not GROWW_API_SECRET: return None
+    url = f"GROWW_API_BASE/orders"
     payload = {"symbol": symbol, "exchange": EXCHANGE, "transaction": "BUY" if signal == "BUY" else "SELL",
                 "quantity": quantity, "price": round(price, 2), "order_type": "LIMIT", "product": "CNC"}
-    headers = {"Authorization": f"Bearer {GROWW_API_KEY}", "X-Api-Secret": "{GROWW_API_SECRET}", "Content-Type": "application/json"}
+    headers = {"Authorization": f"Bearer GROWW_API_KEY", "X-Api-Secret": "GROWW_API_SECRET", "Content-Type": "application/json"}
     for attempt in range(3):
         try:
             resp = requests.post(url, json=payload, headers=headers, timeout=10)
@@ -160,7 +160,7 @@ def main():
         log.info("  TARGET   : Rs.%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log_signal(signal, price, atr)
-    if signal != "HOLD" and {GROWW_API_KEY} and {GROWW_API_SECRET}:
+    if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
         result = place_groww_order(SYMBOL, signal, quantity, price)
         if result: log.info("✓ Order executed via Groww: %s", result)
         else: log.warning("⚠ Groww order could not be placed - signal still printed/logged.")

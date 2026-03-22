@@ -168,7 +168,7 @@ def groww_place_order(symbol: str, transaction_type: str, quantity: int, price: 
     try:
         headers = {"Content-Type": "application/json", "X-Api-Key": GROWW_API_KEY, "X-Secret-Key": GROWW_API_SECRET}
         payload = {"symbol": symbol, "transaction_type": transaction_type, "quantity": quantity, "price": price, "order_type": "LIMIT"}
-        response = requests.post(f"{GROWW_API_BASE}/v1/orders", headers=headers, json=payload, timeout=GROWW_API_TIMEOUT)
+        response = requests.post(f"GROWW_API_BASE/v1/orders", headers=headers, json=payload, timeout=GROWW_API_TIMEOUT)
         if response.status_code == 200:
             result = response.json()
             logger.info(f"Order placed successfully: {result}")

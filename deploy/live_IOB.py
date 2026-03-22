@@ -115,8 +115,8 @@ def get_groww_quote() -> dict | None:
     for attempt in range(3):
         try:
             resp = requests.get(
-                f"{GROWW_API_BASE}/live/quotes/{SYMBOL}",
-                headers={"Authorization": f"Bearer {GROWW_API_KEY}"},
+                f"GROWW_API_BASE/live/quotes/{SYMBOL}",
+                headers={"Authorization": f"Bearer GROWW_API_KEY"},
                 timeout=GROWW_TIMEOUT
             )
             if resp.status_code == 200:

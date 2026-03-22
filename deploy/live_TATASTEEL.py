@@ -361,7 +361,7 @@ def vwap_enhanced_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
 def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
     if not GROWW_API_KEY or not GROWW_API_SECRET:
         return None
-    url = f"{GROWW_API_BASE}/orders"
+    url = f"GROWW_API_BASE/orders"
     payload = {
         "symbol":      symbol,
         "exchange":    "NSE",
@@ -372,7 +372,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
         "product":     "CNC",
     }
     headers = {
-        "Authorization": f"Bearer {GROWW_API_KEY}",
+        "Authorization": f"Bearer GROWW_API_KEY",
         "X-Api-Secret":  GROWW_API_SECRET,
         "Content-Type":  "application/json",
     }
