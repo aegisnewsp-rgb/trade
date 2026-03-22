@@ -254,9 +254,11 @@ def scan_all_stocks(manifest: dict, top_n: int = 5, min_confidence: float = 0.0)
         )
         
         # Determine signal
-        if confidence > BUY_THRESHOLD:
+        buy_thresh = min_confidence
+        sell_thresh = min_confidence * 0.40 / 0.65
+        if confidence > buy_thresh:
             signal = "BUY"
-        elif confidence < SELL_THRESHOLD:
+        elif confidence < sell_thresh:
             signal = "SELL"
         else:
             signal = "HOLD"
@@ -367,10 +369,6 @@ def main():
     print(f"Total stocks in manifest: {manifest.get('total_stocks', 0)}")
     print(f"Benchmark verified: {manifest.get('stocks_with_benchmark_data', 0)}")
     print(f"Using default params: {manifest.get('stocks_using_default', 0)}")
-    
-    # Global threshold adjustment
-    global BUY_THRESHOLD
-    BUY_THRESHOLD = args.min_confidence
     
     # Scan all stocks
     print("\nScanning all stocks...")
