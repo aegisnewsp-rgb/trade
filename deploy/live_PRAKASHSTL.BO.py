@@ -56,7 +56,7 @@ POSITION       = 7000
 TARGET_1_MULT = 1.5
 TARGET_2_MULT = 3.0
 TARGET_3_MULT = 5.0
-STOP_LOSS_PCT  = 0.008
+STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
@@ -326,8 +326,8 @@ def apply_filters(
     # 4. RSI MOMENTUM FILTER
     if 35:
         rsi = calculate_rsi(ohlcv, 65)
-        oversold = True
-        overbought = True
+        oversold = 40
+        overbought = 60
         
         if base_signal == "BUY" and rsi >= oversold:
             filter_info["rsi_passed"] = True

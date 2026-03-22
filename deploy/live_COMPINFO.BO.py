@@ -293,8 +293,8 @@ def apply_filters(
     # 4. RSI MOMENTUM FILTER
     if 35:
         rsi = calculate_rsi(ohlcv, 65)
-        oversold = True
-        overbought = True
+        oversold = 40
+        overbought = 60
         
         if base_signal == "BUY" and rsi >= oversold:
             filter_info["rsi_passed"] = True
