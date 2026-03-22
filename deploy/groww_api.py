@@ -151,8 +151,23 @@ def place_limit(exchange, symbol, transaction, quantity, price, product="INTRADA
 
 
 def paper_trade(signal, symbol, price, quantity):
-    """Paper trade - logs instead of placing"""
-    print("[PAPER] {} {} {} @ Rs{:.2f}".format(signal, quantity, symbol, price))
+    """Paper trade - emit to signal queue for orchestrator, also print"""
+    # Emit to signal queue
+    try:
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).parent))
+        from signals.schema import emit_signal
+        emit_signal(
+            symbol=symbol, signal=signal, price=price,
+            quantity=quantity, strategy="PAPER_MODE",
+            atr=price * 0.008,
+            metadata={"mode": "paper_trade"}
+        )
+    except ImportError:
+        pass  # signals.schema not available yet
+    
+    print("[PAPER] {} {}x {} @ Rs{:.2f}".format(signal, quantity, symbol, price))
     return {"orderId": "PAPER_{}".format(int(time.time())), "status": "PAPER_MODE"}
 
 

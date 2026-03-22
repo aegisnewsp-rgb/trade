@@ -103,8 +103,8 @@ If not set, scripts run in **paper mode** (signals logged but no orders placed).
 
 | Symbol | Script | Strategy | Win Rate | Status |
 |---|---|---|---|---|
-| HEROMOTOCO | `live_HEROMOTOCO.py` | VWAP_RSI_MACD_VOL_v4 | **55.00%** | ⚠ v4: ATR×2.0, vol×1.5, RSI confirm |
-| WIPRO | `live_WIPRO.py` | VWAP_RSI_MACD_VOL_v4 | **52.17%** | ⚠ v4: ATR×2.0, vol×1.5, RSI confirm |
+| WIPRO | `live_WIPRO.py` | VWAP_RSI_MACD_VOL_v5 | **52.17%** | ⚠ v5: ATR×2.5, vol×2.0, RSI 30/70, MACD sig×12 |
+| HEROMOTOCO | `live_HEROMOTOCO.py` | VWAP_RSI_MACD_VOL_v5 | **55.00%** | ⚠ v5: ATR×2.5, vol×2.0, RSI 30/70, MACD sig×12 |
 
 ### Unbenchmarked / New Scripts (83 scripts)
 
@@ -223,8 +223,8 @@ If not set, scripts run in **paper mode** (signals logged but no orders placed).
 
 | Script | Change | Target |
 |---|---|---|
-| `live_WIPRO.py` | v4: ATR×2.0 (was 1.5), vol×1.5 (was 1.2), RSI confirm 35/65 (was 40/60) | 60%+ |
-| `live_HEROMOTOCO.py` | v4: ATR×2.0 (was 1.5), vol×1.5 (was 1.2), RSI confirm 35/65 | 60%+ |
+| `live_WIPRO.py` | v5: ATR×2.5 (was 2.0), vol×2.0 (was 1.5), RSI 30/70 (was 35/65), MACD sig×12 (was 9) | 60%+ |
+| `live_HEROMOTOCO.py` | v5: ATR×2.5 (was 2.0), vol×2.0 (was 1.5), RSI 30/70 (was 35/65), MACD sig×12 (was 9) | 60%+ |
 | `live_DABUR.py` | v2: ADX 25→20, DI gap 10→8, vol×1.2, MA50 filter | 62%+ |
 
 ## Risk Guardrails (All Scripts)
@@ -240,4 +240,5 @@ If not set, scripts run in **paper mode** (signals logged but no orders placed).
 - Groww API credentials **NOT configured** — all scripts run in paper mode.
 - Scripts with `N/A` win rate are newer/untested — monitor closely before going live.
 - 83 new scripts added to this README (were missing from prior version).
-- All 155 scripts pass `py_compile` successfully (2026-03-22 18:19 UTC).
+- All 470 scripts pass `py_compile` successfully (2026-03-22 19:35 UTC).
+- ⚠ gen_new_scripts.py was accidentally concatenated into each live_*.py file (fixed 2026-03-22 19:35 UTC).
