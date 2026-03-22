@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - SANGAM.BO
+Live Trading Script - SANGHI.BO
 Strategy: VWAP (Volume Weighted Average Price)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x ATR | Daily Loss Cap: 0.3%
 """
@@ -16,13 +16,13 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_SANGAM.log"),
+        logging.FileHandler(LOG_DIR / "live_SANGHI.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_SANGAM")
+log = logging.getLogger("live_SANGHI")
 
-SYMBOL         = "SANGAM.BO"
+SYMBOL         = "SANGHI.BO"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
@@ -119,7 +119,7 @@ def place_groww_order(symbol, signal, quantity, price):
     log.error("Groww order failed after 3 retries for %s", symbol); return None
 
 def log_signal(signal, price, atr):
-    log_file = LOG_DIR / "signals_SANGAM.json"
+    log_file = LOG_DIR / "signals_SANGHI.json"
     entries = []
     if log_file.exists():
         try: entries = json.loads(log_file.read_text())
@@ -131,7 +131,7 @@ def log_signal(signal, price, atr):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit():
-    cap_file = LOG_DIR / "daily_pnl_SANGAM.json"
+    cap_file = LOG_DIR / "daily_pnl_SANGHI.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
