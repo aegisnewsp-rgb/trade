@@ -33,16 +33,16 @@ TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS = {
     "vwap_period": 20,
-    "atr_multiplier": 2.0,       # v4: tightened from 1.5 for stronger signals
+    "atr_multiplier": 2.5,       # v5: tightened from 2.0 for stronger signals
     "rsi_period": 14,
     "rsi_oversold": 40,
     "rsi_overbought": 60,
-    "rsi_confirm_oversold": 35,   # deep oversold for stronger buy
-    "rsi_confirm_overbought": 65, # deep overbought for stronger sell
+    "rsi_confirm_oversold": 30,   # v5: deep oversold for stronger buy (was 35)
+    "rsi_confirm_overbought": 70,  # v5: deep overbought for stronger sell (was 65)
     "macd_fast": 12,
     "macd_slow": 26,
-    "macd_signal": 9,
-    "volume_multiplier": 1.5,    # v4: tightened from 1.2
+    "macd_signal": 12,           # v5: slower signal for fewer false positives
+    "volume_multiplier": 2.0,     # v5: tightened from 1.5 for volume confirmation
     "trend_ma_period": 50,
     "atr_period": 14,
 }
@@ -204,12 +204,12 @@ def vwap_signal_v3(ohlcv: list, params: dict) -> tuple[str, float, float]:
         macd_bullish = macd_h > 0 and macd_h > sig_h
         macd_bearish = macd_h < 0 and macd_h < sig_h
 
-        # BUY: price above VWAP by atr_mult ATRs, RSI not overbought, bullish MACD, volume confirmed, bull market
-        if (price > v + a * atr_mult and r < rsi_overbought and macd_bullish
+        # BUY: price above VWAP by atr_mult ATRs, RSI deep oversold confirm, bullish MACD, volume confirmed, bull market
+        if (price > v + a * atr_mult and r < rsi_confirm_overbought and macd_bullish
                 and volume_confirmed and bull_market):
             signals[i] = "BUY"
-        # SELL: price below VWAP by atr_mult ATRs, RSI not oversold, bearish MACD, volume confirmed, bear market
-        elif (price < v - a * atr_mult and r > rsi_oversold and macd_bearish
+        # SELL: price below VWAP by atr_mult ATRs, RSI deep overbought confirm, bearish MACD, volume confirmed, bear market
+        elif (price < v - a * atr_mult and r > rsi_confirm_oversold and macd_bearish
                 and volume_confirmed and bear_market):
             signals[i] = "SELL"
 
