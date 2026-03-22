@@ -297,7 +297,7 @@ def place_groww_order(symbol, signal, quantity, price):
         return groww_api.paper_trade(signal, symbol, price, quantity)
     
     exchange = "NSE"
-    atr = price * 0.008
+    # Use real ATR from calculate_atr()
     
     if signal == "BUY":
         stop_loss = price - (atr * 1.0)
