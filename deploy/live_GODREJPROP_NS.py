@@ -33,6 +33,11 @@ BENCHMARK_WIN_RATE = 0.6316
 POSITION_SIZE = 7000
 DAILY_LOSS_CAP = 0.003
 MAX_TRADES_PER_DAY = 1
+
+# 3-TIER EXIT SYSTEM
+TARGET_1_MULT = 1.5
+TARGET_2_MULT = 3.0
+TARGET_3_MULT = 5.0
 STOP_LOSS_ATR_MULT = 0.8
 TARGET_ATR_MULT = 4.0
 
@@ -175,7 +180,9 @@ def calculate_rsi(ohlcv: List[Dict], period: int = 14) -> List[float]:
     return rsi_values
 
 # RSI filter: BUY>RSI55, SELL<RSI45
-def generate_signal(ohlcv: List[Dict], vwap: List[float], atr: List[float], rsi: List[float]) -> tuple[str, float, float, float]:
+# Regime filter: skip DOWNTREND
+def get_regime
+def get_signal(ohlcv: List[Dict], vwap: List[float], atr: List[float], rsi: List[float]) -> tuple[str, float, float, float]:
     """VWAP + RSI signal generation."""
     if len(ohlcv) < VWAP_PERIOD or len(vwap) < VWAP_PERIOD or len(atr) < VWAP_PERIOD:
         return "HOLD", ohlcv[-1]["close"], 0.0, 50.0

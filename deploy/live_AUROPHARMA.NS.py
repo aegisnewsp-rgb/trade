@@ -38,7 +38,11 @@ POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5, "volume_ma_period": 20, "volume_mult": 1.2, "rsi_period": 14}
+
+# ENHANCED: RSI 55/45 filter
+ENTRY_RSI_MIN    = 55      # RSI must be above 55 for BUY
+ENTRY_RSI_MAX    = 45      # RSI must be below 45 for SELL
 
 # 3-TIER EXIT SYSTEM (enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
@@ -48,6 +52,7 @@ TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
 TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
 TARGET_2_MULT    = 3.0     # T2: 3.0x risk → exit 1/3
 TARGET_3_MULT    = 5.0     # T3: 5.0x risk → exit remaining
+TRAIL_ATR_MULT   = 0.3     # Trailing ATR multiplier
 
 # Entry window (pharma stocks have specific volume patterns)
 BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
@@ -148,12 +153,47 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
+def calculate_volume_ma(ohlcv: list, period: int = 20) -> list:
+    vol_ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            vol_ma.append(None)
+        else:
+            vol_ma.append(sum(ohlcv[j]["volume"] for j in range(i - period + 1, i + 1)) / period)
+    return vol_ma
+
+def calculate_rsi(prices: list, period: int = 14) -> list:
+    """Calculate RSI for trend confirmation."""
+    deltas = [prices[i] - prices[i-1] for i in range(1, len(prices))]
+    gains = [d if d > 0 else 0 for d in deltas]
+    losses = [-d if d < 0 else 0 for d in deltas]
+    rsi = [None] * len(prices)
+    if len(gains) < period:
+        return rsi
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(prices)):
+        if i == period:
+            rs = avg_gain / avg_loss if avg_loss > 0 else 100
+        else:
+            avg_gain = (avg_gain * (period - 1) + gains[i-1]) / period
+            avg_loss = (avg_loss * (period - 1) + losses[i-1]) / period
+            rs = avg_gain / avg_loss if avg_loss > 0 else 100
+        rsi[i] = 100 - (100 / (1 + rs))
+    return rsi
+
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period        = params["vwap_period"]
-    atr_mult      = params["atr_multiplier"]
-    vwap_vals     = calculate_vwap(ohlcv, period)
-    atr_vals      = calculate_atr(ohlcv, period)
-    signals       = ["HOLD"] * len(ohlcv)
+    period      = params["vwap_period"]
+    atr_mult    = params["atr_multiplier"]
+    vol_ma_per  = params.get("volume_ma_period", 20)
+    vol_mult    = params.get("volume_mult", 1.2)
+    rsi_period  = params.get("rsi_period", 14)
+    vwap_vals   = calculate_vwap(ohlcv, period)
+    atr_vals    = calculate_atr(ohlcv, period)
+    closes      = [b["close"] for b in ohlcv]
+    rsi_vals    = calculate_rsi(closes, rsi_period)
+    vol_ma      = calculate_volume_ma(ohlcv, vol_ma_per)
+    signals     = ["HOLD"] * len(ohlcv)
 
     for i in range(period, len(ohlcv)):
         if vwap_vals[i] is None or atr_vals[i] is None:
@@ -161,9 +201,15 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         price    = ohlcv[i]["close"]
         v        = vwap_vals[i]
         a        = atr_vals[i]
-        if price > v + a * atr_mult:
+        rsi      = rsi_vals[i] if rsi_vals[i] is not None else 50
+        current_rsi = rsi
+        
+        # ENHANCED: Volume confirmation + RSI 55/45 filter
+        if vol_ma[i] is not None and ohlcv[i]["volume"] < vol_ma[i] * vol_mult:
+            continue
+        if price < v - a * atr_mult and current_rsi > ENTRY_RSI_MAX:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult:
+        elif price > v + a * atr_mult and current_rsi < ENTRY_RSI_MIN:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"

@@ -42,6 +42,7 @@ PARAMS         = {"ma_period": 15, "envelope_pct": 0.015, "atr_multiplier": 1.5,
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
 MAX_SL_PCT       = 0.015   # Hard cap: 1.5% max stop
 TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
+TRAIL_ATR_MULT     = 0.3   # Trailing ATR multiplier
 
 TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
 TARGET_2_MULT    = 3.0     # T2: 3.0x risk → exit 1/3

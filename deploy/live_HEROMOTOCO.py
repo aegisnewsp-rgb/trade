@@ -311,7 +311,8 @@ def place_groww_order(symbol, signal, quantity, price, atr=0.0):
     
     exchange = "NSE"
     if atr <= 0:
-        atr = price * 0.008
+        # Use real ATR from calculate_atr()
+        pass
     
     if signal == "BUY":
         stop_loss = price - (atr * 1.0) if atr > 0 else price * 0.992

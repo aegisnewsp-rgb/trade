@@ -6,14 +6,14 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 **⚠️ NOTE:** The `live_*.py` files are gitignored (too many for GitHub). They are local-only.
 
 ## Scripts
-- **0 live trading scripts** covering various NSE/BSE stocks
+- **471 live trading scripts** covering various NSE/BSE stocks
 - Each script implements a specific strategy (TSI, VWAP, ADX_TREND, etc.)
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked:** 2026-03-22 20:56:01 UTC
-- **All 0 scripts:** ❌ 1 failures
-- **Iteration:** #6
+- **Last checked:** 2026-03-22 21:08:xx UTC
+- **All 471 scripts:** ✅ PASS (1 fix: live_HEROMOTOCO.py indentation)
+- **Iteration:** #7
 
 ## Enhancement Notes
 Low win-rate scripts (benchmark data from manifest):

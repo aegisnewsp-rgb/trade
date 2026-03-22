@@ -35,6 +35,11 @@ BENCHMARK_WIN_RATE = 0.6013
 POSITION_SIZE = 7000
 DAILY_LOSS_CAP = 0.003
 MAX_TRADES_PER_DAY = 1
+
+# 3-TIER EXIT SYSTEM
+TARGET_1_MULT = 1.5
+TARGET_2_MULT = 3.0
+TARGET_3_MULT = 5.0
 STOP_LOSS_ATR_MULT = 0.8
 TARGET_ATR_MULT = 4.0
 
@@ -168,7 +173,9 @@ def calculate_atr_based_position_size(entry_price: float, atr: float, capital: f
     }
 
 # RSI filter: BUY>RSI55, SELL<RSI45
-def generate_signal(ohlcv: List[Dict], macd_line: List[float], signal_line: List[float]) -> str:
+# Regime filter: skip DOWNTREND
+def get_regime
+def get_signal(ohlcv: List[Dict], macd_line: List[float], signal_line: List[float]) -> str:
     if len(ohlcv) < max(MACD_FAST, MACD_SLOW, MACD_SIGNAL) + 1:
         return "HOLD"
     i = -1

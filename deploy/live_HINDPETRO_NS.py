@@ -36,6 +36,11 @@ BENCHMARK_WIN_RATE = 0.5938
 POSITION_SIZE = 7000
 DAILY_LOSS_CAP = 0.003
 MAX_TRADES_PER_DAY = 1
+
+# 3-TIER EXIT SYSTEM
+TARGET_1_MULT = 1.5
+TARGET_2_MULT = 3.0
+TARGET_3_MULT = 5.0
 STOP_LOSS_ATR_MULT = 0.5
 TARGET_ATR_MULT = 4.0
 
@@ -164,7 +169,9 @@ def find_swing_levels(ohlcv: List[Dict], period: int = 50) -> Tuple[float, float
     swing_low = min(bar["low"] for bar in window)
     return swing_high, swing_low, swing_high - swing_low
 
-def generate_signal(ohlcv: List[Dict], atr: List[float], rsi: List[float]) -> str:
+# Regime filter: skip DOWNTREND
+def get_regime
+def get_signal(ohlcv: List[Dict], atr: List[float], rsi: List[float]) -> str:
     if len(ohlcv) < FIB_PERIOD:
         return "HOLD"
     swing_high, swing_low, range_size = find_swing_levels(ohlcv, FIB_PERIOD)

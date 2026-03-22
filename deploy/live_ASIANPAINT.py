@@ -32,10 +32,15 @@ STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 # ENHANCED: Faster VWAP (14→10), tighter ATR (1.5→1.25), added RSI confirmation
-PARAMS         = {"vwap_period": 10, "atr_multiplier": 1.25, "rsi_period": 14, "rsi_threshold": 50}
+PARAMS         = {"vwap_period": 10, "atr_multiplier": 1.25, "rsi_period": 14, "rsi_threshold": 50, "volume_ma_period": 20, "volume_mult": 1.2}
+
+# ENHANCED: RSI 55/45 filter
+ENTRY_RSI_MIN    = 55      # RSI must be above 55 for BUY
+ENTRY_RSI_MAX    = 45      # RSI must be below 45 for SELL
 
 # 3-TIER EXIT SYSTEM (v3 enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
+TRAIL_ATR_MULT   = 0.3     # Trailing ATR multiplier
 MAX_SL_PCT       = 0.015   # Hard cap: 1.5% max stop
 TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
 
@@ -143,16 +148,28 @@ def calculate_rsi(prices: list, period: int = 14) -> list:
         rsi[i] = 100 - (100 / (1 + rs))
     return rsi
 
+def calculate_volume_ma(ohlcv: list, period: int = 20) -> list:
+    vol_ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            vol_ma.append(None)
+        else:
+            vol_ma.append(sum(ohlcv[j]["volume"] for j in range(i - period + 1, i + 1)) / period)
+    return vol_ma
+
 def vwap_rsi_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period    = params["vwap_period"]
-    atr_mult  = params["atr_multiplier"]
+    period     = params["vwap_period"]
+    atr_mult   = params["atr_multiplier"]
     rsi_period = params["rsi_period"]
     rsi_thresh = params["rsi_threshold"]
+    vol_ma_per = params.get("volume_ma_period", 20)
+    vol_mult   = params.get("volume_mult", 1.2)
     
     vwap_vals = calculate_vwap(ohlcv, period)
     atr_vals  = calculate_atr(ohlcv, period)
     closes    = [b["close"] for b in ohlcv]
     rsi_vals  = calculate_rsi(closes, rsi_period)
+    vol_ma    = calculate_volume_ma(ohlcv, vol_ma_per)
     
     signals   = ["HOLD"] * len(ohlcv)
     for i in range(period, len(ohlcv)):
@@ -162,7 +179,9 @@ def vwap_rsi_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         v, a  = vwap_vals[i], atr_vals[i]
         rsi   = rsi_vals[i]
         
-        # ENHANCED: RSI confirmation - BUY only when RSI > 50, SELL only when RSI < 50
+        # ENHANCED: Volume confirmation + RSI 55/45 filter
+        if vol_ma[i] is not None and ohlcv[i]["volume"] < vol_ma[i] * vol_mult:
+            continue
         if price > v + a * atr_mult and rsi > rsi_thresh:
             signals[i] = "BUY"
         elif price < v - a * atr_mult and rsi < rsi_thresh:

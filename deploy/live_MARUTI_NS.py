@@ -213,7 +213,9 @@ def calculate_vwap(ohlcv: List[Dict], period: int = 14) -> List[float]:
     return vwap
 
 # RSI filter: BUY>RSI55, SELL<RSI45
-def generate_signal(ohlcv: List[Dict], vwap: List[float], atr: List[float], 
+# Regime filter: skip DOWNTREND
+def get_regime
+def get_signal(ohlcv: List[Dict], vwap: List[float], atr: List[float], 
                     fuel_price: Optional[float], auto_trend: Optional[str]) -> str:
     if len(ohlcv) < VWAP_PERIOD or len(vwap) < VWAP_PERIOD or len(atr) < VWAP_PERIOD:
         return "HOLD"
