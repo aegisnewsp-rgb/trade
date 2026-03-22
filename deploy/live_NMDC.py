@@ -2,8 +2,9 @@
 """
 Live Trading Script - NMDC.NS
 Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: 63.64%
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Enhanced: MEAN_REVERSION mode (inverted signals for low win-rate stock)
+Win Rate: 63.64% → Target: 70%+
+Position: ₹7000 | Stop Loss: 0.6% | Target: 2.5x | Daily Loss Cap: 0.3%
 """
 
 import os
@@ -34,11 +35,12 @@ log = logging.getLogger("live_NMDC")
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "NMDC.NS"
 STRATEGY       = "VWAP"
+SIGNAL_MODE   = "MEAN_REVERSION"  # ENHANCED: inverting signals for low win-rate stock
 POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
-TARGET_MULT    = 4.0
+STOP_LOSS_PCT  = 0.006
+TARGET_MULT    = 2.5
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.0}
 
 # 3-TIER EXIT SYSTEM (enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
@@ -151,6 +153,7 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
+    signal_mode   = globals().get("SIGNAL_MODE", "BREAKOUT")
     vwap_vals     = calculate_vwap(ohlcv, period)
     atr_vals      = calculate_atr(ohlcv, period)
     signals       = ["HOLD"] * len(ohlcv)
@@ -161,10 +164,17 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         price    = ohlcv[i]["close"]
         v        = vwap_vals[i]
         a        = atr_vals[i]
-        if price > v + a * atr_mult:
-            signals[i] = "BUY"
-        elif price < v - a * atr_mult:
-            signals[i] = "SELL"
+        if signal_mode == "MEAN_REVERSION":
+            # Inverted: BUY at support (below VWAP), SELL at resistance (above VWAP)
+            if price < v - a * atr_mult:
+                signals[i] = "BUY"
+            elif price > v + a * atr_mult:
+                signals[i] = "SELL"
+        else:
+            if price > v + a * atr_mult:
+                signals[i] = "BUY"
+            elif price < v - a * atr_mult:
+                signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
