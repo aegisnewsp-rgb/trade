@@ -1,0 +1,1177 @@
+{
+  "batch": "C",
+  "strategy": "GROWW",
+  "period": "6mo",
+  "position_size": 10000,
+  "stocks": {
+    "KOTAKBANK": {
+      "trades": [
+        {
+          "entry_date": 22,
+          "entry_price": 445.1199951171875,
+          "exit_price": 441.55903515625,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 8.1877
+        },
+        {
+          "entry_date": 26,
+          "entry_price": 432.1600036621094,
+          "exit_price": 428.7027236328125,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 7.8957
+        },
+        {
+          "entry_date": 45,
+          "entry_price": 417.55999755859375,
+          "exit_price": 420.9004775390625,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 6.4987
+        },
+        {
+          "entry_date": 61,
+          "entry_price": 436.0400085449219,
+          "exit_price": 432.5516884765625,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 6.3005
+        },
+        {
+          "entry_date": 81,
+          "entry_price": 418.20001220703125,
+          "exit_price": 421.5456123046875,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 7.2381
+        },
+        {
+          "entry_date": 84,
+          "entry_price": 421.6000061035156,
+          "exit_price": 424.97280615234376,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 7.6009
+        },
+        {
+          "entry_date": 87,
+          "entry_price": 408.70001220703125,
+          "exit_price": 411.96961230468753,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 8.708
+        },
+        {
+          "entry_date": 91,
+          "entry_price": 412.3999938964844,
+          "exit_price": 415.69919384765626,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 8.9274
+        },
+        {
+          "entry_date": 94,
+          "entry_price": 408.75,
+          "exit_price": 412.02,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 9.4326
+        },
+        {
+          "entry_date": 112,
+          "entry_price": 403.3500061035156,
+          "exit_price": 406.57680615234375,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 8.5283
+        },
+        {
+          "entry_date": 114,
+          "entry_price": 399.79998779296875,
+          "exit_price": 387.00638818359374,
+          "exit_reason": "TGT",
+          "side": "SHORT",
+          "pnl": 320.0,
+          "atr": 8.954
+        },
+        {
+          "entry_date": 117,
+          "entry_price": 391.8500061035156,
+          "exit_price": 379.3108059082031,
+          "exit_reason": "TGT",
+          "side": "SHORT",
+          "pnl": 320.0,
+          "atr": 9.0985
+        },
+        {
+          "entry_date": 119,
+          "entry_price": 366.8500061035156,
+          "exit_price": 369.7848061523438,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 9.2987
+        }
+      ],
+      "num_trades": 13,
+      "wins": 2,
+      "losses": 11,
+      "win_rate": 15.38,
+      "total_pnl": -240.0,
+      "max_drawdown": 800.0
+    },
+    "AXISBANK": {
+      "trades": [
+        {
+          "entry_date": 22,
+          "entry_price": 1258.800048828125,
+          "exit_price": 1248.7296484375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 26.1384
+        },
+        {
+          "entry_date": 41,
+          "entry_price": 1265.4000244140625,
+          "exit_price": 1275.800048828125,
+          "exit_reason": "TSL",
+          "side": "LONG",
+          "pnl": 82.19,
+          "atr": 19.9945
+        },
+        {
+          "entry_date": 46,
+          "entry_price": 1269.0,
+          "exit_price": 1279.699951171875,
+          "exit_reason": "TSL",
+          "side": "LONG",
+          "pnl": 84.32,
+          "atr": 19.9949
+        },
+        {
+          "entry_date": 52,
+          "entry_price": 1258.0,
+          "exit_price": 1273.800048828125,
+          "exit_reason": "TSL",
+          "side": "LONG",
+          "pnl": 125.6,
+          "atr": 19.9199
+        },
+        {
+          "entry_date": 75,
+          "entry_price": 1293.800048828125,
+          "exit_price": 1283.4496484375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 18.9771
+        },
+        {
+          "entry_date": 77,
+          "entry_price": 1274.199951171875,
+          "exit_price": 1264.0063515625,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 19.0389
+        },
+        {
+          "entry_date": 83,
+          "entry_price": 1298.800048828125,
+          "exit_price": 1288.4096484375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 21.7498
+        },
+        {
+          "entry_date": 85,
+          "entry_price": 1294.800048828125,
+          "exit_price": 1284.4416484375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 23.5572
+        },
+        {
+          "entry_date": 88,
+          "entry_price": 1319.800048828125,
+          "exit_price": 1362.033650390625,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 31.7764
+        },
+        {
+          "entry_date": 90,
+          "entry_price": 1370.4000244140625,
+          "exit_price": 1359.43682421875,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 33.9914
+        },
+        {
+          "entry_date": 92,
+          "entry_price": 1356.199951171875,
+          "exit_price": 1345.3503515625,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 38.7711
+        },
+        {
+          "entry_date": 109,
+          "entry_price": 1395.5,
+          "exit_price": 1384.336,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 26.719
+        },
+        {
+          "entry_date": 119,
+          "entry_price": 1234.5,
+          "exit_price": 1214.699951171875,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": 160.39,
+          "atr": 33.4234
+        }
+      ],
+      "num_trades": 13,
+      "wins": 5,
+      "losses": 8,
+      "win_rate": 38.46,
+      "total_pnl": 132.5,
+      "max_drawdown": 320.0
+    },
+    "ICICIBANK": {
+      "trades": [
+        {
+          "entry_date": 21,
+          "entry_price": 1390.300048828125,
+          "exit_price": 1379.1776484375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 20.8029
+        },
+        {
+          "entry_date": 31,
+          "entry_price": 1345.300048828125,
+          "exit_price": 1343.0,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": 17.1,
+          "atr": 19.3447
+        },
+        {
+          "entry_date": 36,
+          "entry_price": 1385.9000244140625,
+          "exit_price": 1374.81282421875,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 19.2601
+        },
+        {
+          "entry_date": 48,
+          "entry_price": 1392.199951171875,
+          "exit_price": 1381.0623515625,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 17.5139
+        },
+        {
+          "entry_date": 62,
+          "entry_price": 1354.0999755859375,
+          "exit_price": 1364.932775390625,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 16.6965
+        },
+        {
+          "entry_date": 70,
+          "entry_price": 1342.5,
+          "exit_price": 1353.24,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 15.0782
+        },
+        {
+          "entry_date": 75,
+          "entry_price": 1411.199951171875,
+          "exit_price": 1404.300048828125,
+          "exit_reason": "TSL",
+          "side": "LONG",
+          "pnl": -48.89,
+          "atr": 19.577
+        },
+        {
+          "entry_date": 78,
+          "entry_price": 1437.0,
+          "exit_price": 1425.504,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 21.7899
+        },
+        {
+          "entry_date": 81,
+          "entry_price": 1410.800048828125,
+          "exit_price": 1399.5136484375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 22.985
+        },
+        {
+          "entry_date": 88,
+          "entry_price": 1361.4000244140625,
+          "exit_price": 1372.291224609375,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 24.5289
+        },
+        {
+          "entry_date": 91,
+          "entry_price": 1355.0,
+          "exit_price": 1365.84,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 27.8151
+        },
+        {
+          "entry_date": 99,
+          "entry_price": 1430.0,
+          "exit_price": 1418.56,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 24.7034
+        },
+        {
+          "entry_date": 113,
+          "entry_price": 1365.4000244140625,
+          "exit_price": 1321.7072236328124,
+          "exit_reason": "TGT",
+          "side": "SHORT",
+          "pnl": 320.0,
+          "atr": 25.9311
+        },
+        {
+          "entry_date": 117,
+          "entry_price": 1311.9000244140625,
+          "exit_price": 1269.9192236328124,
+          "exit_reason": "TGT",
+          "side": "SHORT",
+          "pnl": 320.0,
+          "atr": 29.0817
+        },
+        {
+          "entry_date": 120,
+          "entry_price": 1272.9000244140625,
+          "exit_price": 1283.083224609375,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 28.3506
+        }
+      ],
+      "num_trades": 15,
+      "wins": 3,
+      "losses": 12,
+      "win_rate": 20.0,
+      "total_pnl": -271.79,
+      "max_drawdown": 831.79
+    },
+    "BAJFINANCE": {
+      "trades": [
+        {
+          "entry_date": 23,
+          "entry_price": 1094.1500244140625,
+          "exit_price": 1085.39682421875,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 20.1035
+        },
+        {
+          "entry_date": 25,
+          "entry_price": 1072.75,
+          "exit_price": 1064.168,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 20.5594
+        },
+        {
+          "entry_date": 36,
+          "entry_price": 1005.2000122070312,
+          "exit_price": 1013.2416123046875,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 25.2022
+        },
+        {
+          "entry_date": 44,
+          "entry_price": 994.0,
+          "exit_price": 1001.952,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 23.0661
+        },
+        {
+          "entry_date": 52,
+          "entry_price": 1048.0,
+          "exit_price": 1039.616,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 22.9922
+        },
+        {
+          "entry_date": 70,
+          "entry_price": 998.0,
+          "exit_price": 990.4500122070312,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": 75.65,
+          "atr": 18.9981
+        },
+        {
+          "entry_date": 78,
+          "entry_price": 978.75,
+          "exit_price": 947.43,
+          "exit_reason": "TGT",
+          "side": "SHORT",
+          "pnl": 320.0,
+          "atr": 18.3431
+        },
+        {
+          "entry_date": 81,
+          "entry_price": 950.25,
+          "exit_price": 957.852,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 18.1421
+        },
+        {
+          "entry_date": 84,
+          "entry_price": 933.2000122070312,
+          "exit_price": 940.6656123046876,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 20.1247
+        },
+        {
+          "entry_date": 87,
+          "entry_price": 914.7000122070312,
+          "exit_price": 922.0176123046875,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 20.853
+        },
+        {
+          "entry_date": 91,
+          "entry_price": 929.8499755859375,
+          "exit_price": 937.288775390625,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 24.9934
+        },
+        {
+          "entry_date": 100,
+          "entry_price": 1024.75,
+          "exit_price": 1016.552,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 25.2891
+        },
+        {
+          "entry_date": 116,
+          "entry_price": 938.0499877929688,
+          "exit_price": 908.0323881835938,
+          "exit_reason": "TGT",
+          "side": "SHORT",
+          "pnl": 320.0,
+          "atr": 26.4729
+        },
+        {
+          "entry_date": 119,
+          "entry_price": 863.0999755859375,
+          "exit_price": 870.004775390625,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 26.9379
+        },
+        {
+          "entry_date": 122,
+          "entry_price": 880.0999755859375,
+          "exit_price": 851.9367763671875,
+          "exit_reason": "TGT",
+          "side": "SHORT",
+          "pnl": 320.0,
+          "atr": 29.0776
+        }
+      ],
+      "num_trades": 15,
+      "wins": 4,
+      "losses": 11,
+      "win_rate": 26.67,
+      "total_pnl": 155.65,
+      "max_drawdown": 404.35
+    },
+    "SBILIFE": {
+      "trades": [
+        {
+          "entry_date": 25,
+          "entry_price": 1900.4581298828125,
+          "exit_price": 1961.2727900390626,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 35.7051
+        },
+        {
+          "entry_date": 46,
+          "entry_price": 2012.003173828125,
+          "exit_price": 1995.9071484375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 35.8743
+        },
+        {
+          "entry_date": 67,
+          "entry_price": 2017.894775390625,
+          "exit_price": 2001.7516171875,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 30.913
+        },
+        {
+          "entry_date": 77,
+          "entry_price": 2067.92529296875,
+          "exit_price": 2079.509033203125,
+          "exit_reason": "TSL",
+          "side": "LONG",
+          "pnl": 56.02,
+          "atr": 32.7023
+        },
+        {
+          "entry_date": 82,
+          "entry_price": 2065.92822265625,
+          "exit_price": 2049.400796875,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 30.2755
+        },
+        {
+          "entry_date": 115,
+          "entry_price": 1927.919921875,
+          "exit_price": 1943.34328125,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 48.213
+        },
+        {
+          "entry_date": 121,
+          "entry_price": 1932.0999755859375,
+          "exit_price": 1947.556775390625,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 45.9614
+        }
+      ],
+      "num_trades": 7,
+      "wins": 2,
+      "losses": 5,
+      "win_rate": 28.57,
+      "total_pnl": -23.98,
+      "max_drawdown": 343.98
+    },
+    "NTPC": {
+      "trades": [
+        {
+          "entry_date": 27,
+          "entry_price": 341.99249267578125,
+          "exit_price": 339.256552734375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 5.7675
+        },
+        {
+          "entry_date": 44,
+          "entry_price": 325.3603515625,
+          "exit_price": 323.6564636230469,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": 52.37,
+          "atr": 4.5643
+        },
+        {
+          "entry_date": 63,
+          "entry_price": 317.5029296875,
+          "exit_price": 320.042953125,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 4.2393
+        },
+        {
+          "entry_date": 70,
+          "entry_price": 333.780029296875,
+          "exit_price": 344.460990234375,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 5.2184
+        },
+        {
+          "entry_date": 74,
+          "entry_price": 347.972900390625,
+          "exit_price": 345.1891171875,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 5.6002
+        },
+        {
+          "entry_date": 81,
+          "entry_price": 346.484130859375,
+          "exit_price": 343.7122578125,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 6.078
+        },
+        {
+          "entry_date": 90,
+          "entry_price": 355.46630859375,
+          "exit_price": 352.622578125,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 8.118
+        },
+        {
+          "entry_date": 103,
+          "entry_price": 364.49810791015625,
+          "exit_price": 363.20001220703125,
+          "exit_reason": "TSL",
+          "side": "LONG",
+          "pnl": -35.61,
+          "atr": 7.027
+        },
+        {
+          "entry_date": 107,
+          "entry_price": 372.95001220703125,
+          "exit_price": 384.88441259765625,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 7.2957
+        },
+        {
+          "entry_date": 111,
+          "entry_price": 377.54998779296875,
+          "exit_price": 374.529587890625,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 8.2429
+        },
+        {
+          "entry_date": 117,
+          "entry_price": 378.04998779296875,
+          "exit_price": 390.1475874023438,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 9.4278
+        },
+        {
+          "entry_date": 121,
+          "entry_price": 384.45001220703125,
+          "exit_price": 381.374412109375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 9.5729
+        }
+      ],
+      "num_trades": 12,
+      "wins": 4,
+      "losses": 8,
+      "win_rate": 33.33,
+      "total_pnl": 416.76,
+      "max_drawdown": 275.61
+    },
+    "POWERGRID": {
+      "trades": [
+        {
+          "entry_date": 26,
+          "entry_price": 281.69561767578125,
+          "exit_price": 283.49481201171875,
+          "exit_reason": "TSL",
+          "side": "LONG",
+          "pnl": 63.87,
+          "atr": 5.0709
+        },
+        {
+          "entry_date": 31,
+          "entry_price": 271.38671875,
+          "exit_price": 264.53033447265625,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": 252.64,
+          "atr": 5.3936
+        },
+        {
+          "entry_date": 35,
+          "entry_price": 264.134765625,
+          "exit_price": 266.24784375,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 5.0953
+        },
+        {
+          "entry_date": 40,
+          "entry_price": 271.15594482421875,
+          "exit_price": 273.3251923828125,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 4.7131
+        },
+        {
+          "entry_date": 50,
+          "entry_price": 272.7381591796875,
+          "exit_price": 266.1125793457031,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": 242.93,
+          "atr": 4.4652
+        },
+        {
+          "entry_date": 63,
+          "entry_price": 260.5252990722656,
+          "exit_price": 262.60950146484373,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 4.4531
+        },
+        {
+          "entry_date": 68,
+          "entry_price": 257.459716796875,
+          "exit_price": 259.51939453125,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 4.4222
+        },
+        {
+          "entry_date": 83,
+          "entry_price": 255.1357879638672,
+          "exit_price": 252.96022033691406,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": 85.27,
+          "atr": 4.5352
+        },
+        {
+          "entry_date": 87,
+          "entry_price": 256.3719177246094,
+          "exit_price": 256.9158020019531,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": -21.21,
+          "atr": 4.9583
+        },
+        {
+          "entry_date": 94,
+          "entry_price": 280.0560302734375,
+          "exit_price": 289.0178232421875,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 6.6296
+        },
+        {
+          "entry_date": 111,
+          "entry_price": 298.6499938964844,
+          "exit_price": 296.2607939453125,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 6.9529
+        }
+      ],
+      "num_trades": 11,
+      "wins": 5,
+      "losses": 6,
+      "win_rate": 45.45,
+      "total_pnl": 543.5,
+      "max_drawdown": 160.0
+    },
+    "ONGC": {
+      "trades": [
+        {
+          "entry_date": 29,
+          "entry_price": 240.61305236816406,
+          "exit_price": 240.6511993408203,
+          "exit_reason": "TSL",
+          "side": "LONG",
+          "pnl": 1.59,
+          "atr": 4.1269
+        },
+        {
+          "entry_date": 35,
+          "entry_price": 242.0816650390625,
+          "exit_price": 240.14501171875,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 4.7094
+        },
+        {
+          "entry_date": 50,
+          "entry_price": 234.5017852783203,
+          "exit_price": 236.3777995605469,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 3.8757
+        },
+        {
+          "entry_date": 62,
+          "entry_price": 229.9391632080078,
+          "exit_price": 228.79605102539062,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": 49.71,
+          "atr": 3.6536
+        },
+        {
+          "entry_date": 68,
+          "entry_price": 229.4213409423828,
+          "exit_price": 231.25671166992188,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 3.7203
+        },
+        {
+          "entry_date": 81,
+          "entry_price": 238.1753387451172,
+          "exit_price": 237.520751953125,
+          "exit_reason": "TSL",
+          "side": "LONG",
+          "pnl": -27.48,
+          "atr": 4.8194
+        },
+        {
+          "entry_date": 87,
+          "entry_price": 242.2494659423828,
+          "exit_price": 250.00144885253906,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 5.8765
+        },
+        {
+          "entry_date": 89,
+          "entry_price": 269.0586242675781,
+          "exit_price": 266.9061552734375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 6.255
+        },
+        {
+          "entry_date": 98,
+          "entry_price": 260.8126525878906,
+          "exit_price": 269.15865747070313,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 7.3491
+        },
+        {
+          "entry_date": 105,
+          "entry_price": 274.6499938964844,
+          "exit_price": 275.6499938964844,
+          "exit_reason": "TSL",
+          "side": "LONG",
+          "pnl": 36.41,
+          "atr": 7.3181
+        },
+        {
+          "entry_date": 111,
+          "entry_price": 282.20001220703125,
+          "exit_price": 279.94241210937497,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 7.8083
+        },
+        {
+          "entry_date": 114,
+          "entry_price": 276.3500061035156,
+          "exit_price": 274.1392060546875,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 9.1879
+        }
+      ],
+      "num_trades": 12,
+      "wins": 5,
+      "losses": 7,
+      "win_rate": 41.67,
+      "total_pnl": 220.23,
+      "max_drawdown": 217.77
+    },
+    "GAIL": {
+      "trades": [
+        {
+          "entry_date": 24,
+          "entry_price": 175.54815673828125,
+          "exit_price": 174.143771484375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 3.1556
+        },
+        {
+          "entry_date": 26,
+          "entry_price": 179.0587158203125,
+          "exit_price": 177.62624609375,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 3.4961
+        },
+        {
+          "entry_date": 30,
+          "entry_price": 177.2355499267578,
+          "exit_price": 175.81766552734373,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 3.7765
+        },
+        {
+          "entry_date": 49,
+          "entry_price": 170.7671661376953,
+          "exit_price": 165.30261682128906,
+          "exit_reason": "TGT",
+          "side": "SHORT",
+          "pnl": 320.0,
+          "atr": 3.8127
+        },
+        {
+          "entry_date": 61,
+          "entry_price": 165.5498046875,
+          "exit_price": 164.62850952148438,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": 55.65,
+          "atr": 3.2622
+        },
+        {
+          "entry_date": 76,
+          "entry_price": 158.5868377685547,
+          "exit_price": 159.85553247070314,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 3.1196
+        },
+        {
+          "entry_date": 83,
+          "entry_price": 160.2645263671875,
+          "exit_price": 157.76251220703125,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": 156.12,
+          "atr": 3.0687
+        },
+        {
+          "entry_date": 87,
+          "entry_price": 158.62562561035156,
+          "exit_price": 159.89463061523438,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 3.5026
+        },
+        {
+          "entry_date": 91,
+          "entry_price": 155.541748046875,
+          "exit_price": 156.78608203125,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 4.1535
+        },
+        {
+          "entry_date": 110,
+          "entry_price": 169.52999877929688,
+          "exit_price": 168.1737587890625,
+          "exit_reason": "SL",
+          "side": "LONG",
+          "pnl": -80.0,
+          "atr": 3.5665
+        },
+        {
+          "entry_date": 112,
+          "entry_price": 154.61000061035156,
+          "exit_price": 155.84688061523437,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 4.0559
+        },
+        {
+          "entry_date": 115,
+          "entry_price": 148.97999572753906,
+          "exit_price": 150.17183569335938,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 4.3712
+        },
+        {
+          "entry_date": 117,
+          "entry_price": 147.97000122070312,
+          "exit_price": 149.15376123046875,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 4.9333
+        }
+      ],
+      "num_trades": 13,
+      "wins": 3,
+      "losses": 10,
+      "win_rate": 23.08,
+      "total_pnl": -268.23,
+      "max_drawdown": 480.0
+    },
+    "BPCL": {
+      "trades": [
+        {
+          "entry_date": 29,
+          "entry_price": 340.70025634765625,
+          "exit_price": 351.60266455078124,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 7.8507
+        },
+        {
+          "entry_date": 33,
+          "entry_price": 350.5611572265625,
+          "exit_price": 361.7791142578125,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 8.4415
+        },
+        {
+          "entry_date": 68,
+          "entry_price": 359.3628234863281,
+          "exit_price": 370.86243383789065,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 7.9101
+        },
+        {
+          "entry_date": 91,
+          "entry_price": 356.8828125,
+          "exit_price": 368.3030625,
+          "exit_reason": "TGT",
+          "side": "LONG",
+          "pnl": 320.0,
+          "atr": 10.0208
+        },
+        {
+          "entry_date": 118,
+          "entry_price": 331.1499938964844,
+          "exit_price": 320.55319409179685,
+          "exit_reason": "TGT",
+          "side": "SHORT",
+          "pnl": 320.0,
+          "atr": 11.9459
+        },
+        {
+          "entry_date": 121,
+          "entry_price": 304.95001220703125,
+          "exit_price": 303.70001220703125,
+          "exit_reason": "TSL",
+          "side": "SHORT",
+          "pnl": 40.99,
+          "atr": 11.7602
+        },
+        {
+          "entry_date": 123,
+          "entry_price": 286.0,
+          "exit_price": 288.288,
+          "exit_reason": "SL",
+          "side": "SHORT",
+          "pnl": -80.0,
+          "atr": 12.1239
+        }
+      ],
+      "num_trades": 7,
+      "wins": 6,
+      "losses": 1,
+      "win_rate": 85.71,
+      "total_pnl": 1560.99,
+      "max_drawdown": 80.0
+    }
+  },
+  "summary": {
+    "total_trades": 118,
+    "total_wins": 39,
+    "overall_wr": 33.05,
+    "total_pnl": 2225.63,
+    "stocks_processed": 10
+  }
+}
