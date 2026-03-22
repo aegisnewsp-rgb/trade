@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - SAIL.NS
-Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: 63.64%
+Strategy: VWAP + RSI + Volume Confirmation (enhanced low-WR stock)
+Win Rate: 63.64% → Target: 70%+
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -136,6 +136,26 @@ def calculate_atr(ohlcv: list, period: int = 14) -> list:
         prev_close = bar["close"]
     return atr
 
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    closes = [c["close"] for c in ohlcv]
+    deltas = [closes[i] - closes[i-1] for i in range(1, len(closes))]
+    gains = [d if d > 0 else 0 for d in deltas]
+    losses = [-d if d < 0 else 0 for d in deltas]
+    av_gain = sum(gains[:period]) / period
+    av_loss = sum(losses[:period]) / period
+    rsi = [50.0] * period
+    for i in range(period, len(closes)):
+        if av_loss == 0:
+            rsi.append(100.0)
+        else:
+            rs = av_gain / av_loss
+            rsi.append(100 - (100 / (1 + rs)))
+        if i < len(deltas):
+            ag_delta = gains[i] - losses[i]
+            av_gain = (av_gain * (period - 1) + gains[i]) / period
+            av_loss = (av_loss * (period - 1) + losses[i]) / period
+    return rsi
+
 def calculate_vwap(ohlcv: list, period: int = 14) -> list:
     vwap = []
     for i in range(len(ohlcv)):
@@ -148,22 +168,36 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
+def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
+    if len(ohlcv) < period:
+        return 0
+    return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
+
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
     vwap_vals     = calculate_vwap(ohlcv, period)
     atr_vals      = calculate_atr(ohlcv, period)
+    rsi_vals      = calculate_rsi(ohlcv, 14)
+    avg_vol       = calculate_avg_volume(ohlcv, 20)
     signals       = ["HOLD"] * len(ohlcv)
 
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
         price    = ohlcv[i]["close"]
         v        = vwap_vals[i]
         a        = atr_vals[i]
-        if price > v + a * atr_mult:
+        r        = rsi_vals[i]
+        vol      = ohlcv[i]["volume"]
+
+        vol_ok   = vol >= avg_vol * 1.2   # Volume confirmation: 1.2x avg
+        rsi_ok   = r > 50                  # RSI > 50 for BUY (bullish momentum)
+        rsi_sell = r < 45                  # RSI < 45 for SELL (bearish momentum)
+
+        if price > v + a * atr_mult and vol_ok and rsi_ok:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult:
+        elif price < v - a * atr_mult and vol_ok and rsi_sell:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
