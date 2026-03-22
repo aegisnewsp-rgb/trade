@@ -65,6 +65,9 @@ TARGET_1_MULT = 1.5
 TARGET_2_MULT = 3.0
 TARGET_3_MULT = 5.0
 
+# Trailing stop: 0.3× ATR (activates after TRAIL_TRIGGER_PCT profit)
+TRAIL_ATR_MULT = 0.3
+
 # PSU bank oversold RSI level — SBIN-specific
 # RSI < 35 = deeply oversold, expect mean-reversion bounce to 50+
 RSI_OVERSOLD_SBIN = 38
