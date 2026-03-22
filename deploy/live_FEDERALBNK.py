@@ -236,5 +236,16 @@ def place_groww_order(symbol, signal, quantity, price):
     return result
 
 
+def main():
+    log.info("Starting %s live trading — strategy: %s | Pos: ₹%d | SL: %.1f%% | TGT: %.1fx",
+             SYMBOL, STRATEGY, POSITION, STOP_LOSS_PCT * 100, TARGET_MULT)
+    data = fetch_recent_data()
+    if not data:
+        log.error("No data fetched. Exiting.")
+        return 1
+    signal, price, atr, rsi = vwap_rsi_signal(data, PARAMS)
+    log.info("Signal: %s | Price: ₹%.2f | ATR: ₹%.2f | RSI: %.1f", signal, price, atr, rsi)
+    return 0
+
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
