@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - GRASIM.NS
-Strategy: VWAP + RSI Confirmation
-Win Rate: 57.36%
+Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8)
+Win Rate: 57.36% -> Target 60%+ (v8: Added MACD, volume, trend, BB filters; tightened RSI; fixed index-based calcs)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
-Enhanced: 2026-03-22 - Converted from Fibonacci to VWAP+RSI for consistency
 """
 
 import os
@@ -34,7 +33,7 @@ log = logging.getLogger("live_GRASIM")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "GRASIM.NS"
-STRATEGY       = "VWAP_RSI"
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
@@ -43,8 +42,16 @@ PARAMS         = {
     "vwap_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "rsi_overbought": 65,
-    "rsi_oversold": 35,
+    "rsi_confirm_overbought": 68,  # v8: tightened
+    "rsi_confirm_oversold": 32,    # v8: tightened
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "volume_multiplier": 2.0,      # v8: require above-2x avg volume
+    "trend_ma_period": 50,          # v8: trend filter
+    "atr_period": 14,
+    "bb_period": 20,               # v8: Bollinger Band period
+    "bb_std": 2.0,                 # v8: Bollinger Band std dev
 }
 
 # 3-TIER EXIT SYSTEM (enhancement)
