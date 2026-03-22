@@ -204,6 +204,10 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
     return vwap
 
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
+    # QA enhancement: check regime before generating signals
+    regime = get_market_regime()
+    pos_mult = get_position_multiplier(regime)
+    
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
     vwap_vals     = calculate_vwap(ohlcv, period)
@@ -220,7 +224,9 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
         r        = rsi_vals[i]
         if price > v + a * atr_mult:
             if r < RSI_OVERSOLD:
-                signals[i] = "BUY"
+                # In DOWNTREND, only allow SELL (no BUY)
+                if regime != "DOWNTREND":
+                    signals[i] = "BUY"
         elif price < v - a * atr_mult:
             if r > RSI_OVERBOUGHT:
                 signals[i] = "SELL"
@@ -229,7 +235,7 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
     current_rsi    = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 50.0
-    return current_signal, current_price, current_atr, current_rsi
+    return current_signal, current_price, current_atr, current_rsi, regime, pos_mult
 
 def place_groww_order(symbol, signal, quantity, price):
     """
@@ -342,10 +348,15 @@ def main():
     
     try:
         # Try strategy functions in priority order
+        regime = "UPTREND"
+        pos_mult = 1.0
         if 'vwap_signal' in dir():
             sig_result = vwap_signal(ohlcv_list, {})
             if isinstance(sig_result, tuple) and len(sig_result) >= 2:
                 signal, price = sig_result[0], float(sig_result[1])
+                if len(sig_result) >= 5:
+                    regime = sig_result[4]
+                    pos_mult = sig_result[5]
             elif isinstance(sig_result, str):
                 signal = sig_result
         elif 'adx_signal' in dir():
