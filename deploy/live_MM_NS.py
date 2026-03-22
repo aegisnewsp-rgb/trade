@@ -14,7 +14,7 @@ import time
 import logging
 import groww_api
 import requests
-from datetime import datetime, time as dtime, month
+from datetime import datetime, time as dtime
 from pathlib import Path
 from typing import Optional, List
 
