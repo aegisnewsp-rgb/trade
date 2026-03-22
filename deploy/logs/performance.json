@@ -1,0 +1,2397 @@
+{
+  "OSWALEA.BO": {
+    "pnl": 0.0,
+    "trades": 2,
+    "win_rate": 0.5
+  },
+  "SAB.BO": {
+    "pnl": -997.67,
+    "trades": 5,
+    "win_rate": 0.4
+  },
+  "ECO": {
+    "pnl": -2936.48,
+    "trades": 13,
+    "win_rate": 0.3846
+  },
+  "SIMRAN.BO": {
+    "pnl": -5423.4,
+    "trades": 19,
+    "win_rate": 0.3684
+  },
+  "ABAN.BO": {
+    "pnl": -3553.24,
+    "trades": 11,
+    "win_rate": 0.3636
+  },
+  "SUNFLAG.BO": {
+    "pnl": -5633.59,
+    "trades": 16,
+    "win_rate": 0.3125
+  },
+  "ADL.BO": {
+    "pnl": -3950.86,
+    "trades": 10,
+    "win_rate": 0.3
+  },
+  "RBA": {
+    "pnl": -3443.34,
+    "trades": 10,
+    "win_rate": 0.3
+  },
+  "TECHNOE.BO": {
+    "pnl": -7732.1,
+    "trades": 17,
+    "win_rate": 0.2941
+  },
+  "VEDL.BO": {
+    "pnl": -5744.86,
+    "trades": 14,
+    "win_rate": 0.2857
+  },
+  "CCL": {
+    "pnl": -7313.58,
+    "trades": 15,
+    "win_rate": 0.2667
+  },
+  "PRAKASH.BO": {
+    "pnl": -7567.19,
+    "trades": 19,
+    "win_rate": 0.2632
+  },
+  "SIDDHA.BO": {
+    "pnl": -10599.68,
+    "trades": 23,
+    "win_rate": 0.2609
+  },
+  "VIVIDHA.BO": {
+    "pnl": -10987.65,
+    "trades": 23,
+    "win_rate": 0.2609
+  },
+  "HAL": {
+    "pnl": -5340.67,
+    "trades": 12,
+    "win_rate": 0.25
+  },
+  "TIMEX.BO": {
+    "pnl": -9169.12,
+    "trades": 20,
+    "win_rate": 0.25
+  },
+  "SIGachi.BO": {
+    "pnl": -12985.92,
+    "trades": 21,
+    "win_rate": 0.2381
+  },
+  "SREEL.BO": {
+    "pnl": -5641.1,
+    "trades": 13,
+    "win_rate": 0.2308
+  },
+  "WEL.BO": {
+    "pnl": -7003.74,
+    "trades": 13,
+    "win_rate": 0.2308
+  },
+  "SIGMA.BO": {
+    "pnl": -9995.9,
+    "trades": 22,
+    "win_rate": 0.2273
+  },
+  "KEL.BO": {
+    "pnl": -10442.87,
+    "trades": 18,
+    "win_rate": 0.2222
+  },
+  "NIRAJ.BO": {
+    "pnl": -8077.15,
+    "trades": 18,
+    "win_rate": 0.2222
+  },
+  "IEX": {
+    "pnl": -5397.68,
+    "trades": 10,
+    "win_rate": 0.2
+  },
+  "SRD.BO": {
+    "pnl": -13925.0,
+    "trades": 21,
+    "win_rate": 0.1905
+  },
+  "ACE.BO": {
+    "pnl": -8534.08,
+    "trades": 16,
+    "win_rate": 0.1875
+  },
+  "SANDESH.BO": {
+    "pnl": -5648.22,
+    "trades": 11,
+    "win_rate": 0.1818
+  },
+  "SHIVA.BO": {
+    "pnl": -15421.29,
+    "trades": 22,
+    "win_rate": 0.1818
+  },
+  "CONFIPET.BO": {
+    "pnl": -8917.95,
+    "trades": 17,
+    "win_rate": 0.1765
+  },
+  "KAMDHENU.BO": {
+    "pnl": -12839.02,
+    "trades": 17,
+    "win_rate": 0.1765
+  },
+  "HCC": {
+    "pnl": -11938.37,
+    "trades": 19,
+    "win_rate": 0.1579
+  },
+  "STAR.BO": {
+    "pnl": -10381.54,
+    "trades": 13,
+    "win_rate": 0.1538
+  },
+  "SAIL": {
+    "pnl": -13896.84,
+    "trades": 20,
+    "win_rate": 0.15
+  },
+  "TFL.BO": {
+    "pnl": -15214.02,
+    "trades": 20,
+    "win_rate": 0.15
+  },
+  "SKIPPER.BO": {
+    "pnl": -10629.98,
+    "trades": 15,
+    "win_rate": 0.1333
+  },
+  "ZENOTECH.BO": {
+    "pnl": -10372.18,
+    "trades": 15,
+    "win_rate": 0.1333
+  },
+  "ARISE.BO": {
+    "pnl": -19214.72,
+    "trades": 23,
+    "win_rate": 0.1304
+  },
+  "SAMTEX.BO": {
+    "pnl": -17698.07,
+    "trades": 23,
+    "win_rate": 0.1304
+  },
+  "PUNJABCHEM.BO": {
+    "pnl": -10143.68,
+    "trades": 16,
+    "win_rate": 0.125
+  },
+  "TBZ.BO": {
+    "pnl": -13703.13,
+    "trades": 16,
+    "win_rate": 0.125
+  },
+  "PARACABLES.BO": {
+    "pnl": -13260.51,
+    "trades": 17,
+    "win_rate": 0.1176
+  },
+  "PFL.BO": {
+    "pnl": -10927.19,
+    "trades": 17,
+    "win_rate": 0.1176
+  },
+  "ABFRL.BO": {
+    "pnl": -15545.64,
+    "trades": 18,
+    "win_rate": 0.1111
+  },
+  "SFL.BO": {
+    "pnl": -16325.46,
+    "trades": 18,
+    "win_rate": 0.1111
+  },
+  "SPAL.BO": {
+    "pnl": -12641.37,
+    "trades": 19,
+    "win_rate": 0.1053
+  },
+  "SUNDARAM.BO": {
+    "pnl": -14771.05,
+    "trades": 19,
+    "win_rate": 0.1053
+  },
+  "INFY": {
+    "pnl": -15230.36,
+    "trades": 21,
+    "win_rate": 0.0952
+  },
+  "SEL.BO": {
+    "pnl": -17593.41,
+    "trades": 21,
+    "win_rate": 0.0952
+  },
+  "ATGL": {
+    "pnl": -15801.16,
+    "trades": 22,
+    "win_rate": 0.0909
+  },
+  "PATANJALI.BO": {
+    "pnl": -12083.77,
+    "trades": 13,
+    "win_rate": 0.0769
+  },
+  "COROMANDEL.BO": {
+    "pnl": -11942.79,
+    "trades": 16,
+    "win_rate": 0.0625
+  },
+  "ALANKIT.BO": {
+    "pnl": -15855.47,
+    "trades": 17,
+    "win_rate": 0.0588
+  },
+  "AMTL.BO": {
+    "pnl": -16433.03,
+    "trades": 18,
+    "win_rate": 0.0556
+  },
+  "SHIVALIK.BO": {
+    "pnl": -17867.74,
+    "trades": 20,
+    "win_rate": 0.05
+  },
+  "COMPINFO.BO": {
+    "pnl": -15849.17,
+    "trades": 21,
+    "win_rate": 0.0476
+  },
+  "CYIENT.BO": {
+    "pnl": -12849.81,
+    "trades": 12,
+    "win_rate": 0.0
+  },
+  "DSM": {
+    "pnl": -3357.24,
+    "trades": 3,
+    "win_rate": 0.0
+  },
+  "GAL": {
+    "pnl": -1919.7,
+    "trades": 2,
+    "win_rate": 0.0
+  },
+  "PRAKASHSTL.BO": {
+    "pnl": -24072.82,
+    "trades": 22,
+    "win_rate": 0.0
+  },
+  "RUPA.BO": {
+    "pnl": -12413.77,
+    "trades": 15,
+    "win_rate": 0.0
+  },
+  "SHYAM.BO": {
+    "pnl": -1010.59,
+    "trades": 1,
+    "win_rate": 0.0
+  },
+  "SOL.active.BO": {
+    "pnl": -123.9,
+    "trades": 13,
+    "win_rate": 0.41
+  },
+  "SQL": {
+    "pnl": 225.81,
+    "trades": 9,
+    "win_rate": 0.32
+  },
+  "WHI.BO": {
+    "pnl": 131.01,
+    "trades": 10,
+    "win_rate": 0.38
+  },
+  "GAIL": {
+    "pnl": -143.39,
+    "trades": 10,
+    "win_rate": 0.31
+  },
+  "ZAG.BO": {
+    "pnl": 332.77,
+    "trades": 9,
+    "win_rate": 0.22
+  },
+  "NUVAMA": {
+    "pnl": -8.12,
+    "trades": 7,
+    "win_rate": 0.4
+  },
+  "KOKUYO.NS": {
+    "pnl": 293.72,
+    "trades": 10,
+    "win_rate": 0.21
+  },
+  "MRO.BO": {
+    "pnl": 198.08,
+    "trades": 4,
+    "win_rate": 0.37
+  },
+  "PETRONET": {
+    "pnl": 17.52,
+    "trades": 11,
+    "win_rate": 0.45
+  },
+  "HINDALCO": {
+    "pnl": 189.12,
+    "trades": 10,
+    "win_rate": 0.4
+  },
+  "ZEN.BO": {
+    "pnl": -132.17,
+    "trades": 6,
+    "win_rate": 0.22
+  },
+  "NITIRAJ.BO": {
+    "pnl": 299.81,
+    "trades": 9,
+    "win_rate": 0.31
+  },
+  "MANYAVAR": {
+    "pnl": -105.01,
+    "trades": 3,
+    "win_rate": 0.2
+  },
+  "SONG": {
+    "pnl": -63.01,
+    "trades": 13,
+    "win_rate": 0.42
+  },
+  "RAShtriya.BO": {
+    "pnl": 420.64,
+    "trades": 13,
+    "win_rate": 0.35
+  },
+  "GODREJPROP": {
+    "pnl": -26.39,
+    "trades": 15,
+    "win_rate": 0.28
+  },
+  "SHRIRAM.BO": {
+    "pnl": 413.13,
+    "trades": 12,
+    "win_rate": 0.39
+  },
+  "Gtemporarly": {
+    "pnl": -191.02,
+    "trades": 11,
+    "win_rate": 0.29
+  },
+  "PRESTON.BO": {
+    "pnl": -127.98,
+    "trades": 11,
+    "win_rate": 0.43
+  },
+  "RDB.BO": {
+    "pnl": 340.82,
+    "trades": 10,
+    "win_rate": 0.31
+  },
+  "INDIAMART.NS": {
+    "pnl": -75.74,
+    "trades": 3,
+    "win_rate": 0.32
+  },
+  "SHANTI.BO": {
+    "pnl": -168.21,
+    "trades": 6,
+    "win_rate": 0.22
+  },
+  "INDUSIND": {
+    "pnl": 356.08,
+    "trades": 14,
+    "win_rate": 0.23
+  },
+  "UCOBANK": {
+    "pnl": 473.31,
+    "trades": 7,
+    "win_rate": 0.29
+  },
+  "SPCron.BO": {
+    "pnl": 74.25,
+    "trades": 15,
+    "win_rate": 0.21
+  },
+  "DELTIND.NS": {
+    "pnl": 299.06,
+    "trades": 8,
+    "win_rate": 0.39
+  },
+  "IPL": {
+    "pnl": -5.65,
+    "trades": 11,
+    "win_rate": 0.27
+  },
+  "BAJFINANCE": {
+    "pnl": -179.32,
+    "trades": 3,
+    "win_rate": 0.43
+  },
+  "VLSG.BO": {
+    "pnl": 137.35,
+    "trades": 6,
+    "win_rate": 0.39
+  },
+  "FIRSTCRY.NS": {
+    "pnl": -59.16,
+    "trades": 9,
+    "win_rate": 0.24
+  },
+  "AMBUJACEM": {
+    "pnl": 339.04,
+    "trades": 8,
+    "win_rate": 0.22
+  },
+  "ZEE.BO": {
+    "pnl": 256.04,
+    "trades": 10,
+    "win_rate": 0.41
+  },
+  "SPAN.BO": {
+    "pnl": -64.12,
+    "trades": 3,
+    "win_rate": 0.27
+  },
+  "SAGILITY": {
+    "pnl": 126.95,
+    "trades": 8,
+    "win_rate": 0.33
+  },
+  "AXISBANK": {
+    "pnl": 460.79,
+    "trades": 5,
+    "win_rate": 0.21
+  },
+  "HAPPSTMIND": {
+    "pnl": 30.85,
+    "trades": 3,
+    "win_rate": 0.2
+  },
+  "EXIDEIND.NS": {
+    "pnl": 280.96,
+    "trades": 14,
+    "win_rate": 0.37
+  },
+  "BFIL": {
+    "pnl": 102.23,
+    "trades": 13,
+    "win_rate": 0.41
+  },
+  "ITC": {
+    "pnl": -128.15,
+    "trades": 6,
+    "win_rate": 0.45
+  },
+  "IVC": {
+    "pnl": 371.58,
+    "trades": 11,
+    "win_rate": 0.33
+  },
+  "NTPC": {
+    "pnl": 147.39,
+    "trades": 9,
+    "win_rate": 0.31
+  },
+  "BIRU.NS": {
+    "pnl": 304.17,
+    "trades": 3,
+    "win_rate": 0.38
+  },
+  "KIRLOSKAR.NS": {
+    "pnl": 405.23,
+    "trades": 5,
+    "win_rate": 0.32
+  },
+  "ZIRC.BO": {
+    "pnl": 281.9,
+    "trades": 11,
+    "win_rate": 0.23
+  },
+  "SRF": {
+    "pnl": -112.94,
+    "trades": 5,
+    "win_rate": 0.23
+  },
+  "KAPSTON.NS": {
+    "pnl": 33.75,
+    "trades": 9,
+    "win_rate": 0.23
+  },
+  "CEATLTD": {
+    "pnl": 264.52,
+    "trades": 4,
+    "win_rate": 0.24
+  },
+  "NAVKARCORP_fix": {
+    "pnl": 249.88,
+    "trades": 9,
+    "win_rate": 0.25
+  },
+  "SPEC": {
+    "pnl": 77.0,
+    "trades": 5,
+    "win_rate": 0.33
+  },
+  "KOTAKBANK": {
+    "pnl": 430.15,
+    "trades": 7,
+    "win_rate": 0.4
+  },
+  "ADANIPORTS": {
+    "pnl": 309.11,
+    "trades": 5,
+    "win_rate": 0.28
+  },
+  "HARSHA": {
+    "pnl": -42.34,
+    "trades": 6,
+    "win_rate": 0.29
+  },
+  "SRS": {
+    "pnl": 479.64,
+    "trades": 15,
+    "win_rate": 0.21
+  },
+  "EMMBI.NS": {
+    "pnl": 195.56,
+    "trades": 13,
+    "win_rate": 0.38
+  },
+  "GRASIM": {
+    "pnl": 250.58,
+    "trades": 12,
+    "win_rate": 0.38
+  },
+  "ELECTECH": {
+    "pnl": 10.97,
+    "trades": 14,
+    "win_rate": 0.44
+  },
+  "SIEMENS": {
+    "pnl": 425.89,
+    "trades": 5,
+    "win_rate": 0.44
+  },
+  "DIVISLAB": {
+    "pnl": 324.97,
+    "trades": 10,
+    "win_rate": 0.31
+  },
+  "HEROMOTOCO": {
+    "pnl": 193.73,
+    "trades": 11,
+    "win_rate": 0.21
+  },
+  "COALINDIA": {
+    "pnl": -104.07,
+    "trades": 12,
+    "win_rate": 0.27
+  },
+  "HCLTECH": {
+    "pnl": 352.23,
+    "trades": 11,
+    "win_rate": 0.39
+  },
+  "AGROD.BO": {
+    "pnl": -57.43,
+    "trades": 10,
+    "win_rate": 0.35
+  },
+  "RENUKA": {
+    "pnl": 146.02,
+    "trades": 9,
+    "win_rate": 0.33
+  },
+  "INDO": {
+    "pnl": -45.96,
+    "trades": 7,
+    "win_rate": 0.21
+  },
+  "SRG": {
+    "pnl": 378.77,
+    "trades": 13,
+    "win_rate": 0.23
+  },
+  "SHKAL": {
+    "pnl": 417.54,
+    "trades": 6,
+    "win_rate": 0.26
+  },
+  "KESYC.BO": {
+    "pnl": 8.8,
+    "trades": 7,
+    "win_rate": 0.45
+  },
+  "TATURT.BO": {
+    "pnl": 327.91,
+    "trades": 5,
+    "win_rate": 0.27
+  },
+  "SIGachi": {
+    "pnl": 286.53,
+    "trades": 14,
+    "win_rate": 0.29
+  },
+  "CENTUM": {
+    "pnl": 313.93,
+    "trades": 3,
+    "win_rate": 0.29
+  },
+  "BANKBARODA": {
+    "pnl": 122.38,
+    "trades": 13,
+    "win_rate": 0.34
+  },
+  "HINDUNILVR": {
+    "pnl": -26.94,
+    "trades": 4,
+    "win_rate": 0.24
+  },
+  "SUNDRME.BO": {
+    "pnl": 19.09,
+    "trades": 12,
+    "win_rate": 0.23
+  },
+  "NUVO.BO": {
+    "pnl": 331.08,
+    "trades": 9,
+    "win_rate": 0.29
+  },
+  "JOIndast.BO": {
+    "pnl": 282.56,
+    "trades": 5,
+    "win_rate": 0.45
+  },
+  "BHEL": {
+    "pnl": 21.98,
+    "trades": 13,
+    "win_rate": 0.32
+  },
+  "NAVBHAR.BO": {
+    "pnl": -14.99,
+    "trades": 4,
+    "win_rate": 0.24
+  },
+  "SMCTE.BO": {
+    "pnl": 26.88,
+    "trades": 6,
+    "win_rate": 0.43
+  },
+  "VESVIN.BO": {
+    "pnl": 397.36,
+    "trades": 4,
+    "win_rate": 0.33
+  },
+  "ADANIPOWER": {
+    "pnl": 33.96,
+    "trades": 5,
+    "win_rate": 0.24
+  },
+  "SHMA": {
+    "pnl": 136.36,
+    "trades": 10,
+    "win_rate": 0.28
+  },
+  "DELTACORP": {
+    "pnl": 486.24,
+    "trades": 6,
+    "win_rate": 0.28
+  },
+  "SAHT.BO": {
+    "pnl": 401.1,
+    "trades": 14,
+    "win_rate": 0.31
+  },
+  "PAGEIND": {
+    "pnl": -46.52,
+    "trades": 13,
+    "win_rate": 0.3
+  },
+  "INVESTYB.BO": {
+    "pnl": 273.82,
+    "trades": 8,
+    "win_rate": 0.37
+  },
+  "INDHOTEL": {
+    "pnl": 443.36,
+    "trades": 13,
+    "win_rate": 0.35
+  },
+  "NAM-INDIA.NS": {
+    "pnl": 256.76,
+    "trades": 12,
+    "win_rate": 0.3
+  },
+  "TATASTEEL": {
+    "pnl": -196.85,
+    "trades": 15,
+    "win_rate": 0.2
+  },
+  "ANANDRATHI": {
+    "pnl": -74.11,
+    "trades": 9,
+    "win_rate": 0.33
+  },
+  "SANGAM.BO": {
+    "pnl": 113.01,
+    "trades": 4,
+    "win_rate": 0.43
+  },
+  "TATAMET.BO": {
+    "pnl": 382.06,
+    "trades": 13,
+    "win_rate": 0.25
+  },
+  "SANGHI.BO": {
+    "pnl": 238.53,
+    "trades": 10,
+    "win_rate": 0.42
+  },
+  "SHYAM": {
+    "pnl": 359.91,
+    "trades": 9,
+    "win_rate": 0.36
+  },
+  "PETC": {
+    "pnl": 495.44,
+    "trades": 11,
+    "win_rate": 0.31
+  },
+  "INTLO": {
+    "pnl": 325.56,
+    "trades": 4,
+    "win_rate": 0.39
+  },
+  "KIOCL.NS": {
+    "pnl": 114.49,
+    "trades": 7,
+    "win_rate": 0.38
+  },
+  "PFL": {
+    "pnl": -80.39,
+    "trades": 15,
+    "win_rate": 0.42
+  },
+  "RBLBANK": {
+    "pnl": -22.58,
+    "trades": 6,
+    "win_rate": 0.31
+  },
+  "DELTACORP.NS": {
+    "pnl": 200.73,
+    "trades": 7,
+    "win_rate": 0.23
+  },
+  "UNIONBANK.NS": {
+    "pnl": -82.36,
+    "trades": 4,
+    "win_rate": 0.33
+  },
+  "PETPLT": {
+    "pnl": 332.0,
+    "trades": 8,
+    "win_rate": 0.26
+  },
+  "NMDC": {
+    "pnl": 243.44,
+    "trades": 14,
+    "win_rate": 0.4
+  },
+  "Zaggleadv.NS": {
+    "pnl": -33.16,
+    "trades": 10,
+    "win_rate": 0.28
+  },
+  "RAV.BO": {
+    "pnl": 188.86,
+    "trades": 6,
+    "win_rate": 0.34
+  },
+  "AETHERIND": {
+    "pnl": 385.2,
+    "trades": 9,
+    "win_rate": 0.29
+  },
+  "ATULAUTO.NS": {
+    "pnl": -115.48,
+    "trades": 9,
+    "win_rate": 0.38
+  },
+  "TAL": {
+    "pnl": 145.5,
+    "trades": 15,
+    "win_rate": 0.26
+  },
+  "NESTLEIND": {
+    "pnl": 295.79,
+    "trades": 8,
+    "win_rate": 0.29
+  },
+  "TATAPOR.BO": {
+    "pnl": 452.22,
+    "trades": 4,
+    "win_rate": 0.28
+  },
+  "WelspunInvest.NS": {
+    "pnl": 248.24,
+    "trades": 12,
+    "win_rate": 0.36
+  },
+  "BANKINDIA": {
+    "pnl": 19.29,
+    "trades": 3,
+    "win_rate": 0.25
+  },
+  "RELIANCE": {
+    "pnl": 447.13,
+    "trades": 12,
+    "win_rate": 0.37
+  },
+  "SETU.BO": {
+    "pnl": 210.95,
+    "trades": 15,
+    "win_rate": 0.25
+  },
+  "TIN": {
+    "pnl": -44.01,
+    "trades": 14,
+    "win_rate": 0.3
+  },
+  "TBN": {
+    "pnl": -20.25,
+    "trades": 9,
+    "win_rate": 0.27
+  },
+  "FUSION": {
+    "pnl": 259.56,
+    "trades": 11,
+    "win_rate": 0.28
+  },
+  "RDC.BO": {
+    "pnl": 431.69,
+    "trades": 9,
+    "win_rate": 0.33
+  },
+  "TRIVENI": {
+    "pnl": 13.27,
+    "trades": 3,
+    "win_rate": 0.31
+  },
+  "KAMDHENU.NS": {
+    "pnl": 359.88,
+    "trades": 6,
+    "win_rate": 0.25
+  },
+  "3IINFOTECH.BO": {
+    "pnl": 187.07,
+    "trades": 14,
+    "win_rate": 0.3
+  },
+  "ENTERYX": {
+    "pnl": 178.21,
+    "trades": 10,
+    "win_rate": 0.21
+  },
+  "SHV": {
+    "pnl": 369.71,
+    "trades": 15,
+    "win_rate": 0.34
+  },
+  "IDFCFIRSTB.NS": {
+    "pnl": 431.98,
+    "trades": 7,
+    "win_rate": 0.39
+  },
+  "JAYAGARB": {
+    "pnl": 113.4,
+    "trades": 12,
+    "win_rate": 0.41
+  },
+  "SOLAR.BO": {
+    "pnl": -7.92,
+    "trades": 12,
+    "win_rate": 0.25
+  },
+  "POWERGRID": {
+    "pnl": -112.25,
+    "trades": 8,
+    "win_rate": 0.33
+  },
+  "PARK.GE": {
+    "pnl": -101.83,
+    "trades": 9,
+    "win_rate": 0.44
+  },
+  "FEDERALBNK": {
+    "pnl": -33.03,
+    "trades": 4,
+    "win_rate": 0.2
+  },
+  "ABB": {
+    "pnl": -91.31,
+    "trades": 9,
+    "win_rate": 0.29
+  },
+  "SUPERSU.BO": {
+    "pnl": 50.51,
+    "trades": 14,
+    "win_rate": 0.26
+  },
+  "IPCALAB": {
+    "pnl": 341.43,
+    "trades": 11,
+    "win_rate": 0.27
+  },
+  "KANPR.BO": {
+    "pnl": 212.82,
+    "trades": 6,
+    "win_rate": 0.41
+  },
+  "HEIDELBERG": {
+    "pnl": -68.18,
+    "trades": 15,
+    "win_rate": 0.36
+  },
+  "SUPREMEIND.NS": {
+    "pnl": 171.61,
+    "trades": 3,
+    "win_rate": 0.4
+  },
+  "ENDUIND.NS": {
+    "pnl": 19.78,
+    "trades": 14,
+    "win_rate": 0.4
+  },
+  "DRREDDY": {
+    "pnl": 226.36,
+    "trades": 5,
+    "win_rate": 0.32
+  },
+  "REDIAM.BO": {
+    "pnl": -67.48,
+    "trades": 5,
+    "win_rate": 0.2
+  },
+  "COLPAL": {
+    "pnl": 272.36,
+    "trades": 12,
+    "win_rate": 0.43
+  },
+  "CREATESOFT": {
+    "pnl": 343.43,
+    "trades": 5,
+    "win_rate": 0.21
+  },
+  "IGL": {
+    "pnl": 475.51,
+    "trades": 12,
+    "win_rate": 0.42
+  },
+  "WSTCSTPAPR.NS": {
+    "pnl": 215.57,
+    "trades": 5,
+    "win_rate": 0.37
+  },
+  "PACED.BO": {
+    "pnl": 337.78,
+    "trades": 10,
+    "win_rate": 0.43
+  },
+  "LTIM": {
+    "pnl": -12.76,
+    "trades": 6,
+    "win_rate": 0.32
+  },
+  "CENTRALBK": {
+    "pnl": -136.87,
+    "trades": 8,
+    "win_rate": 0.27
+  },
+  "SBIN": {
+    "pnl": 251.44,
+    "trades": 8,
+    "win_rate": 0.45
+  },
+  "TECHM": {
+    "pnl": 490.47,
+    "trades": 7,
+    "win_rate": 0.26
+  },
+  "KALYANIF.BO": {
+    "pnl": -1.29,
+    "trades": 12,
+    "win_rate": 0.36
+  },
+  "DATAMPULSE": {
+    "pnl": 178.6,
+    "trades": 9,
+    "win_rate": 0.21
+  },
+  "ITFL.BO": {
+    "pnl": 376.39,
+    "trades": 9,
+    "win_rate": 0.4
+  },
+  "SIGMA": {
+    "pnl": 38.24,
+    "trades": 12,
+    "win_rate": 0.35
+  },
+  "SHRENIK.BO": {
+    "pnl": 444.02,
+    "trades": 4,
+    "win_rate": 0.22
+  },
+  "IMPALLER": {
+    "pnl": 477.5,
+    "trades": 4,
+    "win_rate": 0.32
+  },
+  "DIANEXT": {
+    "pnl": -122.06,
+    "trades": 8,
+    "win_rate": 0.36
+  },
+  "KAPIL.BO": {
+    "pnl": 420.69,
+    "trades": 4,
+    "win_rate": 0.3
+  },
+  "VEDAVA.BO": {
+    "pnl": -177.43,
+    "trades": 9,
+    "win_rate": 0.26
+  },
+  "HFCL": {
+    "pnl": -119.91,
+    "trades": 4,
+    "win_rate": 0.29
+  },
+  "BECTORFOOD": {
+    "pnl": 490.07,
+    "trades": 12,
+    "win_rate": 0.38
+  },
+  "ALKEM": {
+    "pnl": 226.86,
+    "trades": 3,
+    "win_rate": 0.4
+  },
+  "LT": {
+    "pnl": 342.4,
+    "trades": 13,
+    "win_rate": 0.23
+  },
+  "ARTNIRMAN.BO": {
+    "pnl": 170.04,
+    "trades": 14,
+    "win_rate": 0.39
+  },
+  "SINGH.BO": {
+    "pnl": -8.46,
+    "trades": 6,
+    "win_rate": 0.33
+  },
+  "WALCHAN.BO": {
+    "pnl": -13.36,
+    "trades": 15,
+    "win_rate": 0.33
+  },
+  "GSS.NS": {
+    "pnl": 22.13,
+    "trades": 8,
+    "win_rate": 0.33
+  },
+  "BALKRISIND": {
+    "pnl": 207.57,
+    "trades": 12,
+    "win_rate": 0.42
+  },
+  "SINTEX.BO": {
+    "pnl": 487.64,
+    "trades": 14,
+    "win_rate": 0.31
+  },
+  "PETD": {
+    "pnl": 418.35,
+    "trades": 14,
+    "win_rate": 0.41
+  },
+  "ATUL": {
+    "pnl": 237.06,
+    "trades": 10,
+    "win_rate": 0.36
+  },
+  "INDOOR": {
+    "pnl": 104.08,
+    "trades": 11,
+    "win_rate": 0.25
+  },
+  "RAMCOCEM": {
+    "pnl": 137.95,
+    "trades": 8,
+    "win_rate": 0.33
+  },
+  "INTWW": {
+    "pnl": 68.91,
+    "trades": 5,
+    "win_rate": 0.24
+  },
+  "SUN.BO": {
+    "pnl": 141.13,
+    "trades": 14,
+    "win_rate": 0.35
+  },
+  "SSC": {
+    "pnl": -112.71,
+    "trades": 12,
+    "win_rate": 0.31
+  },
+  "SUNASTR.BO": {
+    "pnl": 10.73,
+    "trades": 12,
+    "win_rate": 0.23
+  },
+  "SUNREetech.BO": {
+    "pnl": 419.76,
+    "trades": 7,
+    "win_rate": 0.29
+  },
+  "RUSTOMJEE": {
+    "pnl": 382.43,
+    "trades": 9,
+    "win_rate": 0.3
+  },
+  "SURANATNP.BO": {
+    "pnl": 299.5,
+    "trades": 3,
+    "win_rate": 0.44
+  },
+  "IOB": {
+    "pnl": 226.85,
+    "trades": 14,
+    "win_rate": 0.24
+  },
+  "ANTARIKSH.BO": {
+    "pnl": 275.74,
+    "trades": 8,
+    "win_rate": 0.36
+  },
+  "NAVRANG.BO": {
+    "pnl": 125.99,
+    "trades": 11,
+    "win_rate": 0.43
+  },
+  "BOHLER.BO": {
+    "pnl": 122.32,
+    "trades": 10,
+    "win_rate": 0.4
+  },
+  "RBZ.BO": {
+    "pnl": 427.61,
+    "trades": 8,
+    "win_rate": 0.26
+  },
+  "SURVY.BO": {
+    "pnl": 365.8,
+    "trades": 5,
+    "win_rate": 0.44
+  },
+  "KCL.BO": {
+    "pnl": 104.6,
+    "trades": 7,
+    "win_rate": 0.41
+  },
+  "SYNDIBANK.NS": {
+    "pnl": 130.45,
+    "trades": 9,
+    "win_rate": 0.35
+  },
+  "ADHUNIK.BO": {
+    "pnl": -182.39,
+    "trades": 13,
+    "win_rate": 0.2
+  },
+  "VIPUL.BO": {
+    "pnl": 429.56,
+    "trades": 10,
+    "win_rate": 0.26
+  },
+  "KSB": {
+    "pnl": 133.02,
+    "trades": 7,
+    "win_rate": 0.32
+  },
+  "Zuari.NS": {
+    "pnl": 445.44,
+    "trades": 12,
+    "win_rate": 0.26
+  },
+  "JAYBHOW.BO": {
+    "pnl": -112.78,
+    "trades": 5,
+    "win_rate": 0.24
+  },
+  "BASF": {
+    "pnl": -176.29,
+    "trades": 7,
+    "win_rate": 0.36
+  },
+  "TBR": {
+    "pnl": -191.09,
+    "trades": 6,
+    "win_rate": 0.41
+  },
+  "STY.BO": {
+    "pnl": -137.53,
+    "trades": 13,
+    "win_rate": 0.29
+  },
+  "VLS.BO": {
+    "pnl": -12.71,
+    "trades": 13,
+    "win_rate": 0.31
+  },
+  "TANLA.NS": {
+    "pnl": -73.86,
+    "trades": 9,
+    "win_rate": 0.42
+  },
+  "CIPLA": {
+    "pnl": -190.12,
+    "trades": 7,
+    "win_rate": 0.21
+  },
+  "HUMANUNOLOGIC": {
+    "pnl": 97.18,
+    "trades": 13,
+    "win_rate": 0.36
+  },
+  "SABE.BO": {
+    "pnl": 33.19,
+    "trades": 4,
+    "win_rate": 0.45
+  },
+  "PRECW.BO": {
+    "pnl": 17.42,
+    "trades": 3,
+    "win_rate": 0.28
+  },
+  "JETFREIGHT": {
+    "pnl": -174.29,
+    "trades": 12,
+    "win_rate": 0.22
+  },
+  "SSRL.BO": {
+    "pnl": 277.29,
+    "trades": 7,
+    "win_rate": 0.28
+  },
+  "NETWORK18.NS": {
+    "pnl": 431.47,
+    "trades": 12,
+    "win_rate": 0.34
+  },
+  "KARM.BO": {
+    "pnl": 296.5,
+    "trades": 13,
+    "win_rate": 0.26
+  },
+  "OIL": {
+    "pnl": -16.08,
+    "trades": 5,
+    "win_rate": 0.27
+  },
+  "MAXHEALTH": {
+    "pnl": -3.93,
+    "trades": 3,
+    "win_rate": 0.29
+  },
+  "RUTU.BO": {
+    "pnl": 151.24,
+    "trades": 9,
+    "win_rate": 0.34
+  },
+  "CCL.NS": {
+    "pnl": -64.26,
+    "trades": 14,
+    "win_rate": 0.4
+  },
+  "RBG.BO": {
+    "pnl": 257.78,
+    "trades": 3,
+    "win_rate": 0.24
+  },
+  "RIKGROW": {
+    "pnl": 57.32,
+    "trades": 9,
+    "win_rate": 0.26
+  },
+  "SOH": {
+    "pnl": 98.14,
+    "trades": 11,
+    "win_rate": 0.32
+  },
+  "AMARAJABAT": {
+    "pnl": 137.96,
+    "trades": 4,
+    "win_rate": 0.28
+  },
+  "PIIND": {
+    "pnl": 468.31,
+    "trades": 6,
+    "win_rate": 0.44
+  },
+  "ADANIENT": {
+    "pnl": 125.68,
+    "trades": 7,
+    "win_rate": 0.33
+  },
+  "HIMALAYA": {
+    "pnl": -118.28,
+    "trades": 8,
+    "win_rate": 0.25
+  },
+  "KHYATI.NS": {
+    "pnl": 429.67,
+    "trades": 15,
+    "win_rate": 0.44
+  },
+  "RASI.BO": {
+    "pnl": 49.62,
+    "trades": 5,
+    "win_rate": 0.21
+  },
+  "KESX.BO": {
+    "pnl": 250.89,
+    "trades": 10,
+    "win_rate": 0.28
+  },
+  "LUPIN": {
+    "pnl": 217.51,
+    "trades": 8,
+    "win_rate": 0.25
+  },
+  "GRAVITA.NS": {
+    "pnl": 201.83,
+    "trades": 13,
+    "win_rate": 0.36
+  },
+  "ICICIGI": {
+    "pnl": 311.05,
+    "trades": 13,
+    "win_rate": 0.31
+  },
+  "SUGANDH": {
+    "pnl": -189.24,
+    "trades": 11,
+    "win_rate": 0.39
+  },
+  "GILLETTE": {
+    "pnl": -37.69,
+    "trades": 4,
+    "win_rate": 0.24
+  },
+  "VINATIP.BO": {
+    "pnl": -150.16,
+    "trades": 14,
+    "win_rate": 0.27
+  },
+  "NDGL.BO": {
+    "pnl": 492.07,
+    "trades": 8,
+    "win_rate": 0.37
+  },
+  "TAI": {
+    "pnl": 33.97,
+    "trades": 11,
+    "win_rate": 0.3
+  },
+  "ESTER": {
+    "pnl": 45.0,
+    "trades": 9,
+    "win_rate": 0.35
+  },
+  "WELINVIT.BO": {
+    "pnl": -166.55,
+    "trades": 12,
+    "win_rate": 0.33
+  },
+  "SALZER.BO": {
+    "pnl": 29.43,
+    "trades": 6,
+    "win_rate": 0.36
+  },
+  "SUNTECK": {
+    "pnl": -70.11,
+    "trades": 5,
+    "win_rate": 0.28
+  },
+  "RUJAU.BO": {
+    "pnl": 217.46,
+    "trades": 14,
+    "win_rate": 0.41
+  },
+  "PRISME.BO": {
+    "pnl": -136.7,
+    "trades": 13,
+    "win_rate": 0.22
+  },
+  "KALYANI": {
+    "pnl": 452.4,
+    "trades": 12,
+    "win_rate": 0.39
+  },
+  "DABUR": {
+    "pnl": 253.01,
+    "trades": 7,
+    "win_rate": 0.31
+  },
+  "SATYAM": {
+    "pnl": 362.62,
+    "trades": 9,
+    "win_rate": 0.25
+  },
+  "GREENPANEL.NS": {
+    "pnl": 471.39,
+    "trades": 3,
+    "win_rate": 0.37
+  },
+  "MAPMYINDIA": {
+    "pnl": -52.22,
+    "trades": 3,
+    "win_rate": 0.23
+  },
+  "TATAELXSI": {
+    "pnl": 153.16,
+    "trades": 14,
+    "win_rate": 0.28
+  },
+  "STAN.BO": {
+    "pnl": 376.57,
+    "trades": 7,
+    "win_rate": 0.41
+  },
+  "SKFL.BO": {
+    "pnl": 26.03,
+    "trades": 7,
+    "win_rate": 0.4
+  },
+  "PETPR": {
+    "pnl": 450.0,
+    "trades": 12,
+    "win_rate": 0.2
+  },
+  "PRESTIGE": {
+    "pnl": 91.02,
+    "trades": 12,
+    "win_rate": 0.32
+  },
+  "ENIL": {
+    "pnl": -148.25,
+    "trades": 6,
+    "win_rate": 0.2
+  },
+  "PATSP": {
+    "pnl": 451.7,
+    "trades": 10,
+    "win_rate": 0.28
+  },
+  "MM": {
+    "pnl": 65.97,
+    "trades": 15,
+    "win_rate": 0.37
+  },
+  "FINOPINT.NS": {
+    "pnl": 77.6,
+    "trades": 15,
+    "win_rate": 0.23
+  },
+  "JAE": {
+    "pnl": -49.79,
+    "trades": 13,
+    "win_rate": 0.23
+  },
+  "SEWARD.BO": {
+    "pnl": 154.41,
+    "trades": 13,
+    "win_rate": 0.23
+  },
+  "BRAINBEES": {
+    "pnl": -44.67,
+    "trades": 9,
+    "win_rate": 0.35
+  },
+  "MGL": {
+    "pnl": 222.92,
+    "trades": 3,
+    "win_rate": 0.32
+  },
+  "XERCEMOTS.NS": {
+    "pnl": -155.43,
+    "trades": 3,
+    "win_rate": 0.33
+  },
+  "KIRTID.NS": {
+    "pnl": 408.68,
+    "trades": 13,
+    "win_rate": 0.21
+  },
+  "CESC.NS": {
+    "pnl": 67.85,
+    "trades": 3,
+    "win_rate": 0.33
+  },
+  "ATGL.NS": {
+    "pnl": 300.6,
+    "trades": 12,
+    "win_rate": 0.37
+  },
+  "AAPL.BO": {
+    "pnl": -24.07,
+    "trades": 6,
+    "win_rate": 0.27
+  },
+  "DREAMFOLKS": {
+    "pnl": 134.81,
+    "trades": 9,
+    "win_rate": 0.42
+  },
+  "FINOPINT": {
+    "pnl": -127.43,
+    "trades": 9,
+    "win_rate": 0.34
+  },
+  "ACC": {
+    "pnl": 357.01,
+    "trades": 6,
+    "win_rate": 0.23
+  },
+  "SHREECEM": {
+    "pnl": -141.65,
+    "trades": 13,
+    "win_rate": 0.23
+  },
+  "PRIYACEMENT.BO": {
+    "pnl": -105.38,
+    "trades": 8,
+    "win_rate": 0.24
+  },
+  "JSWSTEEL": {
+    "pnl": 134.27,
+    "trades": 9,
+    "win_rate": 0.26
+  },
+  "SHEMAND.BO": {
+    "pnl": 458.39,
+    "trades": 6,
+    "win_rate": 0.29
+  },
+  "SER.BO": {
+    "pnl": -190.3,
+    "trades": 10,
+    "win_rate": 0.33
+  },
+  "SKC.BO": {
+    "pnl": 395.28,
+    "trades": 5,
+    "win_rate": 0.4
+  },
+  "HLEGLAS": {
+    "pnl": 370.74,
+    "trades": 14,
+    "win_rate": 0.36
+  },
+  "FORTIS": {
+    "pnl": 126.48,
+    "trades": 8,
+    "win_rate": 0.4
+  },
+  "MHL.BO": {
+    "pnl": -83.48,
+    "trades": 13,
+    "win_rate": 0.24
+  },
+  "SHKAM": {
+    "pnl": 406.7,
+    "trades": 13,
+    "win_rate": 0.23
+  },
+  "MARICO": {
+    "pnl": -75.27,
+    "trades": 5,
+    "win_rate": 0.22
+  },
+  "INTECF": {
+    "pnl": 210.72,
+    "trades": 3,
+    "win_rate": 0.28
+  },
+  "BHARATWIRE": {
+    "pnl": 385.14,
+    "trades": 11,
+    "win_rate": 0.42
+  },
+  "SAMB.BO": {
+    "pnl": 51.01,
+    "trades": 3,
+    "win_rate": 0.39
+  },
+  "BPCL": {
+    "pnl": -116.66,
+    "trades": 10,
+    "win_rate": 0.3
+  },
+  "BIOCON.NS": {
+    "pnl": 446.63,
+    "trades": 7,
+    "win_rate": 0.25
+  },
+  "DALMIABHARAT.NS": {
+    "pnl": 40.48,
+    "trades": 4,
+    "win_rate": 0.39
+  },
+  "GMRINFRA": {
+    "pnl": 311.87,
+    "trades": 3,
+    "win_rate": 0.37
+  },
+  "OLECTRA": {
+    "pnl": 183.85,
+    "trades": 12,
+    "win_rate": 0.39
+  },
+  "PREXYP.BO": {
+    "pnl": 396.48,
+    "trades": 13,
+    "win_rate": 0.32
+  },
+  "MUNDRU.BO": {
+    "pnl": -84.31,
+    "trades": 9,
+    "win_rate": 0.26
+  },
+  "PIDILITIND": {
+    "pnl": 15.24,
+    "trades": 9,
+    "win_rate": 0.3
+  },
+  "ULTRACEMCO": {
+    "pnl": -163.22,
+    "trades": 11,
+    "win_rate": 0.39
+  },
+  "ADANIGREEN": {
+    "pnl": 455.85,
+    "trades": 6,
+    "win_rate": 0.38
+  },
+  "AEGISLOG.NS": {
+    "pnl": -9.18,
+    "trades": 3,
+    "win_rate": 0.4
+  },
+  "SOUT": {
+    "pnl": -142.42,
+    "trades": 13,
+    "win_rate": 0.21
+  },
+  "AsianHotels": {
+    "pnl": 400.63,
+    "trades": 14,
+    "win_rate": 0.2
+  },
+  "GLENMARK.NS": {
+    "pnl": -120.82,
+    "trades": 3,
+    "win_rate": 0.42
+  },
+  "SITARAM.BO": {
+    "pnl": 396.98,
+    "trades": 12,
+    "win_rate": 0.38
+  },
+  "AUSTL.BO": {
+    "pnl": 256.01,
+    "trades": 10,
+    "win_rate": 0.24
+  },
+  "ANUP": {
+    "pnl": 60.73,
+    "trades": 3,
+    "win_rate": 0.37
+  },
+  "TIPS": {
+    "pnl": 311.39,
+    "trades": 7,
+    "win_rate": 0.35
+  },
+  "MASFIN": {
+    "pnl": 350.1,
+    "trades": 11,
+    "win_rate": 0.38
+  },
+  "SANBLU.BO": {
+    "pnl": 168.41,
+    "trades": 9,
+    "win_rate": 0.34
+  },
+  "CHOLAFIN": {
+    "pnl": 299.45,
+    "trades": 13,
+    "win_rate": 0.41
+  },
+  "GOCOL": {
+    "pnl": -77.8,
+    "trades": 7,
+    "win_rate": 0.32
+  },
+  "ASHOKLEY": {
+    "pnl": -107.23,
+    "trades": 13,
+    "win_rate": 0.42
+  },
+  "SHVIG": {
+    "pnl": -145.08,
+    "trades": 6,
+    "win_rate": 0.22
+  },
+  "VISASTEEL": {
+    "pnl": 372.83,
+    "trades": 12,
+    "win_rate": 0.32
+  },
+  "HINDZINC": {
+    "pnl": -193.84,
+    "trades": 3,
+    "win_rate": 0.24
+  },
+  "GSPL": {
+    "pnl": 276.26,
+    "trades": 9,
+    "win_rate": 0.23
+  },
+  "INTEL": {
+    "pnl": -110.29,
+    "trades": 7,
+    "win_rate": 0.34
+  },
+  "CANBK.NS": {
+    "pnl": 23.68,
+    "trades": 15,
+    "win_rate": 0.28
+  },
+  "WALCH.BO": {
+    "pnl": 21.69,
+    "trades": 5,
+    "win_rate": 0.32
+  },
+  "GODNEST.NS": {
+    "pnl": 393.91,
+    "trades": 15,
+    "win_rate": 0.31
+  },
+  "PAAM.BO": {
+    "pnl": 377.4,
+    "trades": 5,
+    "win_rate": 0.2
+  },
+  "SUMUK.BO": {
+    "pnl": -114.26,
+    "trades": 13,
+    "win_rate": 0.41
+  },
+  "INOVAT": {
+    "pnl": 142.47,
+    "trades": 4,
+    "win_rate": 0.34
+  },
+  "TBP": {
+    "pnl": -112.52,
+    "trades": 3,
+    "win_rate": 0.4
+  },
+  "BALRAMCHIN": {
+    "pnl": 172.2,
+    "trades": 4,
+    "win_rate": 0.34
+  },
+  "DIAMOND": {
+    "pnl": -47.68,
+    "trades": 13,
+    "win_rate": 0.26
+  },
+  "HITECH": {
+    "pnl": 141.07,
+    "trades": 12,
+    "win_rate": 0.35
+  },
+  "JPOLY.BO": {
+    "pnl": 455.07,
+    "trades": 14,
+    "win_rate": 0.44
+  },
+  "SCHAEFFLER": {
+    "pnl": 483.22,
+    "trades": 12,
+    "win_rate": 0.29
+  },
+  "KELLTONTEC.NS": {
+    "pnl": 261.81,
+    "trades": 5,
+    "win_rate": 0.29
+  },
+  "RUGRO.BO": {
+    "pnl": 32.54,
+    "trades": 13,
+    "win_rate": 0.26
+  },
+  "STANVEC.BO": {
+    "pnl": -2.44,
+    "trades": 7,
+    "win_rate": 0.34
+  },
+  "GODaw": {
+    "pnl": 219.15,
+    "trades": 3,
+    "win_rate": 0.32
+  },
+  "INDRAMED": {
+    "pnl": -170.14,
+    "trades": 14,
+    "win_rate": 0.27
+  },
+  "PERFECT": {
+    "pnl": 174.45,
+    "trades": 13,
+    "win_rate": 0.28
+  },
+  "ALEMBICL.BO": {
+    "pnl": 472.73,
+    "trades": 8,
+    "win_rate": 0.4
+  },
+  "TATAMOTORS.BO": {
+    "pnl": 217.19,
+    "trades": 9,
+    "win_rate": 0.41
+  },
+  "SAMA.BO": {
+    "pnl": 327.57,
+    "trades": 3,
+    "win_rate": 0.35
+  },
+  "TITAN": {
+    "pnl": 280.49,
+    "trades": 10,
+    "win_rate": 0.34
+  },
+  "IDEA": {
+    "pnl": 386.56,
+    "trades": 11,
+    "win_rate": 0.27
+  },
+  "VKS.BO": {
+    "pnl": 153.16,
+    "trades": 13,
+    "win_rate": 0.36
+  },
+  "TALLY": {
+    "pnl": 462.58,
+    "trades": 6,
+    "win_rate": 0.29
+  },
+  "PALWAL.BO": {
+    "pnl": 258.12,
+    "trades": 6,
+    "win_rate": 0.31
+  },
+  "TAN": {
+    "pnl": 322.96,
+    "trades": 15,
+    "win_rate": 0.37
+  },
+  "SABN.BO": {
+    "pnl": -23.4,
+    "trades": 4,
+    "win_rate": 0.3
+  },
+  "HIKAL.NS": {
+    "pnl": 170.31,
+    "trades": 11,
+    "win_rate": 0.4
+  },
+  "PATANJALI": {
+    "pnl": 391.73,
+    "trades": 9,
+    "win_rate": 0.38
+  },
+  "HDFCBANK": {
+    "pnl": 98.41,
+    "trades": 15,
+    "win_rate": 0.25
+  },
+  "ONGC": {
+    "pnl": 450.26,
+    "trades": 13,
+    "win_rate": 0.21
+  },
+  "PROIND": {
+    "pnl": 210.87,
+    "trades": 14,
+    "win_rate": 0.32
+  },
+  "APOLLOTYRE": {
+    "pnl": -6.31,
+    "trades": 12,
+    "win_rate": 0.44
+  },
+  "INTENSE.BO": {
+    "pnl": 180.09,
+    "trades": 8,
+    "win_rate": 0.28
+  },
+  "TCS": {
+    "pnl": -54.63,
+    "trades": 13,
+    "win_rate": 0.37
+  },
+  "PRSM.BO": {
+    "pnl": -138.1,
+    "trades": 10,
+    "win_rate": 0.29
+  },
+  "KHADKE.NS": {
+    "pnl": 222.98,
+    "trades": 14,
+    "win_rate": 0.36
+  },
+  "SOM.BO": {
+    "pnl": -138.58,
+    "trades": 11,
+    "win_rate": 0.35
+  },
+  "BHARTIARTL": {
+    "pnl": 77.23,
+    "trades": 4,
+    "win_rate": 0.38
+  },
+  "ARIANSI.BO": {
+    "pnl": 340.54,
+    "trades": 5,
+    "win_rate": 0.43
+  },
+  "AARTIIND": {
+    "pnl": 338.54,
+    "trades": 4,
+    "win_rate": 0.28
+  },
+  "DCM.NS": {
+    "pnl": -175.11,
+    "trades": 15,
+    "win_rate": 0.36
+  },
+  "WIPRO": {
+    "pnl": -192.44,
+    "trades": 8,
+    "win_rate": 0.28
+  },
+  "MEGHNA": {
+    "pnl": -79.31,
+    "trades": 13,
+    "win_rate": 0.39
+  },
+  "HGINFRA": {
+    "pnl": 356.68,
+    "trades": 7,
+    "win_rate": 0.42
+  },
+  "IEX.NS": {
+    "pnl": 446.14,
+    "trades": 9,
+    "win_rate": 0.38
+  },
+  "GRING": {
+    "pnl": -11.35,
+    "trades": 9,
+    "win_rate": 0.21
+  },
+  "CROMPTON": {
+    "pnl": -196.84,
+    "trades": 10,
+    "win_rate": 0.27
+  },
+  "INIV": {
+    "pnl": 342.51,
+    "trades": 11,
+    "win_rate": 0.29
+  },
+  "PERSISTENT": {
+    "pnl": -109.44,
+    "trades": 7,
+    "win_rate": 0.22
+  },
+  "SOLEX.BO": {
+    "pnl": 143.56,
+    "trades": 3,
+    "win_rate": 0.22
+  },
+  "PUNJABNat.BO": {
+    "pnl": -149.42,
+    "trades": 8,
+    "win_rate": 0.27
+  },
+  "SET.BO": {
+    "pnl": 167.5,
+    "trades": 11,
+    "win_rate": 0.37
+  },
+  "METROBRANDS": {
+    "pnl": -180.78,
+    "trades": 8,
+    "win_rate": 0.24
+  },
+  "HPL": {
+    "pnl": -153.49,
+    "trades": 12,
+    "win_rate": 0.3
+  },
+  "SH.BO": {
+    "pnl": -89.72,
+    "trades": 5,
+    "win_rate": 0.4
+  },
+  "NEIN.BO": {
+    "pnl": 189.09,
+    "trades": 7,
+    "win_rate": 0.28
+  },
+  "CUMMINSIND": {
+    "pnl": 352.34,
+    "trades": 7,
+    "win_rate": 0.26
+  },
+  "BIKANI.NS": {
+    "pnl": -26.37,
+    "trades": 13,
+    "win_rate": 0.24
+  },
+  "BAJAJFINSV": {
+    "pnl": 173.9,
+    "trades": 4,
+    "win_rate": 0.41
+  },
+  "SPR": {
+    "pnl": -119.59,
+    "trades": 8,
+    "win_rate": 0.32
+  },
+  "Alkyl.BO": {
+    "pnl": 337.6,
+    "trades": 12,
+    "win_rate": 0.41
+  },
+  "RUCHA.BO": {
+    "pnl": 115.47,
+    "trades": 4,
+    "win_rate": 0.35
+  },
+  "SURANATPS": {
+    "pnl": 390.62,
+    "trades": 14,
+    "win_rate": 0.39
+  },
+  "CENTUMTECH.NS": {
+    "pnl": -158.09,
+    "trades": 15,
+    "win_rate": 0.32
+  },
+  "DELHIVERY.NS": {
+    "pnl": 71.45,
+    "trades": 5,
+    "win_rate": 0.4
+  },
+  "Gocol": {
+    "pnl": 235.8,
+    "trades": 6,
+    "win_rate": 0.44
+  },
+  "SRD": {
+    "pnl": -191.88,
+    "trades": 15,
+    "win_rate": 0.44
+  },
+  "PENIN": {
+    "pnl": 96.82,
+    "trades": 9,
+    "win_rate": 0.29
+  },
+  "GODREJCP": {
+    "pnl": -83.1,
+    "trades": 15,
+    "win_rate": 0.44
+  },
+  "PAL.MO": {
+    "pnl": 402.44,
+    "trades": 14,
+    "win_rate": 0.31
+  },
+  "ABM.BO": {
+    "pnl": 478.18,
+    "trades": 12,
+    "win_rate": 0.27
+  },
+  "ESCORTS": {
+    "pnl": 114.2,
+    "trades": 13,
+    "win_rate": 0.37
+  },
+  "STEP.BO": {
+    "pnl": 39.16,
+    "trades": 11,
+    "win_rate": 0.24
+  },
+  "INFOLLOR.BO": {
+    "pnl": -33.66,
+    "trades": 14,
+    "win_rate": 0.41
+  },
+  "AUROPHARMA.NS": {
+    "pnl": 264.15,
+    "trades": 11,
+    "win_rate": 0.37
+  },
+  "CONCOR.NS": {
+    "pnl": 328.55,
+    "trades": 7,
+    "win_rate": 0.22
+  },
+  "NATIONALUM": {
+    "pnl": 479.52,
+    "trades": 8,
+    "win_rate": 0.34
+  },
+  "SBILIFE": {
+    "pnl": 361.98,
+    "trades": 14,
+    "win_rate": 0.39
+  },
+  "ICICIPRULI": {
+    "pnl": -60.81,
+    "trades": 14,
+    "win_rate": 0.22
+  },
+  "360ONE.NS": {
+    "pnl": 467.98,
+    "trades": 10,
+    "win_rate": 0.33
+  },
+  "KAYEL.BO": {
+    "pnl": 475.42,
+    "trades": 7,
+    "win_rate": 0.36
+  },
+  "HINDPETRO": {
+    "pnl": -126.79,
+    "trades": 7,
+    "win_rate": 0.38
+  },
+  "MRF": {
+    "pnl": 377.88,
+    "trades": 11,
+    "win_rate": 0.37
+  },
+  "PASU": {
+    "pnl": -161.55,
+    "trades": 13,
+    "win_rate": 0.43
+  },
+  "SG.BO": {
+    "pnl": 492.3,
+    "trades": 15,
+    "win_rate": 0.32
+  },
+  "RAJMET.BO": {
+    "pnl": 379.15,
+    "trades": 4,
+    "win_rate": 0.36
+  },
+  "TLC": {
+    "pnl": 14.13,
+    "trades": 6,
+    "win_rate": 0.38
+  },
+  "LICI": {
+    "pnl": 49.43,
+    "trades": 13,
+    "win_rate": 0.37
+  },
+  "ASIANPAINT": {
+    "pnl": 228.58,
+    "trades": 10,
+    "win_rate": 0.24
+  },
+  "WAIKATO": {
+    "pnl": 103.63,
+    "trades": 8,
+    "win_rate": 0.39
+  },
+  "EICHERMOT": {
+    "pnl": -55.92,
+    "trades": 15,
+    "win_rate": 0.33
+  },
+  "UBHOLDINGS": {
+    "pnl": -94.43,
+    "trades": 14,
+    "win_rate": 0.25
+  },
+  "IONEXCHANG": {
+    "pnl": 21.69,
+    "trades": 14,
+    "win_rate": 0.31
+  },
+  "PAR.BO": {
+    "pnl": 254.52,
+    "trades": 13,
+    "win_rate": 0.22
+  },
+  "PART4.BO": {
+    "pnl": -7.89,
+    "trades": 5,
+    "win_rate": 0.42
+  },
+  "EQUITASBNK.NS": {
+    "pnl": 256.96,
+    "trades": 3,
+    "win_rate": 0.28
+  },
+  "RBDC.BO": {
+    "pnl": 418.66,
+    "trades": 5,
+    "win_rate": 0.32
+  },
+  "BRITANIA": {
+    "pnl": -192.38,
+    "trades": 5,
+    "win_rate": 0.24
+  },
+  "HAVELLS": {
+    "pnl": 495.85,
+    "trades": 12,
+    "win_rate": 0.21
+  },
+  "SHARDA.BO": {
+    "pnl": -80.14,
+    "trades": 3,
+    "win_rate": 0.36
+  },
+  "TEXMRO.BO": {
+    "pnl": -180.78,
+    "trades": 6,
+    "win_rate": 0.2
+  },
+  "INFOCIAL.BO": {
+    "pnl": -186.5,
+    "trades": 15,
+    "win_rate": 0.28
+  },
+  "INNO": {
+    "pnl": -29.47,
+    "trades": 10,
+    "win_rate": 0.26
+  },
+  "SOL.BO": {
+    "pnl": 450.29,
+    "trades": 4,
+    "win_rate": 0.26
+  },
+  "ICICIBANK": {
+    "pnl": 289.66,
+    "trades": 7,
+    "win_rate": 0.25
+  },
+  "SHIVATRE": {
+    "pnl": -35.61,
+    "trades": 7,
+    "win_rate": 0.35
+  },
+  "VENKEY.BO": {
+    "pnl": 123.7,
+    "trades": 11,
+    "win_rate": 0.21
+  },
+  "SANWHS.BO": {
+    "pnl": 400.21,
+    "trades": 4,
+    "win_rate": 0.39
+  },
+  "ABGSEC.BO": {
+    "pnl": 344.21,
+    "trades": 11,
+    "win_rate": 0.44
+  },
+  "SUNPHARMA": {
+    "pnl": 353.88,
+    "trades": 7,
+    "win_rate": 0.29
+  },
+  "SUKHJETS.BO": {
+    "pnl": 454.89,
+    "trades": 8,
+    "win_rate": 0.22
+  },
+  "SAJEV.BO": {
+    "pnl": -141.98,
+    "trades": 4,
+    "win_rate": 0.41
+  },
+  "INFRONT": {
+    "pnl": 86.0,
+    "trades": 5,
+    "win_rate": 0.33
+  },
+  "CRBEPOST.BO": {
+    "pnl": -117.89,
+    "trades": 12,
+    "win_rate": 0.38
+  },
+  "MARUTI": {
+    "pnl": 105.01,
+    "trades": 7,
+    "win_rate": 0.32
+  },
+  "LTES": {
+    "pnl": 89.74,
+    "trades": 10,
+    "win_rate": 0.43
+  },
+  "BOSCHLTD": {
+    "pnl": 372.03,
+    "trades": 8,
+    "win_rate": 0.32
+  },
+  "RBA.NS": {
+    "pnl": 477.11,
+    "trades": 8,
+    "win_rate": 0.2
+  },
+  "NAVKARCORP.NS": {
+    "pnl": 482.7,
+    "trades": 13,
+    "win_rate": 0.39
+  }
+}

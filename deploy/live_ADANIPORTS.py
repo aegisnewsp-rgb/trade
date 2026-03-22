@@ -60,7 +60,19 @@ PARAMS = {
     "trade_sentiment_weight": 0.2,  # 20% weight to global trade data
     "bdi_check_enabled": True,
     "exim_check_enabled": True,
+    "rsi_threshold": 55,
+    "volume_multiplier": 1.2,
 }
+
+# ── Groww Production Enhancements ───────────────────────────────────────────
+# 3-Tier Target System (1.5x / 3x / 5x risk multiples)
+TARGET_1_MULT = 1.5   # Exit 1/3 at 1.5× risk — secure profit
+TARGET_2_MULT = 3.0   # Exit 1/3 at 3× risk — main target
+TARGET_3_MULT = 5.0   # Exit remaining at 5× risk — stretch target
+
+# Smart Entry Window: 9:30 AM – 2:30 PM IST only
+SMART_ENTRY_START = dtime(9, 30)
+SMART_ENTRY_END   = dtime(14, 30)
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -84,6 +96,52 @@ def is_pre_market() -> bool:
     if now.weekday() >= 5:
         return False
     return dtime(9, 0) <= now.time() < dtime(9, 15)
+
+def can_new_entry() -> bool:
+    """HARD BLOCK: Only allow entries during smart session (9:30 AM - 2:30 PM IST)."""
+    now = ist_now().time()
+    if not (SMART_ENTRY_START <= now <= SMART_ENTRY_END):
+        log.info("🛑 BLOCKED: Outside smart entry window (9:30 AM - 2:30 PM IST)")
+        return False
+    return True
+
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    """Calculate RSI for momentum confirmation."""
+    rsi = [None] * period
+    if len(ohlcv) < period + 1:
+        return rsi
+    gains = []
+    losses = []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i-1]["close"]
+        gains.append(max(change, 0))
+        losses.append(max(-change, 0))
+    if len(gains) < period:
+        return rsi + [None] * (len(ohlcv) - period)
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains) + 1):
+        if i == period:
+            if avg_loss == 0:
+                rsi.append(100)
+            else:
+                rs = avg_gain / avg_loss
+                rsi.append(100 - (100 / (1 + rs)))
+        else:
+            avg_gain = (avg_gain * (period - 1) + gains[i - 1]) / period
+            avg_loss = (avg_loss * (period - 1) + losses[i - 1]) / period
+            if avg_loss == 0:
+                rsi.append(100)
+            else:
+                rs = avg_gain / avg_loss
+                rsi.append(100 - (100 / (1 + rs)))
+    return rsi
+
+def get_avg_volume(ohlcv: list, lookback: int = 20) -> float:
+    """Calculate average volume over lookback period."""
+    if len(ohlcv) < lookback:
+        return sum(ohlcv[j]["volume"] for j in range(len(ohlcv))) / len(ohlcv)
+    return sum(ohlcv[j]["volume"] for j in range(-lookback, 0)) / lookback
 
 def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     for attempt in range(retries):
@@ -228,55 +286,68 @@ def calculate_effective_position(win_rate: float, base_position: int) -> int:
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, dict]:
     """
     VWAP signal with trade sentiment filter.
-    
-    Entry: price > VWAP + 0.5% AND trade sentiment bullish
-    Exit: price < VWAP - ATR OR trade sentiment turns bearish
+    Enhanced with RSI filter (55/45) and volume confirmation (1.2x avg).
+
+    Entry: price > VWAP + 0.5% AND trade sentiment bullish AND RSI > 55 AND volume > 1.2x avg
+    Exit: price < VWAP - ATR OR RSI < 45 OR trade sentiment turns bearish
     """
     period         = params["vwap_period"]
     atr_mult       = params["atr_multiplier"]
     entry_buffer   = params.get("vwap_entry_buffer", 0.005)
     trade_weight   = params.get("trade_sentiment_weight", 0.2)
-    
+    rsi_threshold  = params.get("rsi_threshold", 55)
+    vol_mult       = params.get("volume_multiplier", 1.2)
+
     vwap_vals  = calculate_vwap(ohlcv, period)
     atr_vals   = calculate_atr(ohlcv, period)
+    rsi_vals   = calculate_rsi(ohlcv, period)
+    avg_vol    = get_avg_volume(ohlcv)
     signals    = ["HOLD"] * len(ohlcv)
-    
+
     # Get trade sentiment
     trade_sentiment = get_trade_sentiment()
     log.info("Trade sentiment: BDI=%.2f EXIM=%.2f Combined=%.2f",
              trade_sentiment["bdi"], trade_sentiment["exim"], trade_sentiment["combined"])
-    
+
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
-        
+
         price  = ohlcv[i]["close"]
         vwap   = vwap_vals[i]
         atr    = atr_vals[i]
-        
-        # BUY: price > VWAP + entry_buffer AND bullish sentiment
-        if price > vwap * (1 + entry_buffer) and trade_sentiment["bullish"]:
+        rsi    = rsi_vals[i]
+        volume = ohlcv[i]["volume"]
+        vol_ratio = volume / avg_vol if avg_vol > 0 else 0
+
+        rsi_confirm = rsi > rsi_threshold
+        vol_confirm = vol_ratio > vol_mult
+
+        # BUY: price > VWAP + buffer AND bullish sentiment AND RSI > 55 AND volume > 1.2x
+        if price > vwap * (1 + entry_buffer) and trade_sentiment["bullish"] and rsi_confirm and vol_confirm:
             signals[i] = "BUY"
-        # SELL: price < VWAP - ATR OR bearish sentiment
-        elif price < vwap - atr * atr_mult or trade_sentiment["bearish"]:
+        # SELL: price < VWAP - ATR OR RSI < 45 OR bearish sentiment
+        elif price < vwap - atr * atr_mult or rsi < 45 or trade_sentiment["bearish"]:
             signals[i] = "SELL"
-    
+
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    
+    current_rsi    = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 50.0
+
     # Calculate VWAP premium/discount
     vwap_current = vwap_vals[-1] if vwap_vals and vwap_vals[-1] else 0.0
     vwap_premium = ((current_price - vwap_current) / vwap_current * 100) if vwap_current > 0 else 0.0
-    
+
     metadata = {
         "vwap": vwap_current,
         "vwap_premium_pct": vwap_premium,
         "atr": current_atr,
+        "rsi": current_rsi,
         "trade_sentiment": trade_sentiment,
-        "entry_threshold": f"VWAP + {entry_buffer*100:.1f}%",
+        "entry_threshold": f"VWAP + {entry_buffer*100:.1f}% + RSI>{rsi_threshold} + Vol>{vol_mult}x",
     }
-    
+
     return current_signal, current_price, current_atr, metadata
 
 def place_groww_order(symbol, signal, quantity, price):
@@ -397,6 +468,8 @@ def main():
     print(f"Current Price:  Rs{price:.2f}")
     print(f"VWAP:           Rs{metadata['vwap']:.2f} ({metadata['vwap_premium_pct']:+.2f}%)")
     print(f"ATR:            Rs{metadata['atr']:.2f}")
+    print(f"RSI:            {metadata.get('rsi', 50.0):.1f} (threshold: >55 bull / <45 bear)")
+    print(f"Entry Window:   {'✅ 9:30 AM - 2:30 PM IST' if can_new_entry() else '❌ Outside window'}")
     print(f"Entry Buffer:   {metadata['entry_threshold']}")
     print(f"\n--- Trade Sentiment ---")
     print(f"BDI Sentiment:  {trade_sent['bdi']:.2f} ({'↑ Bullish' if trade_sent['bullish'] else '↓ Bearish' if trade_sent['bearish'] else '→ Neutral'})")
@@ -406,16 +479,20 @@ def main():
     print(f"Signal:         {signal}")
     print(f"Base Position: Rs{POSITION}")
     print(f"Effective:      Rs{effective_position} (+{(effective_position/POSITION-1)*100:.0f}% for {WIN_RATE:.0f}% win rate)")
-    
-    if signal == "BUY":
+
+    if signal == "BUY" and can_new_entry():
         sl = round(price - atr * 1.0, 2)
-        tgt = round(price + atr * TARGET_MULT, 2)
+        tgt1 = round(price + atr * TARGET_1_MULT, 2)
+        tgt2 = round(price + atr * TARGET_2_MULT, 2)
+        tgt3 = round(price + atr * TARGET_3_MULT, 2)
         qty = max(1, int(effective_position / price))
         print(f"Qty:            {qty}")
         print(f"Stop Loss:      Rs{sl:.2f} (Rs{price-sl:.2f} risk)")
-        print(f"Target:         Rs{tgt:.2f} (Rs{tgt-price:.2f} reward)")
-        print(f"Risk/Reward:    1:{TARGET_MULT:.1f}")
-        
+        print(f"Target1:        Rs{tgt1:.2f} ({TARGET_1_MULT}× risk) - exit 1/3")
+        print(f"Target2:        Rs{tgt2:.2f} ({TARGET_2_MULT}× risk) - exit 1/3")
+        print(f"Target3:        Rs{tgt3:.2f} ({TARGET_3_MULT}× risk) - exit remaining")
+        print(f"🎯 3-Tier Targets: {TARGET_1_MULT}× / {TARGET_2_MULT}× / {TARGET_3_MULT}× risk")
+
         try:
             from signals.schema import emit_signal
             emit_signal(
@@ -431,6 +508,8 @@ def main():
                     "vwap_premium_pct": metadata["vwap_premium_pct"],
                     "effective_position": effective_position,
                     "win_rate": WIN_RATE,
+                    "rsi": metadata.get("rsi", 50.0),
+                    "targets": [tgt1, tgt2, tgt3],
                 }
             )
         except ImportError:
@@ -439,15 +518,20 @@ def main():
                 paper_trade("BUY", ticker_sym, price, qty)
             except:
                 pass
-    
-    elif signal == "SELL":
+
+    elif signal == "SELL" and can_new_entry():
         sl = round(price + atr * 1.0, 2)
-        tgt = round(price - atr * TARGET_MULT, 2)
+        tgt1 = round(price - atr * TARGET_1_MULT, 2)
+        tgt2 = round(price - atr * TARGET_2_MULT, 2)
+        tgt3 = round(price - atr * TARGET_3_MULT, 2)
         qty = max(1, int(effective_position / price))
         print(f"Qty:            {qty}")
         print(f"Stop Loss:      Rs{sl:.2f} (Rs{sl-price:.2f} risk)")
-        print(f"Target:         Rs{tgt:.2f} (Rs{price-tgt:.2f} reward)")
-        
+        print(f"Target1:        Rs{tgt1:.2f} ({TARGET_1_MULT}× risk) - exit 1/3")
+        print(f"Target2:        Rs{tgt2:.2f} ({TARGET_2_MULT}× risk) - exit 1/3")
+        print(f"Target3:        Rs{tgt3:.2f} ({TARGET_3_MULT}× risk) - exit remaining")
+        print(f"🎯 3-Tier Targets: {TARGET_1_MULT}× / {TARGET_2_MULT}× / {TARGET_3_MULT}× risk")
+
         try:
             from signals.schema import emit_signal
             emit_signal(
@@ -460,19 +544,24 @@ def main():
                 metadata={
                     "source": Path(__file__).name,
                     "trade_sentiment": trade_sent,
+                    "rsi": metadata.get("rsi", 50.0),
+                    "targets": [tgt1, tgt2, tgt3],
                 }
             )
-        except ImportImportError:
+        except ImportError:
             try:
                 from groww_api import paper_trade
                 paper_trade("SELL", ticker_sym, price, qty)
             except:
                 pass
-    
+
     else:
-        print("No trade — HOLD signal")
-        if not trade_sent["bullish"]:
-            print("Reason: Trade sentiment not bullish")
+        if signal != "HOLD":
+            print(f"No trade — {signal} signal but outside smart entry window (9:30 AM - 2:30 PM IST)")
+        else:
+            print("No trade — HOLD signal")
+            if not trade_sent["bullish"]:
+                print("Reason: Trade sentiment not bullish")
 
 
 if __name__ == "__main__":

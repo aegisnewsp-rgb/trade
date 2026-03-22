@@ -2,36 +2,35 @@
 """
 Groww Strategy: ACC
 Exchange: NSE | Strategy: VWAP
-Win Rate: 55.00%
+Win Rate: {win_rate}% | ATR Stop: 0.8% | Target: 4× ATR
 
-TO DEPLOY ON GROWW DASHBOARD:
+TO DEPLOY ON GROWW:
   1. Copy this file's code
-  2. Go to groww.in → Trade API → Strategies → New Strategy  
+  2. Go to groww.in → Trade API → Strategies → New Strategy
   3. Paste into Python strategy editor
-  4. Set env vars: GROWW_API_KEY, GROWW_API_SECRET
-  5. Activate strategy
+  4. Set: GROWW_API_KEY, GROWW_API_SECRET env vars
+  5. Activate
 
-ENTRY: Price > VWAP + 0.5% AND RSI > 55 AND Volume > 1.2x avg
-EXIT:   3-tier targets (1.5x/3x/5x risk) OR 0.8% ATR stop loss
-RISK:   Max ₹500/stock | Max ₹3000/day
+ENTRY: Price > VWAP + 0.5% AND RSI > 55 AND Volume > 1.2× avg
+EXIT:   3-tier (1.5×/3×/5× risk) or 0.8% ATR stop
 """
 
 import os, sys, time, json, hmac, hashlib, base64, requests
 from datetime import datetime, timedelta
 
-# Config
+# ─── Config ───────────────────────────────────────────────────────────────────
 SYMBOL = "ACC"
 EXCHANGE = "NSE"
 GROWW_API_KEY = os.getenv("GROWW_API_KEY", "")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET", "")
-POSITION = 10000
-ENTRY_VWAP_PCT = 0.5
-ENTRY_RSI = 55
-ENTRY_VOL = 1.2
-SL_ATR = 1.0
-TGT_RR = [1.5, 3.0, 5.0]
+POSITION = 10000          # ₹10,000 per trade
+ENTRY_VWAP_PCT = 0.5     # Price must be > VWAP + this %
+ENTRY_RSI = 55           # RSI must be above this for BUY
+ENTRY_VOL = 1.2          # Volume must be > avg × this
+SL_ATR = 1.0             # Stop = ATR × this
+TGT_RR = [1.5, 3.0, 5.0] # Target tiers (risk multiples)
 
-# Groww Auth
+# ─── Groww Auth ───────────────────────────────────────────────────────────────
 _BASE = "https://api.groww.in"
 _token, _exp = None, 0
 
@@ -43,14 +42,12 @@ def _auth():
     sig = base64.b64encode(hmac.new(
         GROWW_API_SECRET.encode(), (GROWW_API_KEY + ts).encode(),
         hashlib.sha256).digest()).decode()
-    r = requests.post(_BASE + "/v1/user/tokens", headers={
-        "Content-Type": "application/json",
-        "X-Groww-Auth-Type": "signature",
-        "X-Api-Key": GROWW_API_KEY,
-        "X-Request-Timestamp": ts,
+    r = requests.post(_BASE + "/v1/user/tokens", headers={{
+        "Content-Type": "application/json", "X-Groww-Auth-Type": "signature",
+        "X-Api-Key": GROWW_API_KEY, "X-Request-Timestamp": ts,
         "X-Request-Signature": sig,
-    }, json={"clientId": GROWW_API_KEY, "clientSecret": GROWW_API_SECRET,
-              "grantType": "client_credentials"}, timeout=10)
+    }}, json={{"clientId": GROWW_API_KEY, "clientSecret": GROWW_API_SECRET,
+              "grantType": "client_credentials"}}, timeout=10)
     if r.status_code == 200:
         d = r.json()
         _token = d.get("access_token")
@@ -59,26 +56,29 @@ def _auth():
     return None
 
 def _hdrs():
-    return {"Authorization": "Bearer " + (_auth() or ""),
-            "Content-Type": "application/json", "X-Api-Key": GROWW_API_KEY}
+    return {{"Authorization": "Bearer " + (_auth() or ""),
+            "Content-Type": "application/json", "X-Api-Key": GROWW_API_KEY}}
 
+# ─── Order Placement ───────────────────────────────────────────────────────────
 def place_bo(trans, qty, target, sl):
+    """Bracket Order via Groww API"""
     if not GROWW_API_KEY or not GROWW_API_SECRET:
-        print(f"[PAPER] {trans} {qty}x {SYMBOL} @ Rs{target} [SL:Rs{sl}]")
-        return {"orderId": f"PAPER_{int(time.time())}", "status": "PAPER_MODE"}
-    order = {
+        print(f"[PAPER] {{trans}} {{qty}}x {{SYMBOL}} @ Rs{{target}} [SL:Rs{{sl}}]")
+        return {{"orderId": f"PAPER_{{int(time.time())}}", "status": "PAPER_MODE"}}
+    order = {{
         "exchange": EXCHANGE, "symbol": SYMBOL, "product": "INTRADAY",
         "orderType": "BO", "transactionType": trans, "quantity": qty,
         "targetPrice": round(target, 2), "stopLossPrice": round(sl, 2),
         "trailingTarget": 0.5, "trailingStopLoss": 0.3, "validity": "DAY",
-    }
+    }}
     r = requests.post(_BASE + "/v1/orders", headers=_hdrs(), json=order, timeout=15)
     if r.status_code in (200, 201):
-        print(f"[GROWW] OK {trans} {qty}x {SYMBOL} -> {r.json().get('orderId')}")
+        print(f"[GROWW] ✓ {{trans}} {{qty}}x {{SYMBOL}} → {{r.json().get('orderId')}}")
         return r.json()
-    print(f"[GROWW] FAIL {r.status_code}")
+    print(f"[GROWW] ✗ {{r.status_code}} {{r.text[:100]}}")
     return None
 
+# ─── Strategy ────────────────────────────────────────────────────────────────
 def calc_vwap(ohlcv):
     ct, cv = 0, 0
     for o, h, l, c, v in ohlcv:
@@ -113,7 +113,7 @@ def in_window():
     h, m = now.hour, now.minute
     return not (h < 9 or h >= 14 or (h == 9 and m < 30))
 
-def get_signal(ohlcv):
+def signal(ohlcv):
     if not ohlcv or len(ohlcv) < 25:
         return None, None, None
     closes = [c for _, _, _, c, _ in ohlcv]
@@ -121,16 +121,20 @@ def get_signal(ohlcv):
     vwap = calc_vwap(ohlcv)
     rsi = calc_rsi(closes)
     price = closes[-1]
-    avg_vol = sum(vols[-20:]) / 20 if len(vols) >= 20 else sum(vols) / max(1, len(vols))
+    avg_vol = sum(vols[-20:]) / 20 if len(vols) >= 20 else sum(vols) / len(vols)
     vol_ratio = vols[-1] / avg_vol if avg_vol > 0 else 1
+    
+    # ATR
     trs = []
     for i in range(1, min(15, len(ohlcv))):
         h, l = ohlcv[i][1], ohlcv[i][2]
         pc = ohlcv[i-1][4]
         trs.append(max(h-l, abs(h-pc), abs(l-pc)))
     atr = sum(trs) / len(trs) if trs else price * 0.008
+    
     if get_regime() == "DOWNTREND" or not in_window():
         return None, None, None
+    
     if (vwap and price > vwap * (1 + ENTRY_VWAP_PCT / 100)
             and rsi > ENTRY_RSI and vol_ratio > ENTRY_VOL):
         return "BUY", price, atr
@@ -141,93 +145,36 @@ def get_signal(ohlcv):
 
 def run():
     import yfinance as yf
-    print(f"\n==================================================")
-    print(f"{SYMBOL} | WR: 55.00% | Pos: Rs{POSITION}")
+    print(f"\n{'='*50}")
+    print(f"{{SYMBOL}} | Win Rate: {{55.00}}% | Pos: ₹{{POSITION}}")
     print(f"{'='*50}")
+    
     try:
         ticker = yf.Ticker(SYMBOL + ".NS")
         data = ticker.history(period="3mo")
         if data.empty:
-            print(f"No data for {SYMBOL}.NS")
+            print(f"No data for {{SYMBOL}}.NS")
             return
         ohlcv = [[float(r['Open']), float(r['High']), float(r['Low']),
                    float(r['Close']), float(r['Volume'])]
                   for _, r in data.iterrows()]
-        print(f"{len(ohlcv)} candles | Regime: {get_regime()}")
-        sig, price, atr = get_signal(ohlcv)
+        print(f"{{len(ohlcv)}} candles | Regime: {{get_regime()}}")
+        
+        sig, price, atr = signal(ohlcv)
         if not sig:
-            print("HOLD -- no signal")
+            print("HOLD — no signal")
             return
+        
         qty = max(1, int(POSITION / price))
         sl = round(price - atr * SL_ATR, 2) if sig == "BUY" else round(price + atr * SL_ATR, 2)
         tgt = round(price + atr * TGT_RR[1], 2) if sig == "BUY" else round(price - atr * TGT_RR[1], 2)
-        print(f"{sig} {qty}x {SYMBOL} @ Rs{price:.2f} | SL:Rs{sl} TGT:Rs{tgt}")
+        
+        print(f"{{sig}} {{qty}}x {{SYMBOL}} @ Rs{{price:.2f}}")
+        print(f"  SL: Rs{{sl}} | TGT: Rs{{tgt}} | ATR: Rs{{atr:.2f}}")
         place_bo(sig, qty, tgt, sl)
+        
     except Exception as e:
-        print(f"Error: {e}")
-
-def run_strategy(ohlcv):
-    """
-    Groww Dashboard entry point — called with live OHLCV candles.
-    ohlcv: [[open, high, low, close, volume], ...] per candle
-    
-    Returns dict with: action, price, quantity, stop_loss, target, atr
-    """
-    import sys
-    from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).parent))
-    
-    signal, price, atr = get_signal(ohlcv)
-    
-    if signal is None or signal == "HOLD" or price is None:
-        return {"action": "HOLD", "reason": "No signal"}
-    
-    # Calculate stop loss and target
-    risk = atr * SL_ATR
-    if signal == "BUY":
-        stop_loss = round(price - risk, 2)
-        target    = round(price + atr * TGT_RR[1], 2)
-    else:  # SELL
-        stop_loss = round(price + risk, 2)
-        target    = round(price - atr * TGT_RR[1], 2)
-    
-    quantity = max(1, int(POSITION / price))
-    
-    # Emit to signal queue (works in both Groww and local mode)
-    try:
-        from signals.schema import emit_signal
-        emit_signal(
-            symbol=SYMBOL,
-            signal=signal,
-            price=price,
-            quantity=quantity,
-            strategy=STRATEGY_NAME,
-            atr=atr,
-            target=target,
-            stop_loss=stop_loss,
-            metadata={"source": "groww_dashboard", "exchange": EXCHANGE}
-        )
-        result = {"status": "queued"}
-    except ImportError:
-        # Fallback: use groww_api directly
-        try:
-            from groww_api import place_bo
-            result = place_bo(EXCHANGE, SYMBOL, signal, quantity, target, stop_loss)
-        except Exception as e:
-            print(f"[{{signal}}] {{quantity}}x {{SYMBOL}} @ Rs{{price}} [SL:Rs{{stop_loss}} TGT:Rs{{target}}]")
-            result = {"status": "paper"}
-    
-    return {
-        "action": signal,
-        "price": price,
-        "quantity": quantity,
-        "stop_loss": stop_loss,
-        "target": target,
-        "atr": atr,
-        "result": result,
-    }
-
-
+        print(f"Error: {{e}}")
 
 if __name__ == "__main__":
     run()

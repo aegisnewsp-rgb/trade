@@ -79,7 +79,7 @@ def rank_reserve():
     active_names = {s.replace("groww_", "").replace(".py", "") for s in active}
     
     ranked = []
-    for f in (DEPLOY / "live_*.py").glob():
+    for f in DEPLOY.glob("live_*.py"):
         sym = f.stem.replace("live_", "").replace("_NS", "").replace("_BO", "")
         if sym not in active_names:
             # Placeholder ranking — in production, use actual backtest data
@@ -132,7 +132,8 @@ def rotate_bottom_5():
     top_5_reserve = reserve[:5]
     print("\nTop 5 from reserve to ADD:")
     for s in top_5_reserve:
-        print(f"  {s['symbol']}: est. {s['estimated_wr']*100:.1f}% WR")
+        wr = s.get("estimated_wr", 0.50)
+        print(f"  {s['symbol']}: est. {wr*100:.1f}% WR")
     
     # Remove bottom 5 from active
     bottom_5_syms = {s["symbol"] for s in bottom_5}
@@ -141,8 +142,7 @@ def rotate_bottom_5():
     # Add top 5 from reserve
     new_scripts = []
     for r in top_5_reserve:
-        src = DEPLOY / "live_*.py" / r["script"]
-        # Find actual file
+        # Find actual file by symbol
         matches = list(DEPLOY.glob(f"live_*{r['symbol']}*.py"))
         if matches:
             src_file = matches[0]

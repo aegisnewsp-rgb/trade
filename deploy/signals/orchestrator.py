@@ -174,7 +174,7 @@ def auto_compact_context():
     """
     size_mb = get_context_size() / (1024 * 1024)
     
-    if size_mb < 1.0:
+    if size_mb < 0.5:
         return f"Context OK ({size_mb:.1f}MB) — no compaction needed"
     
     print(f"[CONTEXT] {size_mb:.1f}MB — initiating auto-compaction...")

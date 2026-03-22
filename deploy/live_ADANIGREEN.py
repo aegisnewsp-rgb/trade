@@ -560,16 +560,22 @@ def main():
     print(f"Signal: {signal}")
     print(f"Price:  Rs{price:.2f}")
     print(f"ATR:    Rs{atr:.2f}")
-    
-    if signal == "BUY":
+    print(f"RSI:    {metadata.get('rsi', 50.0):.1f} (threshold: >55 bull / <45 bear)")
+    print(f"Entry Window: {'✅ 9:30 AM - 2:30 PM IST' if can_new_entry() else '❌ Outside window'}")
+
+    if signal == "BUY" and can_new_entry():
         sl = round(price - atr * 1.0, 2)
-        tgt = round(price + atr * 4.0, 2)
+        tgt1 = round(price + atr * TARGET_1_MULT, 2)
+        tgt2 = round(price + atr * TARGET_2_MULT, 2)
+        tgt3 = round(price + atr * TARGET_3_MULT, 2)
         qty = max(1, int(POSITION / price))
         print(f"Qty:    {qty}")
         print(f"Stop:   Rs{sl:.2f} (Rs{price-sl:.2f} risk)")
-        print(f"Target: Rs{tgt:.2f} (Rs{tgt-price:.2f} reward)")
-        
-        # Place order
+        print(f"Target1: Rs{tgt1:.2f} ({TARGET_1_MULT}× risk) - exit 1/3")
+        print(f"Target2: Rs{tgt2:.2f} ({TARGET_2_MULT}× risk) - exit 1/3")
+        print(f"Target3: Rs{tgt3:.2f} ({TARGET_3_MULT}× risk) - exit remaining")
+        print(f"🎯 3-Tier Targets: {TARGET_1_MULT}× / {TARGET_2_MULT}× / {TARGET_3_MULT}× risk")
+
         try:
             from signals.schema import emit_signal
             emit_signal(
@@ -583,6 +589,8 @@ def main():
                     "source": Path(__file__).name,
                     "sector": sector,
                     "vwap_premium_pct": metadata.get("vwap_premium_pct", 0),
+                    "rsi": metadata.get("rsi", 50.0),
+                    "targets": [tgt1, tgt2, tgt3],
                 }
             )
         except ImportError:
@@ -591,15 +599,20 @@ def main():
                 paper_trade("BUY", ticker_sym, price, qty)
             except:
                 pass
-    
-    elif signal == "SELL":
+
+    elif signal == "SELL" and can_new_entry():
         sl = round(price + atr * 1.0, 2)
-        tgt = round(price - atr * 4.0, 2)
+        tgt1 = round(price - atr * TARGET_1_MULT, 2)
+        tgt2 = round(price - atr * TARGET_2_MULT, 2)
+        tgt3 = round(price - atr * TARGET_3_MULT, 2)
         qty = max(1, int(POSITION / price))
         print(f"Qty:    {qty}")
         print(f"Stop:   Rs{sl:.2f} (Rs{sl-price:.2f} risk)")
-        print(f"Target: Rs{tgt:.2f} (Rs{price-tgt:.2f} reward)")
-        
+        print(f"Target1: Rs{tgt1:.2f} ({TARGET_1_MULT}× risk) - exit 1/3")
+        print(f"Target2: Rs{tgt2:.2f} ({TARGET_2_MULT}× risk) - exit 1/3")
+        print(f"Target3: Rs{tgt3:.2f} ({TARGET_3_MULT}× risk) - exit remaining")
+        print(f"🎯 3-Tier Targets: {TARGET_1_MULT}× / {TARGET_2_MULT}× / {TARGET_3_MULT}× risk")
+
         try:
             from signals.schema import emit_signal
             emit_signal(
@@ -612,6 +625,8 @@ def main():
                 metadata={
                     "source": Path(__file__).name,
                     "sector": sector,
+                    "rsi": metadata.get("rsi", 50.0),
+                    "targets": [tgt1, tgt2, tgt3],
                 }
             )
         except ImportError:
@@ -620,9 +635,12 @@ def main():
                 paper_trade("SELL", ticker_sym, price, qty)
             except:
                 pass
-    
+
     else:
-        print("No trade — HOLD signal")
+        if signal != "HOLD":
+            print(f"No trade — {signal} signal but outside smart entry window (9:30 AM - 2:30 PM IST)")
+        else:
+            print("No trade — HOLD signal")
 
 
 if __name__ == "__main__":
