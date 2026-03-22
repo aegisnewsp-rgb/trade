@@ -131,6 +131,43 @@ def fetch_recent_data(symbol: str, days: int = 90) -> Optional[List[Dict]]:
         log.error("Failed to fetch data: %s", e)
         return None
 
+# ── Pharma Sector Check ─────────────────────────────────────────────────────────
+
+def check_pharma_sector_health() -> dict:
+    """
+    Check pharma sector health using Nifty Pharma index (^NSEPHARMA) performance.
+    Returns sector bias for trade confirmation.
+    """
+    sector = {"symbol": "^NSEPHARMA", "trend": "NEUTRAL", "strength": 0.0, "healthy": True}
+    if not YFINANCE_AVAILABLE:
+        log.warning("Pharma sector check: yfinance unavailable")
+        return sector
+    try:
+        ticker = yf.Ticker("^NSEPHARMA")
+        df = ticker.history(period="5d")
+        if df.empty or len(df) < 2:
+            log.warning("No pharma index data available")
+            return sector
+        closes = df["Close"].values
+        sma5 = sum(closes[-5:]) / min(5, len(closes))
+        current = closes[-1]
+        pct_change = ((current - closes[0]) / closes[0]) * 100 if closes[0] > 0 else 0
+        
+        if current > sma5 * 1.01:
+            sector["trend"] = "BULLISH"
+            sector["strength"] = min(pct_change / 2, 5.0)
+        elif current < sma5 * 0.99:
+            sector["trend"] = "BEARISH"
+            sector["strength"] = max(pct_change / 2, -5.0)
+        sector["current"] = round(current, 2)
+        sector["sma5"] = round(sma5, 2)
+        sector["healthy"] = sector["trend"] != "BEARISH" or sector["strength"] > -3.0
+        log.info("Pharma sector: %s (%.2f), strength=%.2f, healthy=%s", 
+                 sector["trend"], current, sector["strength"], sector["healthy"])
+    except Exception as e:
+        log.warning("Pharma sector check failed: %s", e)
+    return sector
+
 # ── Indicators ─────────────────────────────────────────────────────────────────
 
 def calculate_atr(ohlcv: List[Dict], period: int = 14) -> List[Optional[float]]:
