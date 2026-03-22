@@ -1,0 +1,107 @@
+[
+  {
+    "sym": "HDFCLIFE",
+    "long_wr": 80.0,
+    "short_wr": 100.0,
+    "long_hold": 5,
+    "short_hold": 10
+  },
+  {
+    "sym": "BPCL",
+    "long_wr": 100.0,
+    "short_wr": 100.0,
+    "long_hold": 10,
+    "short_hold": 10
+  },
+  {
+    "sym": "BAJFINANCE",
+    "long_wr": 100.0,
+    "short_wr": 100.0,
+    "long_hold": 5,
+    "short_hold": 5
+  },
+  {
+    "sym": "AMBUJACEM",
+    "long_wr": 80.0,
+    "short_wr": 100.0,
+    "long_hold": 5,
+    "short_hold": 10
+  },
+  {
+    "sym": "SBILIFE",
+    "long_wr": 80.0,
+    "short_wr": 100.0,
+    "long_hold": 10,
+    "short_hold": 10
+  },
+  {
+    "sym": "SUNPHARMA",
+    "long_wr": 100.0,
+    "short_wr": 100.0,
+    "long_hold": 5,
+    "short_hold": 5
+  },
+  {
+    "sym": "HINDALCO",
+    "long_wr": 100.0,
+    "short_wr": 100.0,
+    "long_hold": 10,
+    "short_hold": 10
+  },
+  {
+    "sym": "LT",
+    "long_wr": 100.0,
+    "short_wr": 100.0,
+    "long_hold": 5,
+    "short_hold": 5
+  },
+  {
+    "sym": "AXISBANK",
+    "long_wr": 100.0,
+    "short_wr": 100.0,
+    "long_hold": 5,
+    "short_hold": 5
+  },
+  {
+    "sym": "DRREDDY",
+    "long_wr": 100.0,
+    "short_wr": 100.0,
+    "long_hold": 5,
+    "short_hold": 5
+  },
+  {
+    "sym": "ESCORTS",
+    "long_wr": 75.0,
+    "short_wr": 80.0,
+    "long_hold": 5,
+    "short_hold": 5
+  },
+  {
+    "sym": "NTPC",
+    "long_wr": 75.0,
+    "short_wr": 75.0,
+    "long_hold": 10,
+    "short_hold": 5
+  },
+  {
+    "sym": "POWERGRID",
+    "long_wr": 100.0,
+    "short_wr": 75.0,
+    "long_hold": 5,
+    "short_hold": 5
+  },
+  {
+    "sym": "TECHM",
+    "long_wr": 87.5,
+    "short_wr": 75.0,
+    "long_hold": 10,
+    "short_hold": 5
+  },
+  {
+    "sym": "NESTLEIND",
+    "long_wr": 77.3,
+    "short_wr": 75.0,
+    "long_hold": 5,
+    "short_hold": 5
+  }
+]

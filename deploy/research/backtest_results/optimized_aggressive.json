@@ -1,1 +1,146 @@
-[]
+[
+  {
+    "sym": "INFY",
+    "wr": 60.3,
+    "trades": 68,
+    "rsi_buy": 45,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 1.5,
+    "tgt": 1.0,
+    "exit_days": 3,
+    "regime": false
+  },
+  {
+    "sym": "VEDL",
+    "wr": 52.3,
+    "trades": 86,
+    "rsi_buy": 45,
+    "rsi_sell": 45,
+    "vol": 1.0,
+    "sl": 0.8,
+    "tgt": 1.0,
+    "exit_days": 3,
+    "regime": false
+  },
+  {
+    "sym": "TCS",
+    "wr": 50.7,
+    "trades": 75,
+    "rsi_buy": 45,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 0.5,
+    "tgt": 1.0,
+    "exit_days": 3,
+    "regime": false
+  },
+  {
+    "sym": "NTPC",
+    "wr": 49.4,
+    "trades": 81,
+    "rsi_buy": 45,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 0.8,
+    "tgt": 1.0,
+    "exit_days": 3,
+    "regime": false
+  },
+  {
+    "sym": "TATASTEEL",
+    "wr": 49.4,
+    "trades": 77,
+    "rsi_buy": 45,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 0.8,
+    "tgt": 1.0,
+    "exit_days": 3,
+    "regime": false
+  },
+  {
+    "sym": "HINDALCO",
+    "wr": 48.2,
+    "trades": 83,
+    "rsi_buy": 45,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 0.5,
+    "tgt": 1.0,
+    "exit_days": 3,
+    "regime": false
+  },
+  {
+    "sym": "TECHM",
+    "wr": 48.1,
+    "trades": 81,
+    "rsi_buy": 45,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 0.5,
+    "tgt": 1.0,
+    "exit_days": 3,
+    "regime": false
+  },
+  {
+    "sym": "BANKINDIA",
+    "wr": 48.0,
+    "trades": 75,
+    "rsi_buy": 45,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 0.5,
+    "tgt": 1.0,
+    "exit_days": 3,
+    "regime": false
+  },
+  {
+    "sym": "BPCL",
+    "wr": 45.0,
+    "trades": 80,
+    "rsi_buy": 45,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 0.8,
+    "tgt": 1.0,
+    "exit_days": 3,
+    "regime": false
+  },
+  {
+    "sym": "SBIN",
+    "wr": 43.9,
+    "trades": 82,
+    "rsi_buy": 48,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 0.5,
+    "tgt": 1.0,
+    "exit_days": 3,
+    "regime": false
+  },
+  {
+    "sym": "POWERGRID",
+    "wr": 43.8,
+    "trades": 80,
+    "rsi_buy": 45,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 0.5,
+    "tgt": 1.0,
+    "exit_days": 5,
+    "regime": false
+  },
+  {
+    "sym": "COALINDIA",
+    "wr": 41.7,
+    "trades": 72,
+    "rsi_buy": 45,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 0.8,
+    "tgt": 1.0,
+    "exit_days": 5,
+    "regime": false
+  }
+]
