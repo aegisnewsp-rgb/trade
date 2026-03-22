@@ -293,13 +293,10 @@ def main():
         log.info(
             "📋 No Groww credentials found – signal printed only (paper mode)."
         )
-
-
 def place_groww_order(symbol, signal, quantity, price):
     """
-    Place order via Groww API or paper trade.
-    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
-    Falls back to paper trading otherwise.
+    Place order via Groww API (real) or paper trade.
+    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
     """
     import groww_api
     
@@ -307,45 +304,69 @@ def place_groww_order(symbol, signal, quantity, price):
         return groww_api.paper_trade(signal, symbol, price, quantity)
     
     exchange = "NSE"
+    atr = price * 0.008  # 0.8% of price as ATR approximation
     
     if signal == "BUY":
-        # Calculate target and stop loss
-        atr = price * 0.008  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
+        stop_loss = round(price - atr * 1.0, 2)
+        target = round(price + atr * 4.0, 2)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="BUY",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
+            exchange=exchange, symbol=symbol,
+            transaction="BUY", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
         )
     elif signal == "SELL":
-        atr = price * 0.008
-        stop_loss = price + (atr * 1.0)
-        target = price - (atr * 4.0)
+        stop_loss = round(price + atr * 1.0, 2)
+        target = round(price - atr * 4.0, 2)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="SELL",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
+            exchange=exchange, symbol=symbol,
+            transaction="SELL", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
         )
     else:
         return None
     
     if result:
-        print("Order placed: {} {} {} @ Rs{:.2f}".format(
-            signal, quantity, symbol, price))
+        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
+            signal, quantity, symbol, price, stop_loss, target))
     return result
-
+    Place order via Groww API (real) or paper trade.
+    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
+    """
+    import groww_api
+    
+    if not groww_api.is_configured():
+        return groww_api.paper_trade(signal, symbol, price, quantity)
+    
+    exchange = "NSE"
+    atr = price * 0.008  # 0.8% of price as ATR approximation
+    
+    if signal == "BUY":
+        stop_loss = round(price - atr * 1.0, 2)
+        target = round(price + atr * 4.0, 2)
+        result = groww_api.place_bo(
+            exchange=exchange, symbol=symbol,
+            transaction="BUY", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
+        )
+    elif signal == "SELL":
+        stop_loss = round(price + atr * 1.0, 2)
+        target = round(price - atr * 4.0, 2)
+        result = groww_api.place_bo(
+            exchange=exchange, symbol=symbol,
+            transaction="SELL", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
+        )
+    else:
+        return None
+    
+    if result:
+        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
+            signal, quantity, symbol, price, stop_loss, target))
+    return result
 
 if __name__ == "__main__":
     main()

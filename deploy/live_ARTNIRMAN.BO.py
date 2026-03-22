@@ -73,59 +73,9 @@ def vwap_signal(ohlcv, params):
         elif price < v - a * atr_mult: signals[i] = "SELL"
     return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
 def place_groww_order(symbol, signal, quantity, price):
-    if not GROWW_API_KEY or not GROWW_API_SECRET: return None
-    url = f"GROWW_API_BASE/orders"
-    payload = {"symbol": symbol, "exchange": "BSE", "transaction": "BUY" if signal == "BUY" else "SELL",
-               "quantity": quantity, "price": round(price, 2), "order_type": "LIMIT", "product": "CNC"}
-    headers = {"Authorization": f"Bearer GROWW_API_KEY", "X-Api-Secret": GROWW_API_SECRET, "Content-Type": "application/json"}
-    for attempt in range(3):
-        try:
-            resp = requests.post(url, json=payload, headers=headers, timeout=10)
-            if resp.status_code in (200, 201): log.info("Groww order: %s", resp.json()); return resp.json()
-            log.warning("HTTP %d", resp.status_code)
-        except Exception as e: log.warning("Attempt %d failed: %s", attempt+1, e)
-        time.sleep(2**attempt)
-    log.error("Groww order failed"); return None
-def log_signal(signal, price, atr):
-    log_file = LOG_DIR / "signals_ARTNIRMAN.BO.json"
-    entries = json.loads(log_file.read_text()) if log_file.exists() else []
-    entries.append({"timestamp": ist_now().isoformat(), "symbol": SYMBOL, "strategy": STRATEGY, "signal": signal,
-                    "price": round(price, 4), "atr": round(atr, 4)})
-    log_file.write_text(json.dumps(entries[-500:], indent=2))
-    log.info("Signal: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
-def daily_loss_limit_hit():
-    cap_file = LOG_DIR / "daily_pnl_ARTNIRMAN.BO.json"; today_str = ist_now().strftime("%Y-%m-%d")
-    if cap_file.exists():
-        try:
-            data = json.loads(cap_file.read_text())
-            if data.get("date") == today_str and data.get("loss_pct", 0) >= DAILY_LOSS_CAP: return True
-        except: pass
-    return False
-def main():
-    log.info("=== Live Trading: %s | %s ===", SYMBOL, STRATEGY)
-    while is_pre_market(): time.sleep(30)
-    if not is_market_open(): log.info("Market closed."); return
-    if daily_loss_limit_hit(): log.warning("Daily loss cap hit."); return
-    ohlcv = fetch_recent_data(days=90)
-    if not ohlcv or len(ohlcv) < 30: log.error("Insufficient data."); return
-    signal, price, atr = vwap_signal(ohlcv, PARAMS)
-    if signal == "BUY": stop_loss = round(price*(1-STOP_LOSS_PCT), 2); target_prc = round(price+TARGET_MULT*atr, 2)
-    elif signal == "SELL": stop_loss = round(price*(1+STOP_LOSS_PCT), 2); target_prc = round(price-TARGET_MULT*atr, 2)
-    else: stop_loss = 0.0; target_prc = 0.0
-    quantity = max(1, int(POSITION/price))
-    log.info("SYMBOL=%s SIGNAL=★%s★ PRICE=₹%.2f QTY=%d ATR=%.4f STOP=₹%.2f TARGET=₹%.2f", SYMBOL, signal, price, quantity, atr, stop_loss, target_prc)
-    log_signal(signal, price, atr)
-    if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
-        result = place_groww_order(SYMBOL, signal, quantity, price)
-        if result: log.info("✓ Executed: %s", result)
-        else: log.warning("⚠ Order failed.")
-    elif signal != "HOLD": log.info("📋 Paper mode.")
-
-def place_groww_order(symbol, signal, quantity, price):
     """
-    Place order via Groww API or paper trade.
-    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
-    Falls back to paper trading otherwise.
+    Place order via Groww API (real) or paper trade.
+    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
     """
     import groww_api
     
@@ -133,44 +83,142 @@ def place_groww_order(symbol, signal, quantity, price):
         return groww_api.paper_trade(signal, symbol, price, quantity)
     
     exchange = "NSE"
+    atr = price * 0.008  # 0.8% of price as ATR approximation
     
     if signal == "BUY":
-        # Calculate target and stop loss
-        atr = price * 0.008  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
+        stop_loss = round(price - atr * 1.0, 2)
+        target = round(price + atr * 4.0, 2)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="BUY",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
+            exchange=exchange, symbol=symbol,
+            transaction="BUY", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
         )
     elif signal == "SELL":
-        atr = price * 0.008
-        stop_loss = price + (atr * 1.0)
-        target = price - (atr * 4.0)
+        stop_loss = round(price + atr * 1.0, 2)
+        target = round(price - atr * 4.0, 2)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="SELL",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
+            exchange=exchange, symbol=symbol,
+            transaction="SELL", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
         )
     else:
         return None
     
     if result:
-        print("Order placed: {} {} {} @ Rs{:.2f}".format(
-            signal, quantity, symbol, price))
+        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
+            signal, quantity, symbol, price, stop_loss, target))
     return result
-
+    Place order via Groww API (real) or paper trade.
+    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
+    """
+    import groww_api
+    
+    if not groww_api.is_configured():
+        return groww_api.paper_trade(signal, symbol, price, quantity)
+    
+    exchange = "NSE"
+    atr = price * 0.008  # 0.8% of price as ATR approximation
+    
+    if signal == "BUY":
+        stop_loss = round(price - atr * 1.0, 2)
+        target = round(price + atr * 4.0, 2)
+        result = groww_api.place_bo(
+            exchange=exchange, symbol=symbol,
+            transaction="BUY", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
+        )
+    elif signal == "SELL":
+        stop_loss = round(price + atr * 1.0, 2)
+        target = round(price - atr * 4.0, 2)
+        result = groww_api.place_bo(
+            exchange=exchange, symbol=symbol,
+            transaction="SELL", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
+        )
+    else:
+        return None
+    
+    if result:
+        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
+            signal, quantity, symbol, price, stop_loss, target))
+    return result
+def place_groww_order(symbol, signal, quantity, price):
+    """
+    Place order via Groww API (real) or paper trade.
+    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
+    """
+    import groww_api
+    
+    if not groww_api.is_configured():
+        return groww_api.paper_trade(signal, symbol, price, quantity)
+    
+    exchange = "NSE"
+    atr = price * 0.008  # 0.8% of price as ATR approximation
+    
+    if signal == "BUY":
+        stop_loss = round(price - atr * 1.0, 2)
+        target = round(price + atr * 4.0, 2)
+        result = groww_api.place_bo(
+            exchange=exchange, symbol=symbol,
+            transaction="BUY", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
+        )
+    elif signal == "SELL":
+        stop_loss = round(price + atr * 1.0, 2)
+        target = round(price - atr * 4.0, 2)
+        result = groww_api.place_bo(
+            exchange=exchange, symbol=symbol,
+            transaction="SELL", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
+        )
+    else:
+        return None
+    
+    if result:
+        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
+            signal, quantity, symbol, price, stop_loss, target))
+    return result
+    Place order via Groww API (real) or paper trade.
+    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
+    """
+    import groww_api
+    
+    if not groww_api.is_configured():
+        return groww_api.paper_trade(signal, symbol, price, quantity)
+    
+    exchange = "NSE"
+    atr = price * 0.008  # 0.8% of price as ATR approximation
+    
+    if signal == "BUY":
+        stop_loss = round(price - atr * 1.0, 2)
+        target = round(price + atr * 4.0, 2)
+        result = groww_api.place_bo(
+            exchange=exchange, symbol=symbol,
+            transaction="BUY", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
+        )
+    elif signal == "SELL":
+        stop_loss = round(price + atr * 1.0, 2)
+        target = round(price - atr * 4.0, 2)
+        result = groww_api.place_bo(
+            exchange=exchange, symbol=symbol,
+            transaction="SELL", quantity=quantity,
+            target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
+        )
+    else:
+        return None
+    
+    if result:
+        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
+            signal, quantity, symbol, price, stop_loss, target))
+    return result
 
 if __name__ == "__main__": main()
