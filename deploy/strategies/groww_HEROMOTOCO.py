@@ -166,5 +166,68 @@ def run():
     except Exception as e:
         print(f"Error: {e}")
 
+def run_strategy(ohlcv):
+    """
+    Groww Dashboard entry point — called with live OHLCV candles.
+    ohlcv: [[open, high, low, close, volume], ...] per candle
+    
+    Returns dict with: action, price, quantity, stop_loss, target, atr
+    """
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent))
+    
+    signal, price, atr = get_signal(ohlcv)
+    
+    if signal is None or signal == "HOLD" or price is None:
+        return {"action": "HOLD", "reason": "No signal"}
+    
+    # Calculate stop loss and target
+    risk = atr * SL_ATR
+    if signal == "BUY":
+        stop_loss = round(price - risk, 2)
+        target    = round(price + atr * TGT_RR[1], 2)
+    else:  # SELL
+        stop_loss = round(price + risk, 2)
+        target    = round(price - atr * TGT_RR[1], 2)
+    
+    quantity = max(1, int(POSITION / price))
+    
+    # Emit to signal queue (works in both Groww and local mode)
+    try:
+        from signals.schema import emit_signal
+        emit_signal(
+            symbol=SYMBOL,
+            signal=signal,
+            price=price,
+            quantity=quantity,
+            strategy=STRATEGY_NAME,
+            atr=atr,
+            target=target,
+            stop_loss=stop_loss,
+            metadata={"source": "groww_dashboard", "exchange": EXCHANGE}
+        )
+        result = {"status": "queued"}
+    except ImportError:
+        # Fallback: use groww_api directly
+        try:
+            from groww_api import place_bo
+            result = place_bo(EXCHANGE, SYMBOL, signal, quantity, target, stop_loss)
+        except Exception as e:
+            print(f"[{{signal}}] {{quantity}}x {{SYMBOL}} @ Rs{{price}} [SL:Rs{{stop_loss}} TGT:Rs{{target}}]")
+            result = {"status": "paper"}
+    
+    return {
+        "action": signal,
+        "price": price,
+        "quantity": quantity,
+        "stop_loss": stop_loss,
+        "target": target,
+        "atr": atr,
+        "result": result,
+    }
+
+
+
 if __name__ == "__main__":
     run()
