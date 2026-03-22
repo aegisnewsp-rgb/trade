@@ -39,7 +39,23 @@ POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5, "vol_sma_period": 20, "vol_multiplier": 1.2}
+PARAMS         = {
+    # Optimized params (2026-03-22)
+    "rsi_buy": 60,
+    "rsi_sell": 45,
+    "vol_threshold": 0.8,
+    "sl_pct": 1.0,
+    "tgt_pct": 3.0,
+    "hold_days": 5,
+    "trail_atr_mult": 0.3,
+    "best_entry_start": "09:30",
+    "best_entry_end": "14:30",
+    # Legacy params preserved
+    "vwap_period": 14,
+    "atr_multiplier": 1.5,
+    "vol_sma_period": 20,
+    "vol_multiplier": 1.2,
+}
 
 # 3-TIER EXIT SYSTEM (enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR

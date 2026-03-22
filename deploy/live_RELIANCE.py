@@ -37,7 +37,22 @@ SYMBOL = "RELIANCE.NS"
 STRATEGY = "TSI_VWAP_ALPHA"
 POSITION = 7000
 DAILY_LOSS_CAP = 0.003
-PARAMS = {"fast_period": 13, "slow_period": 25, "signal_period": 13}
+PARAMS = {
+    # Optimized params (2026-03-22)
+    "rsi_buy": 55,
+    "rsi_sell": 45,
+    "vol_threshold": 0.8,
+    "sl_pct": 1.0,
+    "tgt_pct": 3.0,
+    "hold_days": 5,
+    "trail_atr_mult": 0.3,
+    "best_entry_start": "09:30",
+    "best_entry_end": "14:30",
+    # Legacy params preserved
+    "fast_period": 13,
+    "slow_period": 25,
+    "signal_period": 13,
+}
 
 # Trail ATR multiplier
 TRAIL_ATR_MULT = 0.3

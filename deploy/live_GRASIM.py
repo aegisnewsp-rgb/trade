@@ -39,19 +39,30 @@ STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {
+    # Optimized params (2026-03-22)
+    "rsi_buy": 50,
+    "rsi_sell": 45,
+    "vol_threshold": 0.8,
+    "sl_pct": 1.0,
+    "tgt_pct": 3.0,
+    "hold_days": 5,
+    "trail_atr_mult": 0.3,
+    "best_entry_start": "09:30",
+    "best_entry_end": "14:30",
+    # Legacy params preserved
     "vwap_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "rsi_confirm_overbought": 68,  # v8: tightened
-    "rsi_confirm_oversold": 32,    # v8: tightened
+    "rsi_confirm_overbought": 68,
+    "rsi_confirm_oversold": 32,
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 2.0,      # v8: require above-2x avg volume
-    "trend_ma_period": 50,          # v8: trend filter
+    "volume_multiplier": 2.0,
+    "trend_ma_period": 50,
     "atr_period": 14,
-    "bb_period": 20,               # v8: Bollinger Band period
-    "bb_std": 2.0,                 # v8: Bollinger Band std dev
+    "bb_period": 20,
+    "bb_std": 2.0,
 }
 
 # 3-TIER EXIT SYSTEM (enhancement)
