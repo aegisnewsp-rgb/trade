@@ -3,8 +3,9 @@
 Live Trading Script - EICHERMOT.NS (Eicher Motors Ltd)
 Strategy: VWAP + RSI Momentum
 Win Rate: 61.54% (based on TATASTEEL benchmark — similar auto sector)
-Position: ₹7000 | Stop Loss: 0.8% ATR | Target: 4.0x ATR | Daily Loss Cap: 0.3%
-Added: 2026-03-22 | Royal Enfield brand leader, defensive auto sector
+Position: ₹7000 | Stop Loss: 1.0x ATR | Target: 4.0x ATR | Daily Loss Cap: 0.3%
+Enhanced: 2026-03-22 - Optimized stop loss: 0.8% ATR → 1.0x ATR for better risk management
+Added: Royal Enfield brand leader, defensive auto sector
 """
 
 import os
@@ -31,7 +32,7 @@ BENCHMARK_WIN_RATE = 0.6154
 POSITION_SIZE      = 7000
 DAILY_LOSS_CAP     = 0.003
 MAX_TRADES_PER_DAY = 1
-STOP_LOSS_ATR_MULT = 0.8
+STOP_LOSS_ATR_MULT = 1.0   # Enhanced: was 0.8, now 1.0x ATR for better risk management
 TARGET_ATR_MULT    = 4.0
 
 VWAP_PERIOD  = 14
@@ -333,7 +334,7 @@ def main():
     if atr > 0:
         log.info("  ATR      : %.4f", atr)
         log.info("  RSI      : %.1f", rsi)
-        log.info("  STOP     : ₹%.2f  (%.1f× ATR)", stop_loss, STOP_LOSS_ATR_MULT)
+        log.info("  STOP     : ₹%.2f  (%.1f× ATR) [enhanced: was 0.8x, now 1.0x]", stop_loss, STOP_LOSS_ATR_MULT)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target, TARGET_ATR_MULT)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 

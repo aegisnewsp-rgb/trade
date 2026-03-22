@@ -34,11 +34,14 @@ BENCHMARK_WIN_RATE = 0.5938
 POSITION_SIZE = 7000
 DAILY_LOSS_CAP = 0.003
 MAX_TRADES_PER_DAY = 1
-STOP_LOSS_ATR_MULT = 0.8
+STOP_LOSS_ATR_MULT = 0.5
 TARGET_ATR_MULT = 4.0
 
 FIB_PERIOD = 50
 ATR_PERIOD = 14
+RSI_PERIOD = 14
+RSI_OVERSOLD = 35
+RSI_OVERBOUGHT = 65
 
 GROWW_API_KEY = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -122,6 +125,35 @@ def calculate_atr(ohlcv: List[Dict], period: int = 14) -> List[float]:
         prev_close = bar["close"]
     return atr
 
+def calculate_rsi(ohlcv: List[Dict], period: int = 14) -> List[float]:
+    gains = []
+    losses = []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i-1]["close"]
+        gains.append(max(change, 0))
+        losses.append(max(-change, 0))
+    rsi = []
+    for i in range(len(gains)):
+        if i < period - 1:
+            rsi.append(None)
+        elif i == period - 1:
+            avg_gain = sum(gains[i-period+1:i+1]) / period
+            avg_loss = sum(losses[i-period+1:i+1]) / period
+            if avg_loss == 0:
+                rsi.append(100)
+            else:
+                rs = avg_gain / avg_loss
+                rsi.append(100 - (100 / (1 + rs)))
+        else:
+            avg_gain = (rsi[-1] * (period - 1) + gains[i]) / period
+            avg_loss = (losses[-1] * (period - 1) + losses[i]) / period
+            if avg_loss == 0:
+                rsi.append(100)
+            else:
+                rs = avg_gain / avg_loss
+                rsi.append(100 - (100 / (1 + rs)))
+    return [None] + rsi
+
 def find_swing_levels(ohlcv: List[Dict], period: int = 50) -> Tuple[float, float, float]:
     if len(ohlcv) < period:
         return 0, 0, 0
@@ -130,21 +162,28 @@ def find_swing_levels(ohlcv: List[Dict], period: int = 50) -> Tuple[float, float
     swing_low = min(bar["low"] for bar in window)
     return swing_high, swing_low, swing_high - swing_low
 
-def generate_signal(ohlcv: List[Dict], atr: List[float]) -> str:
+def generate_signal(ohlcv: List[Dict], atr: List[float], rsi: List[float]) -> str:
     if len(ohlcv) < FIB_PERIOD:
         return "HOLD"
     swing_high, swing_low, range_size = find_swing_levels(ohlcv, FIB_PERIOD)
     if range_size == 0:
         return "HOLD"
     current_price = ohlcv[-1]["close"]
+    current_rsi = rsi[-1] if rsi[-1] is not None else 50
     fib_levels = [0.236, 0.382, 0.5, 0.618, 0.786]
     for fib in fib_levels:
         level = swing_high - (range_size * fib)
         if abs(current_price - level) / range_size < 0.02:
             if current_price > level:
-                return "BUY"
+                # RSI filter: only BUY in oversold territory
+                if current_rsi < RSI_OVERSOLD:
+                    return "BUY"
+                return "HOLD"
             elif current_price < level:
-                return "SELL"
+                # RSI filter: only SELL in overbought territory
+                if current_rsi > RSI_OVERBOUGHT:
+                    return "SELL"
+                return "HOLD"
     return "HOLD"
 
 def calculate_stop_loss(entry_price: float, atr: float) -> float:

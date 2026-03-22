@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - DRREDDY.NS
-Strategy: VWAP (Volume Weighted Average Price)
+Strategy: VWAP + Volume Confirmation
 Win Rate: 63.64%
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Enhanced: Added volume confirmation filter (volume > 20-day avg)
 """
 
 import os
@@ -32,12 +33,12 @@ log = logging.getLogger("live_DRREDDY")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "DRREDDY.NS"
-STRATEGY       = "VWAP"
+STRATEGY       = "VWAP_VOL_CONFIRM"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5, "vol_sma_period": 20, "vol_multiplier": 1.2}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -118,28 +119,53 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+def calculate_volume_sma(ohlcv: list, period: int = 20) -> list:
+    """Calculate simple moving average of volume for confirmation filter."""
+    sma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            sma.append(None)
+        else:
+            avg_vol = sum(ohlcv[j]["volume"] for j in range(i - period + 1, i + 1)) / period
+            sma.append(avg_vol)
+    return sma
+
+def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
+    """
+    VWAP with volume confirmation.
+    BUY: price > VWAP + ATR*mult AND volume > vol_sma * multiplier
+    SELL: price < VWAP - ATR*mult AND volume > vol_sma * multiplier
+    """
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
+    vol_period    = params.get("vol_sma_period", 20)
+    vol_mult      = params.get("vol_multiplier", 1.2)
     vwap_vals     = calculate_vwap(ohlcv, period)
     atr_vals      = calculate_atr(ohlcv, period)
+    vol_sma_vals  = calculate_volume_sma(ohlcv, vol_period)
     signals       = ["HOLD"] * len(ohlcv)
 
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        if vwap_vals[i] is None or atr_vals[i] is None or vol_sma_vals[i] is None:
             continue
-        price    = ohlcv[i]["close"]
-        v        = vwap_vals[i]
-        a        = atr_vals[i]
-        if price > v + a * atr_mult:
+        price     = ohlcv[i]["close"]
+        volume    = ohlcv[i]["volume"]
+        v         = vwap_vals[i]
+        a         = atr_vals[i]
+        vol_sma   = vol_sma_vals[i]
+        vol_confirm = volume > vol_sma * vol_mult
+
+        if price > v + a * atr_mult and vol_confirm:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult:
+        elif price < v - a * atr_mult and vol_confirm:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return current_signal, current_price, current_atr
+    current_vol    = ohlcv[-1]["volume"]
+    vol_sma_now    = vol_sma_vals[-1] if vol_sma_vals and vol_sma_vals[-1] is not None else 0.0
+    return current_signal, current_price, current_atr, current_vol, vol_sma_now
 
 def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
     if not GROWW_API_KEY or not GROWW_API_SECRET:
@@ -172,7 +198,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     log.error("Groww order failed after 3 retries for %s", symbol)
     return None
 
-def log_signal(signal: str, price: float, atr: float):
+def log_signal(signal: str, price: float, atr: float, volume: float, vol_sma: float):
     log_file = LOG_DIR / "signals_DRREDDY.json"
     entries = []
     if log_file.exists():
@@ -187,10 +213,12 @@ def log_signal(signal: str, price: float, atr: float):
         "signal":    signal,
         "price":     round(price, 4),
         "atr":       round(atr, 4),
+        "volume":    int(volume),
+        "vol_sma":   round(vol_sma, 0),
     })
     entries[-500:]
     log_file.write_text(json.dumps(entries[-500:], indent=2))
-    log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
+    log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f, Vol=%d, VolSMA=%.0f)", signal, price, atr, int(volume), vol_sma)
 
 def daily_loss_limit_hit() -> bool:
     cap_file = LOG_DIR / "daily_pnl_DRREDDY.json"
@@ -228,7 +256,7 @@ def main():
         log.error("Insufficient data for %s", SYMBOL)
         return
 
-    signal, price, atr = vwap_signal(ohlcv, PARAMS)
+    signal, price, atr, volume, vol_sma = vwap_signal(ohlcv, PARAMS)
 
     if signal == "BUY":
         stop_loss   = round(price * (1 - STOP_LOSS_PCT), 2)
@@ -250,11 +278,12 @@ def main():
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
     if atr > 0:
         log.info("  ATR      : %.4f", atr)
+        log.info("  VOLUME   : %d (SMA=%.0f, mult=%.1f)", int(volume), vol_sma, PARAMS["vol_multiplier"])
         log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-    log_signal(signal, price, atr)
+    log_signal(signal, price, atr, volume, vol_sma)
 
     if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
         result = place_groww_order(SYMBOL, signal, quantity, price)
