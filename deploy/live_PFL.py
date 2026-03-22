@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Live Trading Script - PETC.BO | VWAP | Risk: ₹7000 | Stop: 0.8% ATR | Target: 4.0× ATR"""
+"""Live Trading Script - PFL.BO | VWAP | Risk: ₹7000 | Stop: 0.8% ATR | Target: 4.0× ATR"""
 import os,sys,json,time,logging,requests; from datetime import datetime,time as dtime; from pathlib import Path; import yfinance as yf
 LOG_DIR=Path(__file__).parent/"logs"; LOG_DIR.mkdir(exist_ok=True)
-logging.basicConfig(level=logging.INFO,format="%(asctime)s [%(levelname)s] %(message)s",handlers=[logging.FileHandler(LOG_DIR/"live_PETC.log"),logging.StreamHandler(sys.stdout)])
-log=logging.getLogger("live_PETC")
-SYMBOL="PETC.BO"; STRATEGY="VWAP"; POSITION=7000; STOP_LOSS_PCT=0.008; TARGET_MULT=4.0; DAILY_LOSS_CAP=0.003; PARAMS={"vwap_period":14,"atr_multiplier":1.5}
+logging.basicConfig(level=logging.INFO,format="%(asctime)s [%(levelname)s] %(message)s",handlers=[logging.FileHandler(LOG_DIR/"live_PFL.log"),logging.StreamHandler(sys.stdout)])
+log=logging.getLogger("live_PFL")
+SYMBOL="PFL.BO"; STRATEGY="VWAP"; POSITION=7000; STOP_LOSS_PCT=0.008; TARGET_MULT=4.0; DAILY_LOSS_CAP=0.003; PARAMS={"vwap_period":14,"atr_multiplier":1.5}
 GROWW_API_KEY=os.getenv("GROWW_API_KEY"); GROWW_API_SECRET=os.getenv("GROWW_API_SECRET"); GROWW_API_BASE="https://api.groww.in/v1"; IST_TZ_OFFSET=5.5
 def ist_now(): return datetime.utcnow()+__import__("datetime").timedelta(hours=IST_TZ_OFFSET)
 def is_market_open(): now=ist_now(); return now.weekday()<5 and dtime(9,15)<=now.time()<=dtime(15,30)
@@ -59,14 +59,14 @@ def place_groww_order(symbol,signal,quantity,price):
         time.sleep(2**attempt)
     log.error("Groww order failed after 3 retries for %s",symbol); return None
 def log_signal(signal,price,atr):
-    log_file=LOG_DIR/"signals_PETC.json"; entries=[]
+    log_file=LOG_DIR/"signals_PFL.json"; entries=[]
     if log_file.exists():
         try: entries=json.loads(log_file.read_text())
         except: pass
     entries.append({"timestamp":ist_now().isoformat(),"symbol":SYMBOL,"strategy":STRATEGY,"signal":signal,"price":round(price,4),"atr":round(atr,4)})
     entries[-500:]; log_file.write_text(json.dumps(entries[-500:],indent=2)); log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)",signal,price,atr)
 def daily_loss_limit_hit():
-    cap_file=LOG_DIR/"daily_pnl_PETC.json"; today_str=ist_now().strftime("%Y-%m-%d")
+    cap_file=LOG_DIR/"daily_pnl_PFL.json"; today_str=ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
             data=json.loads(cap_file.read_text())
@@ -77,22 +77,4 @@ def main():
     log.info("=== Live Trading Script: %s | %s ===",SYMBOL,STRATEGY)
     while is_pre_market(): log.info("Pre-market warmup – waiting until 9:15 IST..."); time.sleep(30)
     if not is_market_open(): log.info("Market is closed. Exiting."); return
-    if daily_loss_limit_hit(): log.warning("Daily loss cap (0.3%%) hit – skipping trading today."); return
-    log.info("Market is open. Fetching data...")
-    ohlcv=fetch_recent_data(days=90)
-    if not ohlcv or len(ohlcv)<30: log.error("Insufficient data for %s",SYMBOL); return
-    signal,price,atr=vwap_signal(ohlcv,PARAMS)
-    if signal=="BUY": stop_loss=round(price*(1-STOP_LOSS_PCT),2); target_prc=round(price+TARGET_MULT*atr,2)
-    elif signal=="SELL": stop_loss=round(price*(1+STOP_LOSS_PCT),2); target_prc=round(price-TARGET_MULT*atr,2)
-    else: stop_loss=target_prc=0.0
-    quantity=max(1,int(POSITION/price))
-    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"); log.info("  SYMBOL   : %s",SYMBOL); log.info("  STRATEGY : %s",STRATEGY); log.info("  SIGNAL   : ★ %s ★",signal); log.info("  PRICE    : ₹%.2f",price); log.info("  QTY      : %d shares (₹%d position)",quantity,POSITION)
-    if atr>0: log.info("  ATR      : %.4f",atr); log.info("  STOP     : ₹%.2f  (%.1f%%)",stop_loss,STOP_LOSS_PCT*100); log.info("  TARGET   : ₹%.2f  (%.1f× ATR)",target_prc,TARGET_MULT)
-    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    log_signal(signal,price,atr)
-    if signal!="HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
-        result=place_groww_order(SYMBOL,signal,quantity,price)
-        if result: log.info("✓ Order executed via Groww: %s",result)
-        else: log.warning("⚠ Groww order could not be placed – signal still printed/logged.")
-    elif signal!="HOLD": log.info("📋 No Groww credentials found – signal printed only (paper mode).")
-if __name__=="__main__": main()
+    if daily_loss_limit_hit(): log

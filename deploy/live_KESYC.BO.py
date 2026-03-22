@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Live Trading Script - KESX.BO
+"""Live Trading Script - KESYC.BO
 Strategy: VWAP | Position: ₹7000 | Stop: 0.8%% ATR | Target: 4.0x ATR"""
 import os,sys,json,time,logging,requests
 from datetime import datetime,time as dtime
@@ -9,9 +9,9 @@ import yfinance as yf
 LOG_DIR=Path(__file__).parent/"logs"
 LOG_DIR.mkdir(exist_ok=True)
 logging.basicConfig(level=logging.INFO,format="%%(asctime)s [%%(levelname)s] %%(message)s",
-    handlers=[logging.FileHandler(LOG_DIR/"live_KESX.BO.log"),logging.StreamHandler(sys.stdout)])
-log=logging.getLogger("live_KESX.BO")
-SYMBOL="KESX.BO"; STRATEGY="VWAP"; POSITION=7000; STOP_LOSS_PCT=0.008; TARGET_MULT=4.0; DAILY_LOSS_CAP=0.003
+    handlers=[logging.FileHandler(LOG_DIR/"live_KESYC.BO.log"),logging.StreamHandler(sys.stdout)])
+log=logging.getLogger("live_KESYC.BO")
+SYMBOL="KESYC.BO"; STRATEGY="VWAP"; POSITION=7000; STOP_LOSS_PCT=0.008; TARGET_MULT=4.0; DAILY_LOSS_CAP=0.003
 PARAMS={"vwap_period":14,"atr_multiplier":1.5}
 GROWW_API_KEY=os.getenv("GROWW_API_KEY"); GROWW_API_SECRET=os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE="https://api.groww.in/v1"; IST_TZ_OFFSET=5.5
@@ -86,7 +86,7 @@ def place_groww_order(symbol,signal,quantity,price):
     log.error("Order failed"); return None
 
 def log_signal(signal,price,atr):
-    log_file=LOG_DIR/"signals_KESX.BO.json"; entries=[]
+    log_file=LOG_DIR/"signals_KESYC.BO.json"; entries=[]
     if log_file.exists():
         try: entries=json.loads(log_file.read_text())
         except: pass
@@ -95,7 +95,7 @@ def log_signal(signal,price,atr):
     log.info("Signal: %%s @ ₹%%.2f (ATR=%%.4f)",signal,price,atr)
 
 def daily_loss_limit_hit():
-    cap_file=LOG_DIR/"daily_pnl_KESX.BO.json"; today_str=ist_now().strftime("%%Y-%%m-%%d")
+    cap_file=LOG_DIR/"daily_pnl_KESYC.BO.json"; today_str=ist_now().strftime("%%Y-%%m-%%d")
     if cap_file.exists():
         try:
             data=json.loads(cap_file.read_text())
