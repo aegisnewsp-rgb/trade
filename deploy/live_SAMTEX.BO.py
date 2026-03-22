@@ -6,6 +6,9 @@ Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x ATR | Daily Loss Cap: 0.3%
 """
 
 import os, sys, json, time, logging, requests
+
+import sys
+from pathlib import Path
 import groww_api
 from datetime import datetime, time as dtime
 from pathlib import Path
@@ -102,80 +105,6 @@ def vwap_signal(ohlcv, params):
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
     return current_signal, current_price, current_atr
-def place_groww_order(symbol, signal, quantity, price):
-    """
-    Place order via Groww API (real) or paper trade.
-    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
-    """
-    import groww_api
-    
-    if not groww_api.is_configured():
-        return groww_api.paper_trade(signal, symbol, price, quantity)
-    
-    exchange = "NSE"
-    atr = price * 0.008  # 0.8% of price as ATR approximation
-    
-    if signal == "BUY":
-        stop_loss = round(price - atr * 1.0, 2)
-        target = round(price + atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="BUY", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
-        )
-    elif signal == "SELL":
-        stop_loss = round(price + atr * 1.0, 2)
-        target = round(price - atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="SELL", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
-        )
-    else:
-        return None
-    
-    if result:
-        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
-            signal, quantity, symbol, price, stop_loss, target))
-    return result
-    Place order via Groww API (real) or paper trade.
-    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
-    """
-    import groww_api
-    
-    if not groww_api.is_configured():
-        return groww_api.paper_trade(signal, symbol, price, quantity)
-    
-    exchange = "NSE"
-    atr = price * 0.008  # 0.8% of price as ATR approximation
-    
-    if signal == "BUY":
-        stop_loss = round(price - atr * 1.0, 2)
-        target = round(price + atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="BUY", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
-        )
-    elif signal == "SELL":
-        stop_loss = round(price + atr * 1.0, 2)
-        target = round(price - atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="SELL", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
-        )
-    else:
-        return None
-    
-    if result:
-        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
-            signal, quantity, symbol, price, stop_loss, target))
-    return result
 def log_signal(signal, price, atr):
     log_file = LOG_DIR / "signals_SAMTEX.json"
     entries = []
@@ -239,79 +168,39 @@ def main():
         else: log.warning("⚠ Groww order could not be placed – signal still printed/logged.")
     elif signal != "HOLD":
         log.info("📋 No Groww credentials found – signal printed only (paper mode).")
+
 def place_groww_order(symbol, signal, quantity, price):
     """
-    Place order via Groww API (real) or paper trade.
-    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
+    Emit trading signal to queue for Master Orchestrator.
+    Orchestrator coalesces all signals and places orders via Groww API
+    (single connection = no rate limiting across 468 scripts).
+    Paper mode: orchestrator prints signals instead of placing.
     """
-    import groww_api
-    
-    if not groww_api.is_configured():
-        return groww_api.paper_trade(signal, symbol, price, quantity)
-    
-    exchange = "NSE"
-    atr = price * 0.008  # 0.8% of price as ATR approximation
-    
-    if signal == "BUY":
-        stop_loss = round(price - atr * 1.0, 2)
-        target = round(price + atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="BUY", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent))
+    try:
+        from signals.schema import emit_signal
+        # Get ATR from script's atr variable if available
+        _atr = price * 0.008
+        try:
+            if 'atr' in globals() and isinstance(globals().get('atr'), (int, float)):
+                _atr = float(globals()['atr'])
+        except:
+            _atr = price * 0.008
+        _strategy = str(globals().get('STRATEGY_NAME', 'VWAP'))
+        emit_signal(
+            symbol=symbol, signal=signal, price=price,
+            quantity=quantity, strategy=_strategy, atr=_atr,
+            metadata={"source": Path(__file__).name}
         )
-    elif signal == "SELL":
-        stop_loss = round(price + atr * 1.0, 2)
-        target = round(price - atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="SELL", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
-        )
-    else:
-        return None
-    
-    if result:
-        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
-            signal, quantity, symbol, price, stop_loss, target))
-    return result
-    Place order via Groww API (real) or paper trade.
-    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
-    """
-    import groww_api
-    
-    if not groww_api.is_configured():
-        return groww_api.paper_trade(signal, symbol, price, quantity)
-    
-    exchange = "NSE"
-    atr = price * 0.008  # 0.8% of price as ATR approximation
-    
-    if signal == "BUY":
-        stop_loss = round(price - atr * 1.0, 2)
-        target = round(price + atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="BUY", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
-        )
-    elif signal == "SELL":
-        stop_loss = round(price + atr * 1.0, 2)
-        target = round(price - atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="SELL", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
-        )
-    else:
-        return None
-    
-    if result:
-        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
-            signal, quantity, symbol, price, stop_loss, target))
-    return result
+        return {"status": "queued", "symbol": symbol, "signal": signal}
+    except ImportError:
+        print("[PAPER] {} {}x {} @ Rs{:.2f}".format(signal, quantity, symbol, price))
+        return {"status": "paper", "symbol": symbol, "signal": signal}
+
+
+def place_order(symbol, signal, quantity, price):
+    return place_groww_order(symbol, signal, quantity, price)
 
 if __name__ == "__main__": main()

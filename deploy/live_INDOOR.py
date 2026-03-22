@@ -7,6 +7,9 @@ Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
 import os
+
+import sys
+from pathlib import Path
 import sys
 import json
 import time
@@ -142,37 +145,6 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
     return current_signal, current_price, current_atr
 
-def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
-    if not GROWW_API_KEY or not GROWW_API_SECRET:
-        return None
-    url = f"GROWW_API_BASE/orders"
-    payload = {
-        "symbol":      symbol,
-        "exchange":    "NSE",
-        "transaction": "BUY" if signal == "BUY" else "SELL",
-        "quantity":    quantity,
-        "price":       round(price, 2),
-        "order_type":  "LIMIT",
-        "product":     "CNC",
-    }
-    headers = {
-        "Authorization": f"Bearer GROWW_API_KEY",
-        "X-Api-Secret":  GROWW_API_SECRET,
-        "Content-Type":  "application/json",
-    }
-    for attempt in range(3):
-        try:
-            resp = requests.post(url, json=payload, headers=headers, timeout=10)
-            if resp.status_code in (200, 201):
-                log.info("Groww order placed: %s", resp.json())
-                return resp.json()
-            log.warning("Groww API attempt %d: HTTP %d – %s", attempt + 1, resp.status_code, resp.text)
-        except Exception as e:
-            log.warning("Groww order attempt %d failed: %s", attempt + 1, e)
-        time.sleep(2 ** attempt)
-    log.error("Groww order failed after 3 retries for %s", symbol)
-    return None
-
 def log_signal(signal: str, price: float, atr: float):
     log_file = LOG_DIR / "signals_INDOOR.json"
     entries = []
@@ -265,80 +237,40 @@ def main():
             log.warning("⚠ Groww order could not be placed – signal still printed/logged.")
     elif signal != "HOLD":
         log.info("📋 No Groww credentials found – signal printed only (paper mode).")
+
 def place_groww_order(symbol, signal, quantity, price):
     """
-    Place order via Groww API (real) or paper trade.
-    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
+    Emit trading signal to queue for Master Orchestrator.
+    Orchestrator coalesces all signals and places orders via Groww API
+    (single connection = no rate limiting across 468 scripts).
+    Paper mode: orchestrator prints signals instead of placing.
     """
-    import groww_api
-    
-    if not groww_api.is_configured():
-        return groww_api.paper_trade(signal, symbol, price, quantity)
-    
-    exchange = "NSE"
-    atr = price * 0.008  # 0.8% of price as ATR approximation
-    
-    if signal == "BUY":
-        stop_loss = round(price - atr * 1.0, 2)
-        target = round(price + atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="BUY", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent))
+    try:
+        from signals.schema import emit_signal
+        # Get ATR from script's atr variable if available
+        _atr = price * 0.008
+        try:
+            if 'atr' in globals() and isinstance(globals().get('atr'), (int, float)):
+                _atr = float(globals()['atr'])
+        except:
+            _atr = price * 0.008
+        _strategy = str(globals().get('STRATEGY_NAME', 'VWAP'))
+        emit_signal(
+            symbol=symbol, signal=signal, price=price,
+            quantity=quantity, strategy=_strategy, atr=_atr,
+            metadata={"source": Path(__file__).name}
         )
-    elif signal == "SELL":
-        stop_loss = round(price + atr * 1.0, 2)
-        target = round(price - atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="SELL", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
-        )
-    else:
-        return None
-    
-    if result:
-        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
-            signal, quantity, symbol, price, stop_loss, target))
-    return result
-    Place order via Groww API (real) or paper trade.
-    Uses Bracket Order (BO) for BUY/SELL with target + stop loss built-in.
-    """
-    import groww_api
-    
-    if not groww_api.is_configured():
-        return groww_api.paper_trade(signal, symbol, price, quantity)
-    
-    exchange = "NSE"
-    atr = price * 0.008  # 0.8% of price as ATR approximation
-    
-    if signal == "BUY":
-        stop_loss = round(price - atr * 1.0, 2)
-        target = round(price + atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="BUY", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
-        )
-    elif signal == "SELL":
-        stop_loss = round(price + atr * 1.0, 2)
-        target = round(price - atr * 4.0, 2)
-        result = groww_api.place_bo(
-            exchange=exchange, symbol=symbol,
-            transaction="SELL", quantity=quantity,
-            target_price=target, stop_loss_price=stop_loss,
-            trailing_sl=0.3, trailing_target=0.5
-        )
-    else:
-        return None
-    
-    if result:
-        print("ORDER: {} {}x {} @ Rs{} [SL:{} TGT:{}]".format(
-            signal, quantity, symbol, price, stop_loss, target))
-    return result
+        return {"status": "queued", "symbol": symbol, "signal": signal}
+    except ImportError:
+        print("[PAPER] {} {}x {} @ Rs{:.2f}".format(signal, quantity, symbol, price))
+        return {"status": "paper", "symbol": symbol, "signal": signal}
+
+
+def place_order(symbol, signal, quantity, price):
+    return place_groww_order(symbol, signal, quantity, price)
 
 if __name__ == "__main__":
     main()
