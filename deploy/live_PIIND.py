@@ -1,3 +1,7 @@
+
+TARGET_1_MULT = 1.5
+TARGET_2_MULT = 3.0
+TARGET_3_MULT = 5.0
 #!/usr/bin/env python3
 """
 Live Trading Script - PIIND.NS
