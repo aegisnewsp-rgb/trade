@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - BPCL.NS
-Strategy: VWAP
-Win Rate: 57.50%
+Strategy: VWAP_RSI_FILTER (Enhanced: RSI confirmation + volume filter + 3-tier exit)
+Win Rate: 57.50% -> Target 62%+
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -25,12 +25,44 @@ logging.basicConfig(
 log = logging.getLogger("live_BPCL")
 
 SYMBOL         = "BPCL.NS"
-STRATEGY       = "VWAP"
+STRATEGY       = "VWAP_RSI_FILTER"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+RSI_PERIOD     = 14
+RSI_OVERSOLD   = 40      # Buy only when RSI > 40 (not oversold)
+RSI_OVERBOUGHT = 70      # Take profits when RSI > 70
+VOLUME_MULT    = 1.3     # Volume must be 1.3x average
+PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5, "rsi_period": 14}
+
+# 3-TIER EXIT SYSTEM (enhancement)
+SL_ATR_MULT       = 1.0     # Stop loss: 1.0x ATR
+MAX_SL_PCT        = 0.015   # Hard cap: 1.5% max stop
+TRAIL_TRIGGER_PCT = 0.008   # Trail after 0.8% profit
+TARGET_1_MULT     = 1.5     # T1: 1.5x risk → exit 1/3
+TARGET_2_MULT     = 3.0     # T2: 3.0x risk → exit 1/3
+TARGET_3_MULT     = 5.0     # T3: 5.0x risk → exit remaining
+
+# Entry window
+BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
+BEST_ENTRY_END   = dtime(14, 30) # 2:30 PM IST
+NO_ENTRY_AFTER   = dtime(14, 30) # No new entries after 2:30 PM
+
+def can_new_entry() -> bool:
+    """Only allow entries during best entry window."""
+    now = ist_now().time()
+    if now < BEST_ENTRY_START:
+        log.info("⏰ Too early — waiting for 9:30 AM IST entry window")
+        return False
+    if now >= NO_ENTRY_AFTER:
+        log.info("⏰ After 2:30 PM IST — no new entries today")
+        return False
+    return True
+
+def in_best_entry_window() -> bool:
+    now = ist_now().time()
+    return BEST_ENTRY_START <= now <= BEST_ENTRY_END
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
