@@ -7,9 +7,6 @@ Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
 import os, sys, json, time, logging, requests
-
-import sys
-from pathlib import Path
 import groww_api
 from datetime import datetime, time as dtime
 from pathlib import Path
@@ -75,39 +72,105 @@ def vwap_signal(ohlcv, params):
         if price > v + a * atr_mult: signals[i] = "BUY"
         elif price < v - a * atr_mult: signals[i] = "SELL"
     return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
+def place_groww_order(symbol, signal, quantity, price):
+    if not GROWW_API_KEY or not GROWW_API_SECRET: return None
+    url = f"GROWW_API_BASE/orders"
+    payload = {"symbol": symbol, "exchange": "BSE", "transaction": "BUY" if signal == "BUY" else "SELL",
+               "quantity": quantity, "price": round(price, 2), "order_type": "LIMIT", "product": "CNC"}
+    headers = {"Authorization": f"Bearer GROWW_API_KEY", "X-Api-Secret": GROWW_API_SECRET, "Content-Type": "application/json"}
+    for attempt in range(3):
+        try:
+            resp = requests.post(url, json=payload, headers=headers, timeout=10)
+            if resp.status_code in (200, 201): log.info("Groww order: %s", resp.json()); return resp.json()
+            log.warning("HTTP %d", resp.status_code)
+        except Exception as e: log.warning("Attempt %d failed: %s", attempt+1, e)
+        time.sleep(2**attempt)
+    log.error("Groww order failed"); return None
+def log_signal(signal, price, atr):
+    log_file = LOG_DIR / "signals_ARTNIRMAN.BO.json"
+    entries = json.loads(log_file.read_text()) if log_file.exists() else []
+    entries.append({"timestamp": ist_now().isoformat(), "symbol": SYMBOL, "strategy": STRATEGY, "signal": signal,
+                    "price": round(price, 4), "atr": round(atr, 4)})
+    log_file.write_text(json.dumps(entries[-500:], indent=2))
+    log.info("Signal: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
+def daily_loss_limit_hit():
+    cap_file = LOG_DIR / "daily_pnl_ARTNIRMAN.BO.json"; today_str = ist_now().strftime("%Y-%m-%d")
+    if cap_file.exists():
+        try:
+            data = json.loads(cap_file.read_text())
+            if data.get("date") == today_str and data.get("loss_pct", 0) >= DAILY_LOSS_CAP: return True
+        except: pass
+    return False
+def main():
+    log.info("=== Live Trading: %s | %s ===", SYMBOL, STRATEGY)
+    while is_pre_market(): time.sleep(30)
+    if not is_market_open(): log.info("Market closed."); return
+    if daily_loss_limit_hit(): log.warning("Daily loss cap hit."); return
+    ohlcv = fetch_recent_data(days=90)
+    if not ohlcv or len(ohlcv) < 30: log.error("Insufficient data."); return
+    signal, price, atr = vwap_signal(ohlcv, PARAMS)
+    if signal == "BUY": stop_loss = round(price*(1-STOP_LOSS_PCT), 2); target_prc = round(price+TARGET_MULT*atr, 2)
+    elif signal == "SELL": stop_loss = round(price*(1+STOP_LOSS_PCT), 2); target_prc = round(price-TARGET_MULT*atr, 2)
+    else: stop_loss = 0.0; target_prc = 0.0
+    quantity = max(1, int(POSITION/price))
+    log.info("SYMBOL=%s SIGNAL=★%s★ PRICE=₹%.2f QTY=%d ATR=%.4f STOP=₹%.2f TARGET=₹%.2f", SYMBOL, signal, price, quantity, atr, stop_loss, target_prc)
+    log_signal(signal, price, atr)
+    if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
+        result = place_groww_order(SYMBOL, signal, quantity, price)
+        if result: log.info("✓ Executed: %s", result)
+        else: log.warning("⚠ Order failed.")
+    elif signal != "HOLD": log.info("📋 Paper mode.")
 
 def place_groww_order(symbol, signal, quantity, price):
     """
-    Emit trading signal to queue for Master Orchestrator.
-    Orchestrator coalesces all signals and places orders via Groww API
-    (single connection = no rate limiting across 468 scripts).
-    Paper mode: orchestrator prints signals instead of placing.
+    Place order via Groww API or paper trade.
+    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
+    Falls back to paper trading otherwise.
     """
-    import sys
-    from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).parent))
-    try:
-        from signals.schema import emit_signal
-        # Get ATR from script's atr variable if available
-        _atr = price * 0.008
-        try:
-            if 'atr' in globals() and isinstance(globals().get('atr'), (int, float)):
-                _atr = float(globals()['atr'])
-        except:
-            _atr = price * 0.008
-        _strategy = str(globals().get('STRATEGY_NAME', 'VWAP'))
-        emit_signal(
-            symbol=symbol, signal=signal, price=price,
-            quantity=quantity, strategy=_strategy, atr=_atr,
-            metadata={"source": Path(__file__).name}
+    import groww_api
+    
+    if not groww_api.is_configured():
+        return groww_api.paper_trade(signal, symbol, price, quantity)
+    
+    exchange = "NSE"
+    
+    if signal == "BUY":
+        # Calculate target and stop loss
+        atr = price * 0.008  # 0.8% ATR approximation
+        stop_loss = price - (atr * 1.0)  # 1x ATR stop
+        target = price + (atr * 4.0)  # 4x ATR target
+        # Use bracket order for BUY with target + stop loss
+        result = groww_api.place_bo(
+            exchange=exchange,
+            symbol=symbol,
+            transaction="BUY",
+            quantity=quantity,
+            target_price=target,
+            stop_loss_price=stop_loss,
+            trailing_sl=0.3,
+            trailing_target=0.5
         )
-        return {"status": "queued", "symbol": symbol, "signal": signal}
-    except ImportError:
-        print("[PAPER] {} {}x {} @ Rs{:.2f}".format(signal, quantity, symbol, price))
-        return {"status": "paper", "symbol": symbol, "signal": signal}
+    elif signal == "SELL":
+        atr = price * 0.008
+        stop_loss = price + (atr * 1.0)
+        target = price - (atr * 4.0)
+        result = groww_api.place_bo(
+            exchange=exchange,
+            symbol=symbol,
+            transaction="SELL",
+            quantity=quantity,
+            target_price=target,
+            stop_loss_price=stop_loss,
+            trailing_sl=0.3,
+            trailing_target=0.5
+        )
+    else:
+        return None
+    
+    if result:
+        print("Order placed: {} {} {} @ Rs{:.2f}".format(
+            signal, quantity, symbol, price))
+    return result
 
-
-def place_order(symbol, signal, quantity, price):
-    return place_groww_order(symbol, signal, quantity, price)
 
 if __name__ == "__main__": main()
