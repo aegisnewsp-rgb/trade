@@ -293,6 +293,7 @@ while True:
         log(f"[STATUS] Cash: Rs{s['cash']:.0f} Total: Rs{s['total']:.0f} "
             f"PnL: Rs{s['pnl']:.0f} ({s['pnl_pct']:.2f}%) "
             f"Pos: {s['positions']} Trades: {s['trades']} WR: {s['win_rate']*100:.0f}%")
+        notify(f"📊 <b>Status Update</b>\nCash: Rs{s['cash']:.0f} | Total: Rs{s['total']:.0f}\nPnL: Rs{s['pnl']:.0f} ({s['pnl_pct']:+.2f}%)\nPos: {s['positions']} | Trades: {s['trades']} | WR: {s['win_rate']*100:.0f}%")
         last_status = iter_count
     market_open = ((9 < now.hour < 15) or
                   (now.hour == 9 and now.minute >= 30) or
