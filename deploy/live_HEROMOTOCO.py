@@ -194,10 +194,12 @@ def vwap_signal_v5(ohlcv: list, params: dict) -> tuple[str, float, float]:
         macd_bearish = macd_h < 0 and macd_h < sig_h
 
         # v5: require deep RSI confirmation + stricter ATR + volume
-        if (price > v + a * atr_mult and r < rsi_confirm_overbought and macd_bullish
+        # BUY: price above VWAP, RSI < 30 (oversold), bullish MACD, volume confirmed, bull market
+        if (price > v + a * atr_mult and r < rsi_confirm_oversold and macd_bullish
                 and volume_confirmed and bull_market):
             signals[i] = "BUY"
-        elif (price < v - a * atr_mult and r > rsi_confirm_oversold and macd_bearish
+        # SELL: price below VWAP, RSI > 70 (overbought), bearish MACD, volume confirmed, bear market
+        elif (price < v - a * atr_mult and r > rsi_confirm_overbought and macd_bearish
                 and volume_confirmed and bear_market):
             signals[i] = "SELL"
 
