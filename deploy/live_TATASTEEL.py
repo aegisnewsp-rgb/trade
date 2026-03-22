@@ -397,8 +397,7 @@ def place_groww_order(symbol, signal, quantity, price):
     
     exchange = "NSE"
     
-    # v7: Steel commodity profile — 0.8% ATR stop, 2.5x ATR target
-    atr = price * 0.008  # 0.8% ATR approximation
+    # v7: Steel commodity profile — 0.8% ATR stop, 2.5x ATR target  # 0.8% ATR approximation
     
     if signal == "BUY":
         stop_loss = round(price - atr * 1.0, 2)   # 0.8% ATR stop

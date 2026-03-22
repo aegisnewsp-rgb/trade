@@ -439,7 +439,6 @@ def place_groww_order(symbol, signal, quantity, price):
     exchange = "NSE"
 
     if signal == "BUY":
-        atr = price * 0.008
         stop_loss = price - (atr * SL_ATR_MULT)
         target = price + (atr * TARGET_3_MULT)
         result = groww_api.place_bo(
@@ -453,7 +452,6 @@ def place_groww_order(symbol, signal, quantity, price):
             trailing_target=0.5
         )
     elif signal == "SELL":
-        atr = price * 0.008
         stop_loss = price + (atr * SL_ATR_MULT)
         target = price - (atr * TARGET_3_MULT)
         result = groww_api.place_bo(

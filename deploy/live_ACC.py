@@ -154,8 +154,7 @@ def place_groww_order(symbol, signal, quantity, price):
     exchange = "NSE"
     
     if signal == "BUY":
-        # Calculate target and stop loss
-        atr = price * 0.008  # 0.8% ATR approximation
+        # Calculate target and stop loss  # 0.8% ATR approximation
         stop_loss = price - (atr * 1.0)  # 1x ATR stop
         target = price + (atr * 4.0)  # 4x ATR target
         # Use bracket order for BUY with target + stop loss
@@ -170,7 +169,6 @@ def place_groww_order(symbol, signal, quantity, price):
             trailing_target=0.5
         )
     elif signal == "SELL":
-        atr = price * 0.008
         stop_loss = price + (atr * 1.0)
         target = price - (atr * 4.0)
         result = groww_api.place_bo(
