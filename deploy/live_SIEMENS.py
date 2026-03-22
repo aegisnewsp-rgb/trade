@@ -34,6 +34,11 @@ log = logging.getLogger("live_SIEMENS")
 SYMBOL         = "SIEMENS.NS"
 STRATEGY       = "VWAP_MOMENTUM"
 POSITION       = 7000
+
+# 3-TIER EXIT SYSTEM
+TARGET_1_MULT = 1.5
+TARGET_2_MULT = 3.0
+TARGET_3_MULT = 5.0
 STOP_LOSS_PCT  = 0.008    # 0.8% ATR stop
 TARGET_MULT    = 4.0      # 4× ATR target
 DAILY_LOSS_CAP = 0.003    # 0.3% daily loss cap
