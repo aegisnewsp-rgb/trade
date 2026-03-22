@@ -50,10 +50,10 @@ PARAMS = {
     "vwap_period":         14,
     "atr_multiplier":      0.8,   # v7: 0.8% ATR stop (steel-specific)
     "rsi_period":          14,
-    "rsi_buy_min":         55,   # BUY only when RSI > 55
+    "rsi_buy_min":         50,   # sniper: 50 (was 55)
     "rsi_sell_max":        45,   # SELL only when RSI < 45
     "vol_sma_period":      20,
-    "vol_confirm_mult":    1.2,  # Volume 1.2x avg for entry confirmation
+    "vol_confirm_mult":    0.75,  # sniper: 0.75 (was 1.2)
     "atr_vol_period":      20,
     "adx_period":          14,
     "adx_min":            25,   # v7: 25 — only very confirmed trends for cyclical steel

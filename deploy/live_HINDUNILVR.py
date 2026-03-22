@@ -40,7 +40,15 @@ DAILY_LOSS_CAP = 0.003
 RSI_PERIOD     = 14
 RSI_OVERSOLD   = 35
 RSI_OVERBOUGHT = 65
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {
+    # Sniper-optimized params (2026-03-22 Round 4)
+    "vwap_period": 14,
+    "atr_multiplier": 1.5,
+    "RSI_BUY": 55,
+    "RSI_SELL": 45,
+    "VOL_THRESH": 0.5,
+    "HOLD_DAYS": 5,
+}
 
 # 3-TIER EXIT SYSTEM (enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR

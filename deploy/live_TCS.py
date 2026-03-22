@@ -51,7 +51,10 @@ BEST_ENTRY_END      = dtime(14, 30)   # 2:30 PM IST — smart entry window
 
 ENTRY_VWAP_PCT   = 0.005   # Price must be 0.5% above VWAP (₹19 on ₹3800)
 ENTRY_RSI_MIN    = 55      # Both 15m and 1h RSI must confirm
-ENTRY_VOL_MULT   = 1.2     # Volume must be 1.2× 20-day avg
+ENTRY_VOL_MULT   = 0.5     # Volume must be 0.5× 20-day avg
+
+# Sniper-optimized params (Round 3, 2026-03-22)
+HOLD_DAYS        = 5       # hold for 5 trading days
 
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0× ATR (tighter)
 MAX_SL_PCT       = 0.02    # Hard cap: 2% max stop

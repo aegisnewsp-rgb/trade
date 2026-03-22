@@ -54,14 +54,17 @@ WIN_RATE_THRESHOLD = 60.0
 CAPITAL_BOOST_MULT = 1.15  # 15% more capital given 66.67% win rate
 
 PARAMS = {
+    # Sniper-optimized params (2026-03-22 Round 4)
     "vwap_period": 14,
     "atr_multiplier": 1.5,
     "vwap_entry_buffer": VWAP_ENTRY_BUFFER,
-    "trade_sentiment_weight": 0.2,  # 20% weight to global trade data
+    "trade_sentiment_weight": 0.2,
     "bdi_check_enabled": True,
     "exim_check_enabled": True,
-    "rsi_threshold": 55,
-    "volume_multiplier": 1.2,
+    "RSI_BUY": 50,
+    "RSI_SELL": 45,
+    "VOL_THRESH": 0.5,
+    "HOLD_DAYS": 5,
 }
 
 # ── Groww Production Enhancements ───────────────────────────────────────────

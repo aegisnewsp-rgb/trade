@@ -42,7 +42,7 @@ PARAMS         = {
     # Optimized params (2026-03-22)
     "rsi_buy": 50,
     "rsi_sell": 45,
-    "vol_threshold": 0.8,
+    "vol_threshold": 0.75,  # sniper
     "sl_pct": 1.0,
     "tgt_pct": 3.0,
     "hold_days": 5,

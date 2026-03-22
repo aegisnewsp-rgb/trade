@@ -46,9 +46,12 @@ DAILY_LOSS_CAP = 0.003
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
 
 # Entry parameters
-RSI_BUY       = 55       # BUY only when RSI > 55
+RSI_BUY       = 45       # BUY only when RSI > 45
 RSI_SELL      = 45       # SELL only when RSI < 45
-VOL_THRESH    = 1.2      # Volume 1.2x avg for entry confirmation
+VOL_THRESH    = 0.5      # Volume 0.5x avg for entry confirmation
+
+# Sniper-optimized params (Round 3, 2026-03-22)
+HOLD_DAYS     = 10       # hold for 10 trading days
 
 # Entry window
 BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
