@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - WIPRO.NS
-Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter (Enhanced v7)
-Win Rate: 52.17% -> Target 60%+ (v7: Fixed atr bug in place_groww_order, loosened RSI thresholds for more signals)
+Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter + Bollinger Band (Enhanced v8)
+Win Rate: 52.17% -> Target 60%+ (v8: Tightened filters for quality over quantity - tighter ATR, RSI, volume; added BB filter and MACD slope)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
