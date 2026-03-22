@@ -238,44 +238,48 @@ def enhanced_generate_signals(ohlcv: List[dict], params: dict) -> List[str]:
 # ============================================================================
 '''.format(
         ", ".join(filters_enabled),
-        
-        # Volume MA
+
+        # Volume MA period
         VOLUME_FILTER_CONFIG["ma_period"],
-        
-        # Price MA
+
+        # Price MA period
         TREND_FILTER_CONFIG["ma_period"],
-        
+
         # ATR period
         VOLATILITY_FILTER_CONFIG["atr_period"],
-        
+
         # RSI period
         RSI_FILTER_CONFIG["rsi_period"],
-        
-        # Volume filter enabled
+
+        # Volume filter enabled + period + ratio
         VOLUME_FILTER_CONFIG["enabled"],
         VOLUME_FILTER_CONFIG["ma_period"],
         VOLUME_FILTER_CONFIG["min_volume_ratio"],
-        
-        # Trend filter enabled
+
+        # Trend filter enabled + period
         TREND_FILTER_CONFIG["enabled"],
         TREND_FILTER_CONFIG["ma_period"],
-        
-        # Volatility filter enabled
+
+        # Volatility filter enabled + min/max atr
         VOLATILITY_FILTER_CONFIG["enabled"],
         VOLATILITY_FILTER_CONFIG["min_atr_percent"],
         VOLATILITY_FILTER_CONFIG["max_atr_percent"],
-        
-        # RSI filter enabled
+
+        # RSI filter enabled + oversold + overbought
         RSI_FILTER_CONFIG["enabled"],
         RSI_FILTER_CONFIG["oversold"],
         RSI_FILTER_CONFIG["overbought"],
-        
+
         # Critical flags
         "True",  # Volume critical
         "True",  # Trend critical
-        
+
         # Function mapping
-        get_signal_function_name(base_strategy)
+        get_signal_function_name(base_strategy),
+
+        # Extra placeholders for function call syntax and critical flags
+        get_signal_function_name(base_strategy),
+        get_signal_function_name(base_strategy),
     )
     
     return enhanced_code
