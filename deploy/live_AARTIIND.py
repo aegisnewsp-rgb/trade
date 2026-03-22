@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - NMDC.NS
+Live Trading Script - AARTIIND.NS
 Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: 61.11%
+Win Rate: 63.64%
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -23,13 +23,13 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_NMDC.log"),
+        logging.FileHandler(LOG_DIR / "live_AARTIIND.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_NMDC")
+log = logging.getLogger("live_AARTIIND")
 
-SYMBOL         = "NMDC.NS"
+SYMBOL         = "AARTIIND.NS"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
@@ -41,44 +41,64 @@ GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE   = "https://api.groww.in/v1"
 
+IST_TZ_OFFSET = 5.5
+
 def ist_now() -> datetime:
-    return datetime.utcnow() + __import__("datetime").timedelta(hours=5.5)
+    return datetime.utcnow() + __import__("datetime").timedelta(hours=IST_TZ_OFFSET)
 
 def is_market_open() -> bool:
     now = ist_now()
-    return now.weekday() < 5 and dtime(9, 15) <= now.time() <= dtime(15, 30)
+    if now.weekday() >= 5:
+        return False
+    return dtime(9, 15) <= now.time() <= dtime(15, 30)
 
 def is_pre_market() -> bool:
     now = ist_now()
-    return now.weekday() < 5 and dtime(9, 0) <= now.time() < dtime(9, 15)
+    if now.weekday() >= 5:
+        return False
+    return dtime(9, 0) <= now.time() < dtime(9, 15)
 
 def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     for attempt in range(retries):
         try:
-            df = yf.Ticker(SYMBOL).history(period=f"{days}d")
+            ticker = yf.Ticker(SYMBOL)
+            df = ticker.history(period=f"{days}d")
             if df.empty:
                 raise ValueError("Empty dataframe")
             ohlcv = [
-                {"date": str(idx.date()), "open": float(r["Open"]), "high": float(r["High"]),
-                 "low": float(r["Low"]), "close": float(r["Close"]), "volume": int(r["Volume"])}
-                for idx, r in df.iterrows()
+                {
+                    "date":   str(idx.date()),
+                    "open":   float(row["Open"]),
+                    "high":   float(row["High"]),
+                    "low":    float(row["Low"]),
+                    "close":  float(row["Close"]),
+                    "volume": int(row["Volume"]),
+                }
+                for idx, row in df.iterrows()
             ]
             log.info("Fetched %d candles for %s", len(ohlcv), SYMBOL)
             return ohlcv
         except Exception as e:
-            log.warning("Attempt %d/%d failed: %s", attempt + 1, retries, e)
+            log.warning("Attempt %d/%d failed fetching data: %s", attempt + 1, retries, e)
             time.sleep(2 ** attempt)
     log.error("All fetch attempts failed for %s", SYMBOL)
     return None
 
 def calculate_atr(ohlcv: list, period: int = 14) -> list:
-    atr, prev_close = [], None
+    atr = []
+    prev_close = None
     for i, bar in enumerate(ohlcv):
         tr = bar["high"] - bar["low"] if prev_close is None else max(
-            bar["high"] - bar["low"], abs(bar["high"] - prev_close), abs(bar["low"] - prev_close))
-        if i < period - 1: atr.append(None)
-        elif i == period - 1: atr.append(tr)
-        else: atr.append((atr[-1] * (period - 1) + tr) / period)
+            bar["high"] - bar["low"],
+            abs(bar["high"] - prev_close),
+            abs(bar["low"]  - prev_close),
+        )
+        if i < period - 1:
+            atr.append(None)
+        elif i == period - 1:
+            atr.append(tr)
+        else:
+            atr.append((atr[-1] * (period - 1) + tr) / period)
         prev_close = bar["close"]
     return atr
 
@@ -95,30 +115,46 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
     return vwap
 
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period, atr_mult = params["vwap_period"], params["atr_multiplier"]
-    vwap_vals = calculate_vwap(ohlcv, period)
-    atr_vals  = calculate_atr(ohlcv, period)
-    signals   = ["HOLD"] * len(ohlcv)
+    period        = params["vwap_period"]
+    atr_mult      = params["atr_multiplier"]
+    vwap_vals     = calculate_vwap(ohlcv, period)
+    atr_vals      = calculate_atr(ohlcv, period)
+    signals       = ["HOLD"] * len(ohlcv)
+
     for i in range(period, len(ohlcv)):
         if vwap_vals[i] is None or atr_vals[i] is None:
             continue
-        price = ohlcv[i]["close"]
-        v, a  = vwap_vals[i], atr_vals[i]
-        if price > v + a * atr_mult: signals[i] = "BUY"
-        elif price < v - a * atr_mult: signals[i] = "SELL"
-    current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], current_atr
+        price    = ohlcv[i]["close"]
+        v        = vwap_vals[i]
+        a        = atr_vals[i]
+        if price > v + a * atr_mult:
+            signals[i] = "BUY"
+        elif price < v - a * atr_mult:
+            signals[i] = "SELL"
+
+    current_signal = signals[-1] if signals else "HOLD"
+    current_price  = ohlcv[-1]["close"]
+    current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
+    return current_signal, current_price, current_atr
 
 def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
     if not GROWW_API_KEY or not GROWW_API_SECRET:
         return None
     url = f"{GROWW_API_BASE}/orders"
-    payload = {"symbol": symbol, "exchange": "NSE",
-               "transaction": "BUY" if signal == "BUY" else "SELL",
-               "quantity": quantity, "price": round(price, 2),
-               "order_type": "LIMIT", "product": "CNC"}
-    headers = {"Authorization": f"Bearer {GROWW_API_KEY}",
-               "X-Api-Secret": GROWW_API_SECRET, "Content-Type": "application/json"}
+    payload = {
+        "symbol":      symbol,
+        "exchange":    "NSE",
+        "transaction": "BUY" if signal == "BUY" else "SELL",
+        "quantity":    quantity,
+        "price":       round(price, 2),
+        "order_type":  "LIMIT",
+        "product":     "CNC",
+    }
+    headers = {
+        "Authorization": f"Bearer {GROWW_API_KEY}",
+        "X-Api-Secret":  GROWW_API_SECRET,
+        "Content-Type":  "application/json",
+    }
     for attempt in range(3):
         try:
             resp = requests.post(url, json=payload, headers=headers, timeout=10)
@@ -133,15 +169,27 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_NMDC.json"
-    entries = json.loads(log_file.read_text()) if log_file.exists() else []
-    entries.append({"timestamp": ist_now().isoformat(), "symbol": SYMBOL, "strategy": STRATEGY,
-                    "signal": signal, "price": round(price, 4), "atr": round(atr, 4)})
+    log_file = LOG_DIR / "signals_AARTIIND.json"
+    entries = []
+    if log_file.exists():
+        try:
+            entries = json.loads(log_file.read_text())
+        except Exception:
+            entries = []
+    entries.append({
+        "timestamp": ist_now().isoformat(),
+        "symbol":    SYMBOL,
+        "strategy":  STRATEGY,
+        "signal":    signal,
+        "price":     round(price, 4),
+        "atr":       round(atr, 4),
+    })
+    entries[-500:]
     log_file.write_text(json.dumps(entries[-500:], indent=2))
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_NMDC.json"
+    cap_file = LOG_DIR / "daily_pnl_AARTIIND.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
@@ -153,31 +201,41 @@ def daily_loss_limit_hit() -> bool:
     return False
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: 61.11%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s | Win Rate: 63.64%% ===", SYMBOL, STRATEGY)
+
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
         time.sleep(30)
+
     if not is_market_open():
         log.info("Market is closed. Exiting.")
         return
+
+    today_str = ist_now().strftime("%Y-%m-%d")
     if daily_loss_limit_hit():
         log.warning("Daily loss cap (0.3%%) hit – skipping trading today.")
         return
+
     log.info("Market is open. Fetching data...")
     ohlcv = fetch_recent_data(days=90)
     if not ohlcv or len(ohlcv) < 30:
         log.error("Insufficient data for %s", SYMBOL)
         return
+
     signal, price, atr = vwap_signal(ohlcv, PARAMS)
+
     if signal == "BUY":
-        stop_loss = round(price * (1 - STOP_LOSS_PCT), 2)
+        stop_loss  = round(price * (1 - STOP_LOSS_PCT), 2)
         target_prc = round(price + TARGET_MULT * atr, 2)
     elif signal == "SELL":
-        stop_loss = round(price * (1 + STOP_LOSS_PCT), 2)
+        stop_loss  = round(price * (1 + STOP_LOSS_PCT), 2)
         target_prc = round(price - TARGET_MULT * atr, 2)
     else:
-        stop_loss, target_prc = 0.0, 0.0
+        stop_loss  = 0.0
+        target_prc = 0.0
+
     quantity = max(1, int(POSITION / price))
+
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
     log.info("  STRATEGY : %s", STRATEGY)
@@ -189,7 +247,9 @@ def main():
         log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
     log_signal(signal, price, atr)
+
     if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
         result = place_groww_order(SYMBOL, signal, quantity, price)
         if result:
