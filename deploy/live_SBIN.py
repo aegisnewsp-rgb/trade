@@ -51,7 +51,7 @@ BEST_ENTRY_END = dtime(12, 0)
 # Tighter VWAP band (0.3% vs 0.5%) — SBIN mean-reverts closer to VWAP
 ENTRY_VWAP_PCT = 0.003
 # Lower RSI threshold — SBIN mean-reverts, doesn't push RSI to 55+ before bouncing
-ENTRY_RSI_MIN = 50
+ENTRY_RSI_MIN = 38       # PSU bank — RSI bounces at 35-40 oversold, not 55+
 # Lower vol threshold — PSU banks have steadier volume, less dramatic spikes
 ENTRY_VOL_MULT = 1.1
 

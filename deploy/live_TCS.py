@@ -44,7 +44,7 @@ NIFTY_IT_SYMBOL = "^CNXIT"   # NIFTY IT Index — IT sector proxy
 USD_INR_SYMBOL  = "USDINR=X" # USD/INR exchange rate
 
 ENTRY_WAIT_MINUTES   = 15
-NO_ENTRY_AFTER      = dtime(14, 30)   # No new entries after 2:30 PM
+NO_ENTRY_AFTER      = dtime(13, 0)    # No new entries after 1:00 PM (tightened for IT sector)
 BEST_ENTRY_START    = dtime(10, 0)    # 10:00 AM IST — tightened from 9:30
 BEST_ENTRY_END      = dtime(13, 0)    # 1:00 PM IST — tightened from 12:00
 

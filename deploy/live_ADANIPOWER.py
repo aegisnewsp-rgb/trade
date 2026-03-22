@@ -91,6 +91,13 @@ def is_optimal_session() -> bool:
     afternoon_end = dtime(15, 0)
     return (morning_start <= now <= morning_end) or (afternoon_start <= now <= afternoon_end)
 
+def can_new_entry() -> bool:
+    """HARD BLOCK: Only allow entries during optimal session (10-11:30am, 2-3pm)."""
+    if not is_optimal_session():
+        log.info("🛑 BLOCKED: Outside optimal session (10-11:30am or 2-3pm IST)")
+        return False
+    return True
+
 def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     for attempt in range(retries):
         try:
@@ -371,10 +378,9 @@ def main():
     log.info(f"RSI: {rsi:.1f}")
     log.info(f"Optimal Session: {is_optimal_session()}")
     
-    # Check if in optimal trading window
+    # Check if in optimal trading window - HARD BLOCK
     if not is_optimal_session():
-        log.info("Outside optimal trading window (10-11:30 AM or 2-3 PM)")
-        log.info("Signals will be monitored but trades require explicit confirmation")
+        log.info("🛑 BLOCKED: Outside optimal session — only monitoring, no trade")
     
     # Display config summary
     log.info("-" * 40)
@@ -388,8 +394,8 @@ def main():
     log.info(f"  Position: ₹{POSITION}")
     log.info("-" * 40)
     
-    # Generate actionable signal
-    if signal == "BUY":
+    # Generate actionable signal (only during optimal session)
+    if signal == "BUY" and can_new_entry():
         log.info("🟢 BUY SIGNAL DETECTED")
         log.info(f"  Entry: ₹{price:.2f}")
         log.info(f"  Stop Loss: ₹{price * (1-STOP_LOSS_PCT):.2f}")
@@ -402,7 +408,7 @@ def main():
             log.info(f"  Quantity: {quantity} shares (₹{quantity * price:.2f})")
             place_groww_order(SYMBOL, signal, quantity, price, atr)
             
-    elif signal == "SELL":
+    elif signal == "SELL" and can_new_entry():
         log.info("🔴 SELL SIGNAL DETECTED")
         log.info(f"  Entry: ₹{price:.2f}")
         log.info(f"  Stop Loss: ₹{price * (1+STOP_LOSS_PCT):.2f}")
