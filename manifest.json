@@ -1,0 +1,708 @@
+{
+  "generated_at": "2026-03-22T02:57:36.522506",
+  "total_stocks": 100,
+  "stocks_with_benchmark_data": 38,
+  "stocks_using_default": 62,
+  "scripts": [
+    {
+      "symbol": "RELIANCE.NS",
+      "script": "RELIANCE_NS.py",
+      "strategy": "TSI",
+      "win_rate": 0.6364,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "TCS.NS",
+      "script": "TCS_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.6364,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "HDFCBANK.NS",
+      "script": "HDFCBANK_NS.py",
+      "strategy": "ADX_TREND",
+      "win_rate": 0.6061,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "INFY.NS",
+      "script": "INFY_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "ICICIBANK.NS",
+      "script": "ICICIBANK_NS.py",
+      "strategy": "ADX_TREND",
+      "win_rate": 0.573,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "SBIN.NS",
+      "script": "SBIN_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.6364,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "BAJFINANCE.NS",
+      "script": "BAJFINANCE_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "HINDUNILVR.NS",
+      "script": "HINDUNILVR_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "BHARTIARTL.NS",
+      "script": "BHARTIARTL_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "KOTAKBANK.NS",
+      "script": "KOTAKBANK_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "ITC.NS",
+      "script": "ITC_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "LT.NS",
+      "script": "LT_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "AXISBANK.NS",
+      "script": "AXISBANK_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "ASIANPAINT.NS",
+      "script": "ASIANPAINT_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.5833,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "MARUTI.NS",
+      "script": "MARUTI_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.5926,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "SUNPHARMA.NS",
+      "script": "SUNPHARMA_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "TITAN.NS",
+      "script": "TITAN_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.6111,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "ADANIPORTS.NS",
+      "script": "ADANIPORTS_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.6667,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "TECHM.NS",
+      "script": "TECHM_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "WIPRO.NS",
+      "script": "WIPRO_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "HCLTECH.NS",
+      "script": "HCLTECH_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "POWERGRID.NS",
+      "script": "POWERGRID_NS.py",
+      "strategy": "FIBONACCI_RETRACEMENT",
+      "win_rate": 0.5882,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "NTPC.NS",
+      "script": "NTPC_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "ONGC.NS",
+      "script": "ONGC_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "COALINDIA.NS",
+      "script": "COALINDIA_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.6,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "GRASIM.NS",
+      "script": "GRASIM_NS.py",
+      "strategy": "FIBONACCI_RETRACEMENT",
+      "win_rate": 0.5736,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "JSWSTEEL.NS",
+      "script": "JSWSTEEL_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "TATASTEEL.NS",
+      "script": "TATASTEEL_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.6154,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "HINDALCO.NS",
+      "script": "HINDALCO_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "CIPLA.NS",
+      "script": "CIPLA_NS.py",
+      "strategy": "MOMENTUM_DIVERGENCE",
+      "win_rate": 0.6007,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "DRREDDY.NS",
+      "script": "DRREDDY_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "APOLLOTYRE.NS",
+      "script": "APOLLOTYRE_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "BPCL.NS",
+      "script": "BPCL_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.575,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "EICHERMOT.NS",
+      "script": "EICHERMOT_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "HEROMOTOCO.NS",
+      "script": "HEROMOTOCO_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "INDUSIND.BO",
+      "script": "INDUSIND_BO.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "MAHINDRA.NS",
+      "script": "MAHINDRA_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "M&M.NS",
+      "script": "M&M_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "NESTLEIND.NS",
+      "script": "NESTLEIND_NS.py",
+      "strategy": "MOMENTUM_DIVERGENCE",
+      "win_rate": 0.5993,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "SHREECEM.NS",
+      "script": "SHREECEM_NS.py",
+      "strategy": "TSI",
+      "win_rate": 0.5806,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "ULTRACEMCO.NS",
+      "script": "ULTRACEMCO_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "ADANIENT.NS",
+      "script": "ADANIENT_NS.py",
+      "strategy": "TSI",
+      "win_rate": 0.5769,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "ADANIGREEN.NS",
+      "script": "ADANIGREEN_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.7,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "ADANIPOWER.NS",
+      "script": "ADANIPOWER_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.9167,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "AMARAJABAT.NS",
+      "script": "AMARAJABAT_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "BANKBARODA.NS",
+      "script": "BANKBARODA_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "BANKINDIA.NS",
+      "script": "BANKINDIA_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.6,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "CANBK.NS",
+      "script": "CANBK_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "CENTRALBK.NS",
+      "script": "CENTRALBK_NS.py",
+      "strategy": "MA_ENVELOPE",
+      "win_rate": 0.586,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "IDBIBANK.NS",
+      "script": "IDBIBANK_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "INDIANB.NS",
+      "script": "INDIANB_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "IOB.NS",
+      "script": "IOB_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "PNB.NS",
+      "script": "PNB_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "SYNDIBANK.NS",
+      "script": "SYNDIBANK_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "UCOBANK.NS",
+      "script": "UCOBANK_NS.py",
+      "strategy": "ADX_TREND",
+      "win_rate": 0.6304,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "UNIONBANK.NS",
+      "script": "UNIONBANK_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "ABB.NS",
+      "script": "ABB_NS.py",
+      "strategy": "ADX_TREND",
+      "win_rate": 0.5806,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "ACC.NS",
+      "script": "ACC_NS.py",
+      "strategy": "MA_ENVELOPE",
+      "win_rate": 0.5909,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "ADANITRANS.NS",
+      "script": "ADANITRANS_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "ALKEM.NS",
+      "script": "ALKEM_NS.py",
+      "strategy": "PARABOLIC_SAR",
+      "win_rate": 0.5792,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "AUROPHARMA.NS",
+      "script": "AUROPHARMA_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "BIOCON.NS",
+      "script": "BIOCON_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "BOSCHLTD.NS",
+      "script": "BOSCHLTD_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.6,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "CHAMBER.NS",
+      "script": "CHAMBER_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "CHOLAFIN.NS",
+      "script": "CHOLAFIN_NS.py",
+      "strategy": "FIBONACCI_RETRACEMENT",
+      "win_rate": 0.5749,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "COLPAL.NS",
+      "script": "COLPAL_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.6296,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "CONCOR.NS",
+      "script": "CONCOR_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "CUMMINSIND.NS",
+      "script": "CUMMINSIND_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "DABUR.NS",
+      "script": "DABUR_NS.py",
+      "strategy": "ADX_TREND",
+      "win_rate": 0.5732,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "DALMIABHARAT.NS",
+      "script": "DALMIABHARAT_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "EXIDEIND.NS",
+      "script": "EXIDEIND_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "GLENMARK.NS",
+      "script": "GLENMARK_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "GMRINFRA.NS",
+      "script": "GMRINFRA_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "GODREJCP.NS",
+      "script": "GODREJCP_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "GODREJPROP.NS",
+      "script": "GODREJPROP_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.6316,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "GSPL.NS",
+      "script": "GSPL_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "HAVELLS.NS",
+      "script": "HAVELLS_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.6207,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "HINDPETRO.NS",
+      "script": "HINDPETRO_NS.py",
+      "strategy": "FIBONACCI_RETRACEMENT",
+      "win_rate": 0.5938,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "ICICIGI.NS",
+      "script": "ICICIGI_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "ICICIPRULI.NS",
+      "script": "ICICIPRULI_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "IDEA.NS",
+      "script": "IDEA_NS.py",
+      "strategy": "VOLUME_DIVERGENCE",
+      "win_rate": 0.5952,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "IGL.NS",
+      "script": "IGL_NS.py",
+      "strategy": "ADX_TREND",
+      "win_rate": 0.602,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "INDHOTEL.NS",
+      "script": "INDHOTEL_NS.py",
+      "strategy": "VWAP",
+      "win_rate": 0.5862,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "LICHSGFIN.NS",
+      "script": "LICHSGFIN_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "LUPIN.NS",
+      "script": "LUPIN_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "MGL.NS",
+      "script": "MGL_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "MRF.NS",
+      "script": "MRF_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "MUTHOOTFIN.NS",
+      "script": "MUTHOOTFIN_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "NMDC.NS",
+      "script": "NMDC_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "OIL.NS",
+      "script": "OIL_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "PAGEIND.NS",
+      "script": "PAGEIND_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "PEL.NS",
+      "script": "PEL_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "PETRONET.NS",
+      "script": "PETRONET_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "PIDILITIND.NS",
+      "script": "PIDILITIND_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "PIIND.NS",
+      "script": "PIIND_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "RAMCOCEM.NS",
+      "script": "RAMCOCEM_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "RBLBANK.NS",
+      "script": "RBLBANK_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "SBILIFE.NS",
+      "script": "SBILIFE_NS.py",
+      "strategy": "MOMENTUM_DIVERGENCE",
+      "win_rate": 0.5944,
+      "source": "benchmark"
+    },
+    {
+      "symbol": "SIEMENS.NS",
+      "script": "SIEMENS_NS.py",
+      "strategy": "VWAP",
+      "win_rate": null,
+      "source": "default"
+    },
+    {
+      "symbol": "SRF.NS",
+      "script": "SRF_NS.py",
+      "strategy": "MACD_MOMENTUM",
+      "win_rate": 0.6013,
+      "source": "benchmark"
+    }
+  ]
+}
