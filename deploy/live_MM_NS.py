@@ -133,63 +133,6 @@ def get_trade_decision(price: float, vwap: float, atr: float, multiplier: float 
         return "SELL"
     return "HOLD"
 
-def place_groww_order(action: str, quantity: int) -> dict:
-    if not GROWW_API_KEY or not GROWW_API_SECRET:
-        log.warning("Groww API credentials not configured")
-        return {"status": "skipped", "reason": "no_credentials"}
-    headers = {"Authorization": f"Bearer GROWW_API_KEY"}
-    payload = {
-        "symbol": SYMBOL,
-        "action": action.upper(),
-        "quantity": quantity,
-        "order_type": "MARKET"
-    }
-    try:
-        resp = requests.post(f"GROWW_API_BASE/orders", json=payload, headers=headers, timeout=10)
-        return resp.json()
-    except Exception as e:
-        log.error("Groww order failed: %s", e)
-        return {"status": "error", "reason": str(e)}
-
-def get_live_price():
-    try:
-        ticker = yf.Ticker(SYMBOL)
-        todays_data = ticker.history(period="1d")
-        if not todays_data.empty:
-            return float(todays_data["Close"].iloc[-1])
-    except Exception as e:
-        log.warning("Live price fetch failed: %s", e)
-    return None
-
-# ── Main ──────────────────────────────────────────────────────────────────────
-
-def main():
-    log.info("=== Starting live_MM_NS ===")
-    ohlcv = fetch_recent_data(days=60)
-    if ohlcv is None:
-        log.error("Failed to fetch market data")
-        sys.exit(1)
-    
-    atr_list = calculate_atr(ohlcv)
-    vwap_list = calculate_vwap(ohlcv, period=PARAMS["vwap_period"])
-    
-    latest = ohlcv[-1]
-    latest_price = latest["close"]
-    latest_atr = atr_list[-1]
-    latest_vwap = vwap_list[-1]
-    
-    log.info("Latest: price=%.2f, VWAP=%.2f, ATR=%.2f", latest_price, latest_vwap or 0, latest_atr or 0)
-    
-    decision = get_trade_decision(latest_price, latest_vwap, latest_atr, PARAMS["atr_multiplier"])
-    log.info("Decision: %s", decision)
-    
-    if decision in ("BUY", "SELL"):
-        quantity = POSITION // latest_price
-        log.info("Would place %s order for %d shares (~₹%d)", decision, quantity, quantity * latest_price)
-    
-    log.info("=== Completed ===")
-
-
 def place_groww_order(symbol, signal, quantity, price):
     """
     Place order via Groww API or paper trade.
