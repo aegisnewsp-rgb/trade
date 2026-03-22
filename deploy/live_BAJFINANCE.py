@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - BAJFINANCE.NS
-Strategy: VWAP (Volume Weighted Average Price)
+Strategy: VWAP + Volume Confirmation Filter
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Enhanced: Volume confirmation filter added
 """
 
 import os
@@ -31,12 +32,12 @@ log = logging.getLogger("live_BAJFINANCE")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "BAJFINANCE.NS"
-STRATEGY       = "VWAP"
+STRATEGY       = "VWAP+Volume"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5, "volume_ma_period": 20}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -117,22 +118,42 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
+def calculate_volume_ma(ohlcv: list, period: int = 20) -> list:
+    """Calculate volume moving average for confirmation filter"""
+    vol_ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            vol_ma.append(None)
+        else:
+            vol_avg = sum(ohlcv[j]["volume"] for j in range(i - period + 1, i + 1)) / period
+            vol_ma.append(vol_avg)
+    return vol_ma
+
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+    """VWAP signal with volume confirmation filter"""
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
+    vol_ma_period = params.get("volume_ma_period", 20)
     vwap_vals     = calculate_vwap(ohlcv, period)
     atr_vals      = calculate_atr(ohlcv, period)
+    vol_ma        = calculate_volume_ma(ohlcv, vol_ma_period)
     signals       = ["HOLD"] * len(ohlcv)
 
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        if vwap_vals[i] is None or atr_vals[i] is None or vol_ma[i] is None:
             continue
         price    = ohlcv[i]["close"]
         v        = vwap_vals[i]
         a        = atr_vals[i]
-        if price > v + a * atr_mult:
+        current_vol = ohlcv[i]["volume"]
+        avg_vol = vol_ma[i]
+        
+        # Volume confirmation: volume must be above average
+        volume_confirmed = current_vol > avg_vol
+        
+        if price > v + a * atr_mult and volume_confirmed:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult:
+        elif price < v - a * atr_mult and volume_confirmed:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
@@ -206,7 +227,7 @@ def daily_loss_limit_hit() -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s (Enhanced with Volume Filter) ===", SYMBOL, STRATEGY)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
@@ -243,7 +264,7 @@ def main():
 
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  STRATEGY : %s (Enhanced)", STRATEGY)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
