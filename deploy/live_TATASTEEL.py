@@ -75,11 +75,14 @@ MAX_SL_PCT       = 0.012    # Hard cap: 1.2% max stop for steel
 TRAIL_TRIGGER_PCT = 0.006   # Trail after 0.6% profit (steel is volatile)
 
 TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
-TARGET_2_MULT    = 2.5     # T2: 2.5x risk → exit 1/3 (steel target)
-TARGET_3_MULT    = 4.0     # T3: 4.0x risk → exit remaining
+TARGET_2_MULT    = 3.0     # T2: 3.0x risk → exit 1/3
+TARGET_3_MULT    = 5.0     # T3: 5.0x risk → exit remaining
 
-# Entry window (v8 enhancement - steel has different volume patterns)
-BEST_ENTRY_START = dtime(9, 45)  # 9:45 AM IST - avoid open volatility
+# Trailing stop: 0.3× ATR (activates after TRAIL_TRIGGER_PCT profit)
+TRAIL_ATR_MULT   = 0.3
+
+# Entry window: 9:30 AM – 2:30 PM IST
+BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
 BEST_ENTRY_END   = dtime(14, 30) # 2:30 PM IST
 NO_ENTRY_AFTER   = dtime(14, 30) # No new entries after 2:30 PM
 
