@@ -79,9 +79,11 @@ def main():
     ohlcv = fetch_data(90)
     if not ohlcv or len(ohlcv) < 30: return
     sig, price, atr = signal(ohlcv, PARAMS)
-    sl = round(price*(1-STOP_LOSS_PCT), 2) if sig=="BUY" else round(price*(1+STOP_LOSS_PCT), 2) if sig=="SELL" else 0
-    tp = round(price+TARGET_MULT*atr, 2) if sig=="BUY" else round(price-TARGET_MULT*atr, 2) if sig=="SELL" else 0
+    if sig == "HOLD": return
+    sl = round(price*(1-STOP_LOSS_PCT), 2) if sig=="BUY" else round(price*(1+STOP_LOSS_PCT), 2)
+    tp = round(price+TARGET_MULT*atr, 2) if sig=="BUY" else round(price-TARGET_MULT*atr, 2)
     log.info("Signal: %s @ ₹%.2f | SL: %.2f (%.1f%%) | TP: %.2f", sig, price, sl, STOP_LOSS_PCT*100, tp)
+    place_groww_order(SYMBOL, sig, 1, price, atr)
 
 
 def place_groww_order(symbol, signal, quantity, price, atr):
