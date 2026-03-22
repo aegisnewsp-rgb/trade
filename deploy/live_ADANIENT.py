@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - ADANIENT.NS
-Strategy: TSI (True Strength Index)
-Win Rate: 57.69% (benchmark)
+Strategy: TSI (True Strength Index) v2 — with multi-filter confirmation
+Benchmark Win Rate: 57.69% | Target Win Rate: 62.00%
+Filters: RSI(14,35/65) + Volume(20-MA) + Trend(50-MA) + Volatility(ATR 0.5-5%)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x ATR | Daily Loss Cap: 0.3%
 Max 1 trade/day
 
@@ -304,13 +305,16 @@ def log_signal(signal: str, price: float, atr: float):
         except Exception:
             entries = []
     entry = {
-        "timestamp": ist_now().isoformat(),
-        "symbol":    SYMBOL,
-        "strategy":  STRATEGY,
-        "win_rate":  WIN_RATE,
-        "signal":    signal,
-        "price":     round(price, 4),
-        "atr":       round(atr, 4),
+        "timestamp":         ist_now().isoformat(),
+        "symbol":           SYMBOL,
+        "strategy":         STRATEGY,
+        "win_rate":         WIN_RATE,
+        "benchmark_win_rate": BENCHMARK_WIN_RATE,
+        "target_win_rate":   TARGET_WIN_RATE,
+        "filters_applied":  FILTERS_APPLIED,
+        "signal":           signal,
+        "price":            round(price, 4),
+        "atr":              round(atr, 4),
     }
     entries.append(entry)
     entries = entries[-500:]
@@ -333,8 +337,9 @@ def daily_loss_limit_hit(today_str: str) -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: %.2f%% ===",
-             SYMBOL, STRATEGY, WIN_RATE * 100)
+    log.info("=== Live Trading Script: %s | %s (v2 multi-filter TSI) ===", SYMBOL, STRATEGY)
+    log.info("  BENCHMARK WIN RATE: %.2f%%  TARGET: %.2f%%", BENCHMARK_WIN_RATE * 100, TARGET_WIN_RATE * 100)
+    log.info("  FILTERS: %s", FILTERS_APPLIED)
 
     # Pre-market warmup (9:00–9:15 IST)
     while is_pre_market():
@@ -376,8 +381,9 @@ def main():
 
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s", STRATEGY)
-    log.info("  BENCHMARK WIN RATE: %.2f%%", WIN_RATE * 100)
+    log.info("  STRATEGY : %s (v2 multi-filter)", STRATEGY)
+    log.info("  BENCHMARK WIN RATE: %.2f%%  TARGET: %.2f%%", BENCHMARK_WIN_RATE * 100, TARGET_WIN_RATE * 100)
+    log.info("  FILTERS  : %s", FILTERS_APPLIED)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
