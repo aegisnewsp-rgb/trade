@@ -11,9 +11,14 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked:** 2026-03-22 22:04 UTC
+- **Last checked:** 2026-03-22 22:09 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Iteration:** #12
+- **Iteration:** #13
+
+## Low-WR Enhancements (Iteration #13)
+Scripts with <30% backtest WR enhanced with RSI + Volume filtering:
+- live_NMDC.py: 12.5% WR → MEAN_REVERSION mode (SIGNAL_MODE=MEAN_REVERSION, SL=0.6%, TGT=2.5x, ATR=1.0)
+- live_SAIL.py: 25% WR → added RSI filter (RSI>50 BUY, RSI<45 SELL) + volume confirmation (1.2x avg)
 
 ## MEAN_REVERSION Enhancements (Iteration #9)
 Bottom 10 scripts with < 15% historical win rate enhanced with **MEAN_REVERSION** signal mode:
