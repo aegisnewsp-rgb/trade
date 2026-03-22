@@ -1,0 +1,1952 @@
+[
+  {
+    "symbol": "360ONE.NS",
+    "file": "live_360ONE.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "3IINFOTECH.BO",
+    "file": "live_3IINFOTECH.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "AAPL.BO",
+    "file": "live_AAPL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "AARTIIND",
+    "file": "live_AARTIIND.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ABAN.BO",
+    "file": "live_ABAN.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ABFRL.BO",
+    "file": "live_ABFRL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ABGSEC.BO",
+    "file": "live_ABGSEC.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ABM.BO",
+    "file": "live_ABM.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ACE.BO",
+    "file": "live_ACE.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ADHUNIK.BO",
+    "file": "live_ADHUNIK.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ADL.BO",
+    "file": "live_ADL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "AEGISLOG.NS",
+    "file": "live_AEGISLOG.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "AETHERIND",
+    "file": "live_AETHERIND.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "AETHERIND",
+    "file": "live_AETHERIND_NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "AGROD.BO",
+    "file": "live_AGROD.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ALANKIT.BO",
+    "file": "live_ALANKIT.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ALEMBICL.BO",
+    "file": "live_ALEMBICL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "AMARAJABAT",
+    "file": "live_AMARAJABAT.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "AMTL.BO",
+    "file": "live_AMTL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ANANDRATHI",
+    "file": "live_ANANDRATHI.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ANTARIKSH.BO",
+    "file": "live_ANTARIKSH.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ANUP",
+    "file": "live_ANUP.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "APOLLOTYRE",
+    "file": "live_APOLLOTYRE.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ARIANSI.BO",
+    "file": "live_ARIANSI.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ARISE.BO",
+    "file": "live_ARISE.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ARTNIRMAN.BO",
+    "file": "live_ARTNIRMAN.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ATGL.NS",
+    "file": "live_ATGL.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ATUL",
+    "file": "live_ATUL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ATULAUTO.NS",
+    "file": "live_ATULAUTO.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "AUROPHARMA.NS",
+    "file": "live_AUROPHARMA.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "AUSTL.BO",
+    "file": "live_AUSTL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "Alkyl.BO",
+    "file": "live_Alkyl.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "AsianHotels",
+    "file": "live_AsianHotels.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BALKRISIND",
+    "file": "live_BALKRISIND.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BALRAMCHIN",
+    "file": "live_BALRAMCHIN.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BASF",
+    "file": "live_BASF.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BECTORFOOD",
+    "file": "live_BECTORFOOD.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BFIL",
+    "file": "live_BFIL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BHARATWIRE",
+    "file": "live_BHARATWIRE.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BHEL",
+    "file": "live_BHEL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BIKANI.NS",
+    "file": "live_BIKANI.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BIOCON.NS",
+    "file": "live_BIOCON.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BIRU.NS",
+    "file": "live_BIRU.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BOHLER.BO",
+    "file": "live_BOHLER.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BRAINBEES",
+    "file": "live_BRAINBEES.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "BRITANIA",
+    "file": "live_BRITANIA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CCL.NS",
+    "file": "live_CCL.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CEATLTD",
+    "file": "live_CEATLTD.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CENTRALBK",
+    "file": "live_CENTRALBK.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CENTUM",
+    "file": "live_CENTUM.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CENTUMTECH.NS",
+    "file": "live_CENTUMTECH.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CESC.NS",
+    "file": "live_CESC.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "COMPINFO.BO",
+    "file": "live_COMPINFO.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CONCOR.NS",
+    "file": "live_CONCOR.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CONFIPET.BO",
+    "file": "live_CONFIPET.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "COROMANDEL.BO",
+    "file": "live_COROMANDEL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CRBEPOST.BO",
+    "file": "live_CRBEPOST.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CREATESOFT",
+    "file": "live_CREATESOFT.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CUMMINSIND",
+    "file": "live_CUMMINSIND.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "CYIENT.BO",
+    "file": "live_CYIENT.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "DALMIABHARAT.NS",
+    "file": "live_DALMIABHARAT.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "DATAMPULSE",
+    "file": "live_DATAMPULSE.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "DCM.NS",
+    "file": "live_DCM.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "DELHIVERY.NS",
+    "file": "live_DELHIVERY.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "DELTACORP.NS",
+    "file": "live_DELTACORP.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "DELTACORP",
+    "file": "live_DELTACORP.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "DELTIND.NS",
+    "file": "live_DELTIND.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "DIAMOND",
+    "file": "live_DIAMOND.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "DIANEXT",
+    "file": "live_DIANEXT.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "DREAMFOLKS",
+    "file": "live_DREAMFOLKS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "DSM",
+    "file": "live_DSM.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ECO",
+    "file": "live_ECO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "EICHERMOT",
+    "file": "live_EICHERMOT.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ELECTECH",
+    "file": "live_ELECTECH.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "EMMBI.NS",
+    "file": "live_EMMBI.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ENDUIND.NS",
+    "file": "live_ENDUIND.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ENIL",
+    "file": "live_ENIL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ENTERYX",
+    "file": "live_ENTERYX.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "EQUITASBNK.NS",
+    "file": "live_EQUITASBNK.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ESTER",
+    "file": "live_ESTER.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "EXIDEIND.NS",
+    "file": "live_EXIDEIND.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "FINOPINT.NS",
+    "file": "live_FINOPINT.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "FINOPINT",
+    "file": "live_FINOPINT.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "FIRSTCRY.NS",
+    "file": "live_FIRSTCRY.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "FUSION",
+    "file": "live_FUSION.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "GAL",
+    "file": "live_GAL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "GILLETTE",
+    "file": "live_GILLETTE.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "GLENMARK.NS",
+    "file": "live_GLENMARK.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "GOCOL",
+    "file": "live_GOCOL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "GODNEST.NS",
+    "file": "live_GODNEST.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "GODaw",
+    "file": "live_GODaw.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "GRAVITA.NS",
+    "file": "live_GRAVITA.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "GREENPANEL.NS",
+    "file": "live_GREENPANEL.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "GRING",
+    "file": "live_GRING.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "GSPL",
+    "file": "live_GSPL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "GSS.NS",
+    "file": "live_GSS.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "Gocol",
+    "file": "live_Gocol.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "Gtemporarly",
+    "file": "live_Gtemporarly.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HAPPSTMIND",
+    "file": "live_HAPPSTMIND.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HARSHA",
+    "file": "live_HARSHA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HCC",
+    "file": "live_HCC.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HEIDELBERG",
+    "file": "live_HEIDELBERG.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HFCL",
+    "file": "live_HFCL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HGINFRA",
+    "file": "live_HGINFRA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HIKAL.NS",
+    "file": "live_HIKAL.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HIMALAYA",
+    "file": "live_HIMALAYA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HINDUNILVR",
+    "file": "live_HINDUNILVR.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HINDZINC",
+    "file": "live_HINDZINC.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HITECH",
+    "file": "live_HITECH.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HLEGLAS",
+    "file": "live_HLEGLAS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HPL",
+    "file": "live_HPL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "HUMANUNOLOGIC",
+    "file": "live_HUMANUNOLOGIC.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ICICIGI",
+    "file": "live_ICICIGI.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "IDEA",
+    "file": "live_IDEA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "IDFCFIRSTB.NS",
+    "file": "live_IDFCFIRSTB.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "IEX.NS",
+    "file": "live_IEX.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "IMPALLER",
+    "file": "live_IMPALLER.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INDHOTEL",
+    "file": "live_INDHOTEL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INDO",
+    "file": "live_INDO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INDOOR",
+    "file": "live_INDOOR.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INDRAMED",
+    "file": "live_INDRAMED.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INFOCIAL.BO",
+    "file": "live_INFOCIAL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INFOLLOR.BO",
+    "file": "live_INFOLLOR.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INFRONT",
+    "file": "live_INFRONT.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INIV",
+    "file": "live_INIV.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INNO",
+    "file": "live_INNO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INOVAT",
+    "file": "live_INOVAT.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INTECF",
+    "file": "live_INTECF.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INTEL",
+    "file": "live_INTEL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INTENSE.BO",
+    "file": "live_INTENSE.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INTLO",
+    "file": "live_INTLO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INTWW",
+    "file": "live_INTWW.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "INVESTYB.BO",
+    "file": "live_INVESTYB.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "IONEXCHANG",
+    "file": "live_IONEXCHANG.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "IPCALAB",
+    "file": "live_IPCALAB.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "IPL",
+    "file": "live_IPL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ITFL.BO",
+    "file": "live_ITFL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "IVC",
+    "file": "live_IVC.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "JAE",
+    "file": "live_JAE.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "JAYAGARB",
+    "file": "live_JAYAGARB.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "JAYBHOW.BO",
+    "file": "live_JAYBHOW.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "JETFREIGHT",
+    "file": "live_JETFREIGHT.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "JOIndast.BO",
+    "file": "live_JOIndast.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "JPOLY.BO",
+    "file": "live_JPOLY.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "JSWSTEEL",
+    "file": "live_JSWSTEEL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KALYANI",
+    "file": "live_KALYANI.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KALYANIF.BO",
+    "file": "live_KALYANIF.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KAMDHENU.BO",
+    "file": "live_KAMDHENU.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KAMDHENU.NS",
+    "file": "live_KAMDHENU.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KANPR.BO",
+    "file": "live_KANPR.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KAPIL.BO",
+    "file": "live_KAPIL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KAPSTON.NS",
+    "file": "live_KAPSTON.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KARM.BO",
+    "file": "live_KARM.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KAYEL.BO",
+    "file": "live_KAYEL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KCL.BO",
+    "file": "live_KCL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KEL.BO",
+    "file": "live_KEL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KELLTONTEC.NS",
+    "file": "live_KELLTONTEC.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KESX.BO",
+    "file": "live_KESX.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KESYC.BO",
+    "file": "live_KESYC.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KHADKE.NS",
+    "file": "live_KHADKE.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KHYATI.NS",
+    "file": "live_KHYATI.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KIOCL.NS",
+    "file": "live_KIOCL.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KIRLOSKAR.NS",
+    "file": "live_KIRLOSKAR.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KIRTID.NS",
+    "file": "live_KIRTID.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KOKUYO.NS",
+    "file": "live_KOKUYO.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "KSB",
+    "file": "live_KSB.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "LTES",
+    "file": "live_LTES.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "LTIM",
+    "file": "live_LTIM.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "MANYAVAR",
+    "file": "live_MANYAVAR.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "MAPMYINDIA",
+    "file": "live_MAPMYINDIA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "MASFIN",
+    "file": "live_MASFIN.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "MEGHNA",
+    "file": "live_MEGHNA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "MHL.BO",
+    "file": "live_MHL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "MM",
+    "file": "live_MM_NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "MRF",
+    "file": "live_MRF.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "MRO.BO",
+    "file": "live_MRO.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "MUNDRU.BO",
+    "file": "live_MUNDRU.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NAM-INDIA.NS",
+    "file": "live_NAM-INDIA.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NATIONALUM",
+    "file": "live_NATIONALUM.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NAVBHAR.BO",
+    "file": "live_NAVBHAR.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NAVKARCORP.NS",
+    "file": "live_NAVKARCORP.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NAVKARCORP_fix",
+    "file": "live_NAVKARCORP_fix.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NAVRANG.BO",
+    "file": "live_NAVRANG.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NDGL.BO",
+    "file": "live_NDGL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NEIN.BO",
+    "file": "live_NEIN.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NETWORK18.NS",
+    "file": "live_NETWORK18.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NIRAJ.BO",
+    "file": "live_NIRAJ.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NITIRAJ.BO",
+    "file": "live_NITIRAJ.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NUVAMA",
+    "file": "live_NUVAMA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "NUVO.BO",
+    "file": "live_NUVO.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "OIL",
+    "file": "live_OIL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "OLECTRA",
+    "file": "live_OLECTRA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "OSWALEA.BO",
+    "file": "live_OSWALEA.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PAAM.BO",
+    "file": "live_PAAM.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PACED.BO",
+    "file": "live_PACED.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PAL.MO",
+    "file": "live_PAL.MO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PALWAL.BO",
+    "file": "live_PALWAL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PAR.BO",
+    "file": "live_PAR.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PARACABLES.BO",
+    "file": "live_PARACABLES.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PARK.GE",
+    "file": "live_PARK.GE.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PART4.BO",
+    "file": "live_PART4.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PASU",
+    "file": "live_PASU.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PATANJALI",
+    "file": "live_PATANJALI.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PATSP",
+    "file": "live_PATSP.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PENIN",
+    "file": "live_PENIN.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PERFECT",
+    "file": "live_PERFECT.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PETC",
+    "file": "live_PETC.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PETD",
+    "file": "live_PETD.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PETPLT",
+    "file": "live_PETPLT.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PETPR",
+    "file": "live_PETPR.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PFL",
+    "file": "live_PFL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PIIND",
+    "file": "live_PIIND.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PRAKASH.BO",
+    "file": "live_PRAKASH.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PRAKASHSTL.BO",
+    "file": "live_PRAKASHSTL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PRECW.BO",
+    "file": "live_PRECW.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PRESTIGE",
+    "file": "live_PRESTIGE.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PRESTON.BO",
+    "file": "live_PRESTON.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PREXYP.BO",
+    "file": "live_PREXYP.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PRISME.BO",
+    "file": "live_PRISME.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PRIYACEMENT.BO",
+    "file": "live_PRIYACEMENT.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PROIND",
+    "file": "live_PROIND.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PRSM.BO",
+    "file": "live_PRSM.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PUNJABCHEM.BO",
+    "file": "live_PUNJABCHEM.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "PUNJABNat.BO",
+    "file": "live_PUNJABNat.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RAJMET.BO",
+    "file": "live_RAJMET.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RAMCOCEM",
+    "file": "live_RAMCOCEM.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RASI.BO",
+    "file": "live_RASI.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RAShtriya.BO",
+    "file": "live_RAShtriya.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RAV.BO",
+    "file": "live_RAV.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RBA.NS",
+    "file": "live_RBA.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RBDC.BO",
+    "file": "live_RBDC.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RBG.BO",
+    "file": "live_RBG.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RBLBANK",
+    "file": "live_RBLBANK.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RBZ.BO",
+    "file": "live_RBZ.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RDB.BO",
+    "file": "live_RDB.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RDC.BO",
+    "file": "live_RDC.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "REDIAM.BO",
+    "file": "live_REDIAM.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RENUKA",
+    "file": "live_RENUKA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RIKGROW",
+    "file": "live_RIKGROW.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RUCHA.BO",
+    "file": "live_RUCHA.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RUGRO.BO",
+    "file": "live_RUGRO.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RUJAU.BO",
+    "file": "live_RUJAU.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RUPA.BO",
+    "file": "live_RUPA.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RUSTOMJEE",
+    "file": "live_RUSTOMJEE.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "RUTU.BO",
+    "file": "live_RUTU.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SAB.BO",
+    "file": "live_SAB.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SABE.BO",
+    "file": "live_SABE.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SABN.BO",
+    "file": "live_SABN.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SAGILITY",
+    "file": "live_SAGILITY.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SAHT.BO",
+    "file": "live_SAHT.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SAIL",
+    "file": "live_SAIL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SAJEV.BO",
+    "file": "live_SAJEV.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SALZER.BO",
+    "file": "live_SALZER.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SAMA.BO",
+    "file": "live_SAMA.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SAMB.BO",
+    "file": "live_SAMB.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SAMTEX.BO",
+    "file": "live_SAMTEX.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SANBLU.BO",
+    "file": "live_SANBLU.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SANDESH.BO",
+    "file": "live_SANDESH.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SANGAM.BO",
+    "file": "live_SANGAM.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SANGHI.BO",
+    "file": "live_SANGHI.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SANWHS.BO",
+    "file": "live_SANWHS.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SATYAM",
+    "file": "live_SATYAM.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SCHAEFFLER",
+    "file": "live_SCHAEFFLER.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SEL.BO",
+    "file": "live_SEL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SER.BO",
+    "file": "live_SER.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SET.BO",
+    "file": "live_SET.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SETU.BO",
+    "file": "live_SETU.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SEWARD.BO",
+    "file": "live_SEWARD.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SFL.BO",
+    "file": "live_SFL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SG.BO",
+    "file": "live_SG.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SH.BO",
+    "file": "live_SH.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHANTI.BO",
+    "file": "live_SHANTI.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHARDA.BO",
+    "file": "live_SHARDA.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHEMAND.BO",
+    "file": "live_SHEMAND.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHIVA.BO",
+    "file": "live_SHIVA.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHIVALIK.BO",
+    "file": "live_SHIVALIK.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHIVATRE",
+    "file": "live_SHIVATRE.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHKAL",
+    "file": "live_SHKAL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHKAM",
+    "file": "live_SHKAM.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHMA",
+    "file": "live_SHMA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHRENIK.BO",
+    "file": "live_SHRENIK.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHRIRAM.BO",
+    "file": "live_SHRIRAM.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHV",
+    "file": "live_SHV.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHVIG",
+    "file": "live_SHVIG.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SHYAM",
+    "file": "live_SHYAM.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SIDDHA.BO",
+    "file": "live_SIDDHA.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SIGMA",
+    "file": "live_SIGMA.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SIGachi",
+    "file": "live_SIGachi.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SIMRAN.BO",
+    "file": "live_SIMRAN.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SINGH.BO",
+    "file": "live_SINGH.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SINTEX.BO",
+    "file": "live_SINTEX.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SITARAM.BO",
+    "file": "live_SITARAM.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SKC.BO",
+    "file": "live_SKC.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SKFL.BO",
+    "file": "live_SKFL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SKIPPER.BO",
+    "file": "live_SKIPPER.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SMCTE.BO",
+    "file": "live_SMCTE.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SOH",
+    "file": "live_SOH.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SOL.BO",
+    "file": "live_SOL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SOL.active.BO",
+    "file": "live_SOL.active.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SOLAR.BO",
+    "file": "live_SOLAR.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SOLEX.BO",
+    "file": "live_SOLEX.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SOM.BO",
+    "file": "live_SOM.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SONG",
+    "file": "live_SONG.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SOUT",
+    "file": "live_SOUT.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SPAL.BO",
+    "file": "live_SPAL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SPAN.BO",
+    "file": "live_SPAN.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SPCron.BO",
+    "file": "live_SPCron.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SPEC",
+    "file": "live_SPEC.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SPR",
+    "file": "live_SPR.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SQL",
+    "file": "live_SQL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SRD",
+    "file": "live_SRD.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SREEL.BO",
+    "file": "live_SREEL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SRG",
+    "file": "live_SRG.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SRS",
+    "file": "live_SRS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SSC",
+    "file": "live_SSC.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SSRL.BO",
+    "file": "live_SSRL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "STAN.BO",
+    "file": "live_STAN.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "STANVEC.BO",
+    "file": "live_STANVEC.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "STAR.BO",
+    "file": "live_STAR.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "STEP.BO",
+    "file": "live_STEP.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "STY.BO",
+    "file": "live_STY.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUGANDH",
+    "file": "live_SUGANDH.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUKHJETS.BO",
+    "file": "live_SUKHJETS.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUMUK.BO",
+    "file": "live_SUMUK.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUN.BO",
+    "file": "live_SUN.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUNASTR.BO",
+    "file": "live_SUNASTR.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUNDARAM.BO",
+    "file": "live_SUNDARAM.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUNDRME.BO",
+    "file": "live_SUNDRME.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUNFLAG.BO",
+    "file": "live_SUNFLAG.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUNREetech.BO",
+    "file": "live_SUNREetech.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUNTECK",
+    "file": "live_SUNTECK.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUPERSU.BO",
+    "file": "live_SUPERSU.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SUPREMEIND.NS",
+    "file": "live_SUPREMEIND.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SURANATNP.BO",
+    "file": "live_SURANATNP.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SURANATPS",
+    "file": "live_SURANATPS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SURVY.BO",
+    "file": "live_SURVY.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "SYNDIBANK.NS",
+    "file": "live_SYNDIBANK.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TAI",
+    "file": "live_TAI.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TAL",
+    "file": "live_TAL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TALLY",
+    "file": "live_TALLY.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TAN",
+    "file": "live_TAN.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TANLA.NS",
+    "file": "live_TANLA.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TATAMET.BO",
+    "file": "live_TATAMET.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TATAMOTORS.BO",
+    "file": "live_TATAMOTORS.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TATAPOR.BO",
+    "file": "live_TATAPOR.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TATURT.BO",
+    "file": "live_TATURT.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TBN",
+    "file": "live_TBN.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TBP",
+    "file": "live_TBP.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TBR",
+    "file": "live_TBR.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TBZ.BO",
+    "file": "live_TBZ.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TECHM",
+    "file": "live_TECHM.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TECHNOE.BO",
+    "file": "live_TECHNOE.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TEXMRO.BO",
+    "file": "live_TEXMRO.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TFL.BO",
+    "file": "live_TFL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TIMEX.BO",
+    "file": "live_TIMEX.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TIN",
+    "file": "live_TIN.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TIPS",
+    "file": "live_TIPS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TLC",
+    "file": "live_TLC.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "TRIVENI",
+    "file": "live_TRIVENI.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "UBHOLDINGS",
+    "file": "live_UBHOLDINGS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ULTRACEMCO",
+    "file": "live_ULTRACEMCO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "UNIONBANK.NS",
+    "file": "live_UNIONBANK.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "VEDAVA.BO",
+    "file": "live_VEDAVA.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "VEDL.BO",
+    "file": "live_VEDL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "VENKEY.BO",
+    "file": "live_VENKEY.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "VESVIN.BO",
+    "file": "live_VESVIN.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "VINATIP.BO",
+    "file": "live_VINATIP.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "VIPUL.BO",
+    "file": "live_VIPUL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "VISASTEEL",
+    "file": "live_VISASTEEL.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "VIVIDHA.BO",
+    "file": "live_VIVIDHA.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "VKS.BO",
+    "file": "live_VKS.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "VLS.BO",
+    "file": "live_VLS.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "VLSG.BO",
+    "file": "live_VLSG.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "WAIKATO",
+    "file": "live_WAIKATO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "WALCH.BO",
+    "file": "live_WALCH.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "WALCHAN.BO",
+    "file": "live_WALCHAN.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "WEL.BO",
+    "file": "live_WEL.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "WELINVIT.BO",
+    "file": "live_WELINVIT.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "WHI.BO",
+    "file": "live_WHI.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "WIPRO",
+    "file": "live_WIPRO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "WSTCSTPAPR.NS",
+    "file": "live_WSTCSTPAPR.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "WelspunInvest.NS",
+    "file": "live_WelspunInvest.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "XERCEMOTS.NS",
+    "file": "live_XERCEMOTS.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ZAG.BO",
+    "file": "live_ZAG.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ZEE.BO",
+    "file": "live_ZEE.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ZEN.BO",
+    "file": "live_ZEN.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ZENOTECH.BO",
+    "file": "live_ZENOTECH.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "ZIRC.BO",
+    "file": "live_ZIRC.BO.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "Zaggleadv.NS",
+    "file": "live_Zaggleadv.NS.py",
+    "reason": "below_top_99"
+  },
+  {
+    "symbol": "Zuari.NS",
+    "file": "live_Zuari.NS.py",
+    "reason": "below_top_99"
+  }
+]
