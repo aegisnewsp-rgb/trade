@@ -174,6 +174,7 @@ def calculate_rsi(ohlcv: List[Dict], period: int = 14) -> List[float]:
             rsi_values[i + 1] = 100 - (100 / (1 + rs))
     return rsi_values
 
+# RSI filter: BUY>RSI55, SELL<RSI45
 def generate_signal(ohlcv: List[Dict], vwap: List[float], atr: List[float], rsi: List[float]) -> tuple[str, float, float, float]:
     """VWAP + RSI signal generation."""
     if len(ohlcv) < VWAP_PERIOD or len(vwap) < VWAP_PERIOD or len(atr) < VWAP_PERIOD:
