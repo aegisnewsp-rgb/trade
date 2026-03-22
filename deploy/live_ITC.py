@@ -47,6 +47,12 @@ RSI_OVERSOLD   = 35
 RSI_OVERBOUGHT = 65
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
 
+# Sniper-optimized params (Round 3, 2026-03-22)
+RSI_BUY       = 50       # BUY only when RSI > 50
+RSI_SELL      = 50       # SELL only when RSI < 50
+VOL_THRESH    = 0.5      # Volume 0.5x avg for entry confirmation
+HOLD_DAYS     = 10       # hold for 10 trading days
+
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE   = "https://api.groww.in/v1"

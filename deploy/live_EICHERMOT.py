@@ -3,6 +3,12 @@
 import yfinance
 YFINANCE_AVAILABLE = True
 
+# Sniper-optimized params (Round 3, 2026-03-22)
+RSI_BUY       = 50       # BUY only when RSI > 50
+RSI_SELL      = 50       # SELL only when RSI < 50
+VOL_THRESH    = 0.5      # Volume 0.5x avg for entry confirmation
+HOLD_DAYS     = 5        # hold for 5 trading days
+
 def get_signal():
     """Generate signal for EICHERMOT"""
     try:

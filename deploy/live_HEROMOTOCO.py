@@ -44,14 +44,17 @@ PARAMS = {
     "rsi_period": 14,
     "rsi_oversold": 40,
     "rsi_overbought": 60,
+    "rsi_buy": 50,                   # sniper (2026-03-22)
     "rsi_confirm_oversold": 32,      # v8: tightened from 35
     "rsi_confirm_overbought": 68,     # v8: tightened from 65
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
     "volume_multiplier": 2.0,        # v8: tightened from 1.5
+    "vol_threshold": 0.5,            # sniper (2026-03-22)
     "trend_ma_period": 50,
     "atr_period": 14,
+    "hold_days": 5,                  # sniper (2026-03-22)
     "fuel_price_threshold": 80.0,    # Block BUY if crude > $80
     "fuel_discount_threshold": 70.0, # Strong BUY if crude < $70
     "bb_period": 20,                 # v8: Bollinger Band period

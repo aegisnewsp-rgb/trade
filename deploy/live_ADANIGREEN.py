@@ -54,6 +54,12 @@ RENEWABLE_CONFIRM = 0.55  # Renewable ETF above this = sector tailwind confirmed
 PARAMS = {"vwap_period": 14, "atr_multiplier": 1.5, "sector_tailwind_weight": 0.25,
           "rsi_threshold": 55, "volume_multiplier": 1.2}
 
+# Sniper-optimized params (Round 3, 2026-03-22)
+RSI_BUY       = 50       # BUY only when RSI > 50
+RSI_SELL      = 50       # SELL only when RSI < 50
+VOL_THRESH    = 0.5      # Volume 0.5x avg for entry confirmation
+HOLD_DAYS     = 5        # hold for 5 trading days
+
 # ── Groww Production Enhancements ───────────────────────────────────────────
 # 3-Tier Target System (1.5x / 3x / 5x risk multiples)
 TARGET_1_MULT = 1.5   # Exit 1/3 at 1.5× risk — secure profit

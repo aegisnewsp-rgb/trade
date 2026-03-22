@@ -3,6 +3,13 @@
 import yfinance
 YFINANCE_AVAILABLE = True
 
+# Sniper params (2026-03-22)
+PARAMS = {
+    "rsi_buy": 55,
+    "vol_threshold": 0.5,
+    "hold_days": 5,
+}
+
 def get_signal():
     """Generate signal for CIPLA"""
     try:

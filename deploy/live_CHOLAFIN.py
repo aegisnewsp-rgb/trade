@@ -37,6 +37,12 @@ TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {"swing_period": 20, "fib_levels": [0.382, 0.618, 0.786, 1.272, 1.618]}
 
+# Sniper-optimized params (Round 3, 2026-03-22)
+RSI_BUY       = 45       # BUY only when RSI > 45
+RSI_SELL      = 45       # SELL only when RSI < 45
+VOL_THRESH    = 0.5      # Volume 0.5x avg for entry confirmation
+HOLD_DAYS     = 5        # hold for 5 trading days
+
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE   = "https://api.groww.in/v1"

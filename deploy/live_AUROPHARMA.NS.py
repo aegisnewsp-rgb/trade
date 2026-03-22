@@ -44,6 +44,12 @@ PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5, "volume_ma_period": 
 ENTRY_RSI_MIN    = 55      # RSI must be above 55 for BUY
 ENTRY_RSI_MAX    = 45      # RSI must be below 45 for SELL
 
+# Sniper-optimized params (Round 3, 2026-03-22)
+RSI_BUY          = 50      # BUY only when RSI > 50
+RSI_SELL         = 50      # SELL only when RSI < 50
+VOL_THRESH       = 0.5     # Volume 0.5x avg for entry confirmation
+HOLD_DAYS        = 5       # hold for 5 trading days
+
 # 3-TIER EXIT SYSTEM (enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
 MAX_SL_PCT       = 0.015   # Hard cap: 1.5% max stop
