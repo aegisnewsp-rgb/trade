@@ -396,8 +396,8 @@ def main():
                 pass
     
     elif signal == "SELL":
-        sl = round(price + atr * 1.0, 2)
-        tgt = round(price - atr * 4.0, 2)
+        sl = round(price * (1 + STOP_LOSS_PCT), 2)
+        tgt = round(price * (1 - STOP_LOSS_PCT * TARGET_MULT), 2)
         qty = max(1, int(10000 / price))
         print(f"Qty:    {qty}")
         print(f"Stop:   Rs{sl:.2f} (Rs{sl-price:.2f} risk)")
