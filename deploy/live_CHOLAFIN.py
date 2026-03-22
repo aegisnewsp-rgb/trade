@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - ALKEM.NS
-Strategy: PARABOLIC_SAR
-Win Rate: 57.92%
+Live Trading Script - CHOLAFIN.NS
+Strategy: FIBONACCI
+Win Rate: 57.49%
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -17,19 +17,19 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_ALKEM.log"),
+        logging.FileHandler(LOG_DIR / "live_CHOLAFIN.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_ALKEM")
+log = logging.getLogger("live_CHOLAFIN")
 
-SYMBOL         = "ALKEM.NS"
-STRATEGY       = "PARABOLIC_SAR"
+SYMBOL         = "CHOLAFIN.NS"
+STRATEGY       = "FIBONACCI"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"af_start": 0.02, "af_increment": 0.02, "af_max": 0.2}
+PARAMS         = {"swing_period": 20, "fib_levels": [0.382, 0.618, 0.786, 1.272, 1.618]}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -87,44 +87,37 @@ def calculate_atr(ohlcv: list, period: int = 14) -> list:
         prev_close = bar["close"]
     return atr
 
-def calculate_psar(ohlcv: list, af_start: float = 0.02, af_inc: float = 0.02, af_max: float = 0.2) -> tuple[list, list]:
+def find_swing_hl(ohlcv: list, period: int) -> tuple[float, float, float, float]:
     highs  = [b["high"]  for b in ohlcv]
-    lows    = [b["low"]   for b in ohlcv]
-    psar    = [0.0] * len(ohlcv)
-    trend   = [1] * len(ohlcv)
-    ep      = [highs[0]] * len(ohlcv)
-    af_list = [af_start] * len(ohlcv)
-    psar[0] = lows[0]
-    for i in range(1, len(ohlcv)):
-        prev_psar  = psar[i - 1]
-        prev_trend = trend[i - 1]
-        prev_ep    = ep[i - 1]
-        prev_af    = af_list[i - 1]
-        if prev_trend == 1:
-            psar[i] = prev_psar + prev_af * (prev_ep - prev_psar)
-            if lows[i] < psar[i]:
-                trend[i] = -1; psar[i] = prev_ep; ep[i] = lows[i]; af_list[i] = af_start
-            else:
-                trend[i] = 1; ep[i] = max(ep[i - 1], highs[i]); af_list[i] = min(prev_af + af_inc, af_max)
-        else:
-            psar[i] = prev_psar - prev_af * (prev_psar - prev_ep)
-            if highs[i] > psar[i]:
-                trend[i] = 1; psar[i] = ep[i - 1]; ep[i] = highs[i]; af_list[i] = af_start
-            else:
-                trend[i] = -1; ep[i] = min(ep[i - 1], lows[i]); af_list[i] = min(prev_af + af_inc, af_max)
-    return psar, trend
+    lows   = [b["low"]   for b in ohlcv]
+    swing_high = max(highs[-period:])
+    swing_low  = min(lows[-period:])
+    recent_high_idx  = highs[-period:].index(swing_high) + (len(highs) - period)
+    recent_low_idx   = lows[-period:].index(swing_low)  + (len(lows)  - period)
+    return swing_high, swing_low, recent_high_idx, recent_low_idx
 
-def psar_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    af_start = params["af_start"]
-    af_inc   = params["af_increment"]
-    af_max   = params["af_max"]
-    psar_vals, trend = calculate_psar(ohlcv, af_start, af_inc, af_max)
+def fibonacci_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+    period     = params["swing_period"]
+    fib_levels = params["fib_levels"]
+    closes     = [b["close"] for b in ohlcv]
+    s_high, s_low, _, _ = find_swing_hl(ohlcv, period)
+    diff = s_high - s_low
     signals = ["HOLD"] * len(ohlcv)
-    for i in range(2, len(ohlcv)):
-        if trend[i] == 1 and trend[i - 1] == -1:
-            signals[i] = "BUY"
-        elif trend[i] == -1 and trend[i - 1] == 1:
-            signals[i] = "SELL"
+    for i in range(period, len(ohlcv)):
+        price = closes[i]
+        # Retracement levels (buy zone near support)
+        for level in [0.382, 0.618, 0.786]:
+            fib_price = s_low + level * diff
+            if abs(price - fib_price) / price < 0.005:
+                signals[i] = "BUY"
+                break
+        if signals[i] != "HOLD": continue
+        # Extension levels (sell zone near resistance)
+        for level in [1.272, 1.618]:
+            fib_price = s_high + level * diff
+            if abs(price - fib_price) / price < 0.005:
+                signals[i] = "SELL"
+                break
     atr_vals       = calculate_atr(ohlcv)
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
@@ -151,7 +144,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     log.error("Groww order failed after 3 retries for %s", symbol); return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_ALKEM.json"
+    log_file = LOG_DIR / "signals_CHOLAFIN.json"
     entries = []
     if log_file.exists():
         try: entries = json.loads(log_file.read_text())
@@ -162,7 +155,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_ALKEM.json"
+    cap_file = LOG_DIR / "daily_pnl_CHOLAFIN.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
@@ -173,7 +166,7 @@ def daily_loss_limit_hit() -> bool:
     return False
 
 def main():
-    log.info("=== Live Trading: %s | %s | Win Rate: 57.92%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading: %s | %s | Win Rate: 57.49%% ===", SYMBOL, STRATEGY)
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST..."); time.sleep(30)
     if not is_market_open():
@@ -184,7 +177,7 @@ def main():
     ohlcv = fetch_recent_data(days=90)
     if not ohlcv or len(ohlcv) < 30:
         log.error("Insufficient data for %s", SYMBOL); return
-    signal, price, atr = psar_signal(ohlcv, PARAMS)
+    signal, price, atr = fibonacci_signal(ohlcv, PARAMS)
     if signal == "BUY":
         stop_loss  = round(price * (1 - STOP_LOSS_PCT), 2)
         target_prc = round(price + TARGET_MULT * atr, 2)

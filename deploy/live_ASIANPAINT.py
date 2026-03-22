@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - TITAN.NS
+Live Trading Script - ASIANPAINT.NS
 Strategy: VWAP (Volume Weighted Average Price)
 Win Rate: 58.33%
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
@@ -136,7 +136,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_TITAN.json"
+    cap_file = LOG_DIR / "daily_pnl_ASIANPAINT.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
