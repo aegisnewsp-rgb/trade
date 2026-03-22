@@ -138,12 +138,13 @@ def patch_one(filepath):
     # Add groww_api import if missing
     new_content = ''.join(new_lines)
     if "import groww_api" not in new_content:
+        inserted = False
         for i, line in enumerate(new_lines):
             if line.startswith('import ') and i > 0:
                 new_lines.insert(i + 1, 'import groww_api\n')
+                inserted = True
                 break
-        elif "import yfinance" in new_content:
-            idx = new_content.index("import yfinance")
+        if not inserted and "import yfinance" in new_content:
             for i, line in enumerate(new_lines):
                 if "import yfinance" in line:
                     new_lines.insert(i + 1, 'import groww_api\n')
