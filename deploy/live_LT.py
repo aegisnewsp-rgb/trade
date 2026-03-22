@@ -3,6 +3,7 @@
 Live Trading Script - LT.NS
 Strategy: VWAP (Volume Weighted Average Price)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Enhanced: RSI 55/45 filter + Volume 1.2x + Entry 9:30-14:30 IST + TRAIL_ATR_MULT=0.3
 """
 
 import os
@@ -34,10 +35,26 @@ log = logging.getLogger("live_LT")
 SYMBOL         = "LT.NS"
 STRATEGY       = "VWAP"
 POSITION       = 7000
+
+# 3-TIER EXIT SYSTEM
+TARGET_1_MULT = 1.5
+TARGET_2_MULT = 3.0
+TARGET_3_MULT = 5.0
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+
+# ── Enhanced Filters ─────────────────────────────────────────────────────────
+RSI_PERIOD        = 14
+RSI_BUY_THRESHOLD = 55   # RSI must be > 55 for BUY
+RSI_SELL_THRESHOLD = 45  # RSI must be < 45 for SELL
+VOLUME_MULTIPLIER = 1.2  # Volume must be 1.2x average
+TRAIL_ATR_MULT    = 0.3  # Trailing stop ATR multiplier
+
+# Entry window: 9:30-14:30 IST
+BEST_ENTRY_START = dtime(9, 30)
+BEST_ENTRY_END   = dtime(14, 30)
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -119,7 +136,51 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    """Calculate RSI values."""
+    if len(ohlcv) < period + 1:
+        return [None] * len(ohlcv)
+    
+    gains = []
+    losses = []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i-1]["close"]
+        gains.append(max(0, change))
+        losses.append(max(0, -change))
+    
+    rsi = [None] * len(ohlcv)
+    if len(gains) < period:
+        return rsi
+    
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        
+        if avg_loss == 0:
+            rsi[i + 1] = 100
+        else:
+            rs = avg_gain / avg_loss
+            rsi[i + 1] = 100 - (100 / (1 + rs))
+    
+    return rsi
+
+def get_avg_volume(ohlcv: list, period: int = 20) -> float:
+    """Get average volume over period."""
+    if len(ohlcv) < period:
+        return sum(ohlcv[j]["volume"] for j in range(len(ohlcv))) / max(1, len(ohlcv))
+    return sum(ohlcv[j]["volume"] for j in range(-period, 0)) / period
+
+def in_entry_window() -> bool:
+    """Check if current time is within entry window (9:30-14:30 IST)."""
+    now = ist_now()
+    if now.weekday() >= 5:
+        return False
+    return BEST_ENTRY_START <= now.time() <= BEST_ENTRY_END
+
+def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float, float]:
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
     vwap_vals     = calculate_vwap(ohlcv, period)
