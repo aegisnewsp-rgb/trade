@@ -30,6 +30,21 @@ def log_trade(trade):
     with open(LOG_DIR / "trade_history.jsonl", "a") as f:
         f.write(json.dumps(trade) + "\n")
 
+# ── Telegram Notifications ──────────────────────────────────
+BOT_TOKEN = "8516421227:AAGgqhEv5KRfijZ3d441oValLWUsRG_A8RE"
+CHAT_ID   = "8692074549"
+
+def notify(msg):
+    import urllib.request
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    data = json.dumps({"chat_id": CHAT_ID, "text": msg, "parse_mode": "HTML"}).encode()
+    req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=10):
+            pass
+    except Exception as e:
+        log(f"Telegram notify failed: {e}")
+
 def cg(sym, kind, ttl):
     path = _cache_dir / f"{kind}_{sym}.json"
     if not path.exists():
@@ -188,6 +203,7 @@ class Portfolio:
         self.cash -= cost
         self.trades_today += 1
         log(f"ENTRY {side} {qty}x {sym} @ Rs{price:.2f} SL:Rs{sl:.2f} TGT:Rs{tgt:.2f}")
+        notify(f"📍 <b>ENTRY {side}</b>\n{qty}x <b>{sym}</b> @ Rs{price:.2f}\nSL: Rs{sl:.2f} | Target: Rs{tgt:.2f}\nCash: Rs{self.cash:.0f} | Pos: {len(self.positions)}/{MAX_POSITIONS}")
         return True
 
     def check_exit(self, sym, price):
@@ -227,6 +243,8 @@ class Portfolio:
             else:
                 self.losses += 1
             log(f"EXIT {reason} {sym} @ Rs{price:.2f} PnL: Rs{pnl:.2f}")
+            emoji = "✅" if pnl > 0 else "❌"
+            notify(f"{emoji} <b>EXIT {reason}</b>\n{sym} @ Rs{price:.2f}\nPnL: <b>Rs{pnl:.2f}</b> ({'Win' if pnl>0 else 'Loss'})\nTotal PnL: Rs{self.pnl:.0f} | WR: {self.win_rate():.0f}%")
             log_trade({"symbol": sym, "side": side, "entry": entry, "exit": float(price),
                        "qty": qty, "pnl": pnl, "reason": reason,
                        "time": datetime.now().isoformat()})
