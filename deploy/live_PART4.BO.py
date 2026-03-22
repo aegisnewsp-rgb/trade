@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - PARACABLES.BO
+Live Trading Script - PART4.BO
 Strategy: VWAP (Volume Weighted Average Price)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x ATR | Daily Loss Cap: 0.3%
 """
@@ -23,14 +23,14 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_PARACABLES.BO.log"),
+        logging.FileHandler(LOG_DIR / "live_PART4.BO.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_PARACABLES.BO")
+log = logging.getLogger("live_PART4.BO")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SYMBOL         = "PARACABLES.BO"
+SYMBOL         = "PART4.BO"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
@@ -172,7 +172,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_PARACABLES.BO.json"
+    log_file = LOG_DIR / "signals_PART4.BO.json"
     entries = []
     if log_file.exists():
         try:
@@ -192,7 +192,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_PARACABLES.BO.json"
+    cap_file = LOG_DIR / "daily_pnl_PART4.BO.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
