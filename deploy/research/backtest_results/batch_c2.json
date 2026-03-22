@@ -1,0 +1,80 @@
+{
+  "strategy": "batch_c2",
+  "params": {
+    "entry_vwap_mult": 1.005,
+    "rsi_entry": 55,
+    "vol_mult": 1.2,
+    "sl_atr": 0.8,
+    "tgt_atr": 4,
+    "tsl_arm_atr": 1.5,
+    "position": 10000
+  },
+  "period": "2025-09-23 to 2026-03-22",
+  "stocks": [
+    "HDFCBANK",
+    "HEROMOTOCO",
+    "M&M"
+  ],
+  "results": {
+    "HDFCBANK": {
+      "total_trades": 1,
+      "wins": 0,
+      "losses": 1,
+      "win_rate": 0.0,
+      "total_pnl": -1.55,
+      "avg_pnl": -1.55,
+      "trades": [
+        {
+          "entry_date": "2026-02-03",
+          "exit_date": "2026-02-06",
+          "entry": 948.7,
+          "exit": 948.55,
+          "qty": 10,
+          "pnl": -1.55,
+          "pnl_pct": -0.02,
+          "reason": "SL"
+        }
+      ]
+    },
+    "HEROMOTOCO": {
+      "total_trades": 1,
+      "wins": 0,
+      "losses": 1,
+      "win_rate": 0.0,
+      "total_pnl": -1.22,
+      "avg_pnl": -1.22,
+      "trades": [
+        {
+          "entry_date": "2026-02-10",
+          "exit_date": "2026-02-13",
+          "entry": 5643.5,
+          "exit": 5642.28,
+          "qty": 1,
+          "pnl": -1.22,
+          "pnl_pct": -0.02,
+          "reason": "SL"
+        }
+      ]
+    },
+    "M&M": {
+      "total_trades": 1,
+      "wins": 0,
+      "losses": 1,
+      "win_rate": 0.0,
+      "total_pnl": -1.8,
+      "avg_pnl": -1.8,
+      "trades": [
+        {
+          "entry_date": "2026-02-11",
+          "exit_date": "2026-02-12",
+          "entry": 3674.9,
+          "exit": 3674.0,
+          "qty": 2,
+          "pnl": -1.8,
+          "pnl_pct": -0.02,
+          "reason": "SL"
+        }
+      ]
+    }
+  }
+}

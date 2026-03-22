@@ -1,7 +1,7 @@
 {
   "strategy": "batch_c1",
   "description": "VWAP+RSI+Volume entry, SL/TGT/TSL exit",
-  "run_at": "2026-03-22T21:00:35.712318",
+  "run_at": "2026-03-22T21:01:01.453527+00:00",
   "stocks": [
     "CIPLA",
     "SRF",
@@ -10,13 +10,83 @@
   "position_rs": 10000,
   "results": {
     "CIPLA": {
-      "error": "Too many levels: Index has only 1 level, not 2"
+      "total_trades": 1,
+      "wins": 0,
+      "losses": 1,
+      "win_rate": 0.0,
+      "total_pnl_rs": -1.45,
+      "avg_pnl_rs": -1.45,
+      "trades": [
+        {
+          "entry_date": "2025-10-21",
+          "exit_date": "2025-10-24",
+          "entry_price": 1645.1,
+          "exit_price": 1644.86,
+          "exit_reason": "SL",
+          "pnl_pct": -0.01,
+          "pnl_rs": -1.45,
+          "atr": 29.89
+        }
+      ]
     },
     "SRF": {
-      "error": "Too many levels: Index has only 1 level, not 2"
+      "total_trades": 4,
+      "wins": 0,
+      "losses": 4,
+      "win_rate": 0.0,
+      "total_pnl_rs": -6.64,
+      "avg_pnl_rs": -1.66,
+      "trades": [
+        {
+          "entry_date": "2025-10-21",
+          "exit_date": "2025-10-27",
+          "entry_price": 3071.73,
+          "exit_price": 3071.23,
+          "exit_reason": "SL",
+          "pnl_pct": -0.02,
+          "pnl_rs": -1.61,
+          "atr": 61.94
+        },
+        {
+          "entry_date": "2025-10-27",
+          "exit_date": "2025-10-30",
+          "entry_price": 3022.12,
+          "exit_price": 3021.56,
+          "exit_reason": "SL",
+          "pnl_pct": -0.02,
+          "pnl_rs": -1.85,
+          "atr": 69.9
+        },
+        {
+          "entry_date": "2025-12-11",
+          "exit_date": "2025-12-15",
+          "entry_price": 3018.03,
+          "exit_price": 3017.52,
+          "exit_reason": "SL",
+          "pnl_pct": -0.02,
+          "pnl_rs": -1.68,
+          "atr": 63.4
+        },
+        {
+          "entry_date": "2025-12-29",
+          "exit_date": "2026-01-09",
+          "entry_price": 3032.7,
+          "exit_price": 3032.25,
+          "exit_reason": "SL",
+          "pnl_pct": -0.01,
+          "pnl_rs": -1.5,
+          "atr": 56.67
+        }
+      ]
     },
     "IGL": {
-      "error": "Too many levels: Index has only 1 level, not 2"
+      "total_trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "win_rate": 0,
+      "total_pnl_rs": 0,
+      "avg_pnl_rs": 0,
+      "trades": []
     }
   }
 }
