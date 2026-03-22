@@ -55,6 +55,9 @@ TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
 TARGET_2_MULT    = 3.0     # T2: 3.0x risk → exit 1/3
 TARGET_3_MULT    = 5.0     # T3: 5.0x risk → exit remaining
 
+# Trailing stop: 0.3× ATR (activates after TRAIL_TRIGGER_PCT profit)
+TRAIL_ATR_MULT   = 0.3
+
 # Entry window (v3 enhancement)
 BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
 BEST_ENTRY_END   = dtime(14, 30) # 2:30 PM IST
