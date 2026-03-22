@@ -2,7 +2,7 @@
 """
 Live Trading Script - HEROMOTOCO.NS
 Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter (Enhanced v3)
-Win Rate: 55.00% -> Target 60%+ (v3 enhanced)
+Win Rate: 55.00% -> Target 60%+ (v4 enhanced: ATR×2.0, vol×1.5, RSI confirm)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -25,21 +25,23 @@ logging.basicConfig(
 log = logging.getLogger("live_HEROMOTOCO")
 
 SYMBOL         = "HEROMOTOCO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_v3"
+STRATEGY       = "VWAP_RSI_MACD_VOL_v4"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS = {
     "vwap_period": 20,
-    "atr_multiplier": 1.5,
+    "atr_multiplier": 2.0,       # v4: tightened for stronger signals
     "rsi_period": 14,
     "rsi_oversold": 40,
     "rsi_overbought": 60,
+    "rsi_confirm_oversold": 35,  # v4: deep oversold confirmation
+    "rsi_confirm_overbought": 65, # v4: deep overbought confirmation
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 1.2,
+    "volume_multiplier": 1.5,   # v4: tightened from 1.2
     "trend_ma_period": 50,
     "atr_period": 14,
 }
