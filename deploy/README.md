@@ -1,36 +1,45 @@
-# Live Trading Scripts
+# Deploy - Live Trading Scripts
 
-Automated trading scripts for Indian stocks using Groww API.
+## Overview
+This directory contains live trading scripts (`live_*.py`) for automated trade execution.
+
+**⚠️ NOTE:** The `live_*.py` files are gitignored (too many for GitHub). They are local-only.
 
 ## Scripts
+- **371 live trading scripts** covering various NSE/BSE stocks
+- Each script implements a specific strategy (TSI, VWAP, ADX_TREND, etc.)
+- Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
-- `live_*.py` - Individual stock trading scripts
-- All scripts use yfinance for data and can connect to Groww API for live trading
+## QA Status
+- **Last checked:** 2026-03-22 20:28 UTC
+- **All 371 scripts:** ✅ Compiled successfully (py_compile)
+- **Syntax:** All clean, no errors
 
-## Strategy Types
+## Script Structure
+Each `live_*.py` script includes:
+- Strategy name and parameters
+- Position sizing (₹7000 default)
+- Daily loss cap (0.3%)
+- Smart entry filters (RSI, volume, VWAP)
+- Dynamic ATR stop losses
+- 3-tier target management
+- Market regime detection (NIFTY correlation)
 
-- **VWAP_RSI_MACD_VOL** - VWAP + RSI + MACD + Volume + Trend filter
-- **MA_ENVELOPE** - Moving Average envelope strategy
-- **ADX_TREND** - ADX-based trend following
-- **TSI** - True Strength Index
-- **Bollinger** - Bollinger Bands
-- **RSI** - RSI-based mean reversion
+## Enhancement Notes
+Low win-rate scripts (benchmark data from manifest):
+- ICICIBANK.NS: 57.30% (ADX_TREND)
+- DABUR.NS: 57.32% (ADX_TREND)
+- GRASIM.NS: 57.36% (FIBONACCI_RETRACEMENT)
+- CHOLAFIN.NS: 57.49% (FIBONACCI_RETRACEMENT)
+- BPCL.NS: 57.50% (VWAP)
 
-## Usage
+Target: 70%+ win rate for all scripts
 
+## Logs
+Trading logs stored in `logs/` directory (gitignored).
+
+## Running
 ```bash
 cd deploy
-python3 live_RELIANCE.py
+python3 live_<SYMBOL>.py
 ```
-
-## Requirements
-
-- python3
-- yfinance
-- requests
-
-## Notes
-
-- Scripts include paper trading fallback when Groww API is not configured
-- Win rates are based on historical backtesting
-- Target win rates assume proper market conditions
