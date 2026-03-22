@@ -52,6 +52,7 @@ IST_TZ_OFFSET    = 5.5
 def ist_now() -> datetime:
     return datetime.utcnow() + __import__("datetime").timedelta(hours=IST_TZ_OFFSET)
 
+# Smart entry: 9:30-14:30 IST
 def is_market_open() -> bool:
     now = ist_now()
     if now.weekday() >= 5: return False
@@ -451,7 +452,7 @@ def main():
         price = ohlcv_list[-1][4]
     
     # Calculate ATR for risk management
-    atr = price * 0.008  # fallback
+    # Use real ATR from calculate_atr()  # fallback
     if len(ohlcv_list) >= 14:
         trs = []
         for i in range(1, min(15, len(ohlcv_list))):
