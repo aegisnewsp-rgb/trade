@@ -169,7 +169,30 @@ def calculate_volume_ma(ohlcv: list, period: int = 20) -> list:
             vol_ma.append(vol_avg)
     return vol_ma
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    if len(ohlcv) < period + 1:
+        return [None] * len(ohlcv)
+    gains, losses = [], []
+    for i in range(1, len(ohlcv)):
+        delta = ohlcv[i]["close"] - ohlcv[i - 1]["close"]
+        gains.append(max(delta, 0))
+        losses.append(max(-delta, 0))
+    rsi = [None] * (period + 1)
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        rs = avg_gain / avg_loss if avg_loss != 0 else 0
+        rsi.append(100 - (100 / (1 + rs)))
+    return rsi
+
+def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
+    if len(ohlcv) < period:
+        return 0
+    return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
+
+def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
     """VWAP signal with volume confirmation filter"""
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
