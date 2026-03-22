@@ -44,14 +44,19 @@ PARAMS         = {
     "vwap_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "rsi_oversold": 35,
-    "rsi_overbought": 65,
+    "rsi_oversold": 45,
+    "rsi_overbought": 55,
     "volume_multiplier": 1.2,
     "trend_ma_period": 50,
     "atr_period": 14,
     "adx_period": 14,
     "adx_threshold": 25,  # ADX must be above this for trend confirmation
+    "trail_atr_mult": 0.3,
 }
+
+# Entry time window (IST)
+ENTRY_START = dtime(9, 30)
+ENTRY_END   = dtime(14, 30)
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -74,6 +79,18 @@ def is_market_open() -> bool:
     if now.weekday() >= 5:
         return False
     return dtime(9, 15) <= now.time() <= dtime(15, 30)
+
+
+def can_new_entry() -> bool:
+    """TIME FILTER: No entries before 9:30 AM or after 2:30 PM IST"""
+    now = ist_now().time()
+    if now < ENTRY_START:
+        log.info("⏰ Too early - waiting for 9:30 AM")
+        return False
+    if now >= ENTRY_END:
+        log.info("⏰ After 2:30 PM - no new entries today")
+        return False
+    return True
 
 def is_pre_market() -> bool:
     now = ist_now()

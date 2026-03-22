@@ -39,6 +39,9 @@ POSITION = 7000
 DAILY_LOSS_CAP = 0.003
 PARAMS = {"fast_period": 13, "slow_period": 25, "signal_period": 13}
 
+# Trail ATR multiplier
+TRAIL_ATR_MULT = 0.3
+
 # NIFTY index for market regime
 NIFTY_SYMBOL = "^NSEI"
 
