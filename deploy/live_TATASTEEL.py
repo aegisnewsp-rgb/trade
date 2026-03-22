@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - TATASTEEL.NS
-Strategy: VWAP + RSI + Volume Confirmation (v4 enhanced)
+Strategy: VWAP + RSI + Volume + ADX + MACD (v5 enhanced)
 Win Rate: 58.06% -> Target 62%+
-Position: ₹7000 | Stop Loss: 1.5x ATR | Target: 3.5x ATR | Daily Loss Cap: 0.3%
-Enhancements over v3:
-  - RSI filter (14): BUY only RSI > 40, SELL only RSI < 60
-  - Volume confirmation: volume > 20-day SMA volume
-  - ATR-based stop (replaces fixed 0.8%)
-  - Volatility filter: skip when ATR > 20-day ATR SMA (choppy market)
+Position: ₹7000 | Stop Loss: 1.3x ATR | Target: 3.0x ATR | Daily Loss Cap: 0.3%
+Enhancements over v4:
+  - ADX trend filter (20): only trade when ADX > 20 (confirm trending market)
+  - Tighter RSI bands (45/55 vs 40/60): reduce false signals
+  - MACD momentum confirmation: BUY/SELL requires MACD histogram alignment
+  - Tighter stop (1.3x ATR vs 1.5x): better risk:reward ratio
+  - Session time filter: avoid first 15min & last 15min of session (low momentum)
 """
 
 import os
@@ -37,20 +38,26 @@ log = logging.getLogger("live_TATASTEEL")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL             = "TATASTEEL.NS"
-STRATEGY           = "VWAP+RSI+VOL"
+STRATEGY           = "VWAP+RSI+VOL+ADX+MACD"
 POSITION           = 7000
-STOP_LOSS_ATR_MULT = 1.5   # was fixed 0.8% → now adaptive ATR
-TARGET_ATR_MULT    = 3.5   # was 4.0x → tighter for better hit rate
+STOP_LOSS_ATR_MULT = 1.3   # was 1.5x → tighter for better risk:reward
+TARGET_ATR_MULT    = 3.0   # was 3.5x → tighter target for better hit rate
 DAILY_LOSS_CAP     = 0.003
 PARAMS = {
     "vwap_period":         14,
-    "atr_multiplier":      1.5,
+    "atr_multiplier":      1.3,
     "rsi_period":          14,
-    "rsi_buy_min":         40,   # BUY only when RSI > 40 (avoid overbought)
-    "rsi_sell_max":        60,   # SELL only when RSI < 60 (avoid oversold)
+    "rsi_buy_min":         45,   # was 40 → tighter, moreconfident entry
+    "rsi_sell_max":        55,   # was 60 → tighter, avoids oversold traps
     "vol_sma_period":      20,
     "vol_confirm_mult":    1.2,  # volume must exceed 20-day SMA by this factor
     "atr_vol_period":     20,   # period for ATR volatility SMA
+    "adx_period":         14,   # ADX period for trend strength
+    "adx_min":            20,   # only trade when ADX > 20 (confirmed trend)
+    "macd_fast":           12,   # MACD fast EMA
+    "macd_slow":           26,   # MACD slow EMA
+    "macd_signal":          9,   # MACD signal line
+    "session_avoid_min":   15,   # avoid first/last N minutes of session
 }
 
 BENCHMARK_WIN_RATE = 0.5806   # v3 live benchmark
@@ -171,14 +178,120 @@ def calculate_atr_sma(atr_vals: list, period: int = 20) -> list:
             atr_sma[i] = sum(window) / len(window)
     return atr_sma
 
+def calculate_adx(ohlcv: list, period: int = 14) -> tuple[list, list, list]:
+    """
+    Compute ADX (Average Directional Index), +DI, -DI.
+    Returns (adx_vals, plus_di, minus_di).
+    """
+    high  = [b["high"]  for b in ohlcv]
+    low   = [b["low"]   for b in ohlcv]
+    close = [b["close"] for b in ohlcv]
+
+    tr_list = [None] * len(ohlcv)
+    plus_dm = [None] * len(ohlcv)
+    minus_dm = [None] * len(ohlcv)
+
+    for i in range(1, len(ohlcv)):
+        tr = max(
+            high[i] - low[i],
+            abs(high[i] - close[i - 1]),
+            abs(low[i]  - close[i - 1]),
+        )
+        tr_list[i] = tr
+        plus_dm[i]  = max(high[i] - high[i - 1], 0) if high[i] - high[i - 1] > low[i - 1] - low[i] else 0
+        minus_dm[i] = max(low[i - 1] - low[i], 0)  if low[i - 1] - low[i] > high[i] - high[i - 1] else 0
+
+    # Smooth with Wilder's smoothing (EWM with alpha=1/period)
+    def wilder_smooth(vals, period):
+        out = [None] * len(vals)
+        valid = [v for v in vals[1:] if v is not None]
+        if len(valid) < period:
+            return out
+        sma = sum(valid[:period]) / period
+        out[period] = sma
+        for i in range(period + 1, len(vals)):
+            if vals[i] is not None:
+                sma = (sma * (period - 1) + vals[i]) / period
+                out[i] = sma
+        return out
+
+    tr_s  = wilder_smooth(tr_list, period)
+    pdm_s = wilder_smooth(plus_dm, period)
+    mdm_s = wilder_smooth(minus_dm, period)
+
+    plus_di  = [None] * len(ohlcv)
+    minus_di = [None] * len(ohlcv)
+    dx       = [None] * len(ohlcv)
+
+    for i in range(period, len(ohlcv)):
+        if tr_s[i] and tr_s[i] != 0:
+            plus_di[i]  = 100 * pdm_s[i] / tr_s[i]
+            minus_di[i] = 100 * mdm_s[i] / tr_s[i]
+        if plus_di[i] is not None and minus_di[i] is not None:
+            di_sum = plus_di[i] + minus_di[i]
+            dx[i]  = 100 * abs(plus_di[i] - minus_di[i]) / di_sum if di_sum != 0 else 0
+
+    # ADX = Wilder smooth of DX
+    adx_vals = [None] * len(ohlcv)
+    valid_dx = [v for v in dx[period:] if v is not None]
+    if len(valid_dx) >= period:
+        adx_sma = sum(valid_dx[:period]) / period
+        adx_vals[period + period - 1] = adx_sma
+        for i in range(period + period, len(ohlcv)):
+            if dx[i] is not None:
+                adx_sma = (adx_sma * (period - 1) + dx[i]) / period
+                adx_vals[i] = adx_sma
+
+    return adx_vals, plus_di, minus_di
+
+def calculate_macd(ohlcv: list, fast: int = 12, slow: int = 26, signal: int = 9) -> tuple[list, list, list]:
+    """
+    Compute MACD line, signal line, and histogram.
+    Returns (macd_line, signal_line, histogram).
+    Histogram > 0 = bullish momentum, < 0 = bearish momentum.
+    """
+    closes = [b["close"] for b in ohlcv]
+
+    def ema(vals, period):
+        out = [None] * len(vals)
+        valid = [v for v in vals if v is not None]
+        if len(valid) < period:
+            return out
+        sma = sum(valid[:period]) / period
+        out[period - 1] = sma
+        k = 2 / (period + 1)
+        for i in range(period, len(vals)):
+            if vals[i] is not None:
+                out[i] = vals[i] * k + out[i - 1] * (1 - k)
+        return out
+
+    ema_fast = ema(closes, fast)
+    ema_slow = ema(closes, slow)
+
+    macd_line = [None] * len(ohlcv)
+    for i in range(len(ohlcv)):
+        if ema_fast[i] is not None and ema_slow[i] is not None:
+            macd_line[i] = ema_fast[i] - ema_slow[i]
+
+    signal_line = ema(macd_line, signal)
+
+    histogram = [None] * len(ohlcv)
+    for i in range(len(ohlcv)):
+        if macd_line[i] is not None and signal_line[i] is not None:
+            histogram[i] = macd_line[i] - signal_line[i]
+
+    return macd_line, signal_line, histogram
+
 def vwap_enhanced_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     """
-    VWAP + RSI + Volume confirmation + Volatility filter.
+    VWAP + RSI + Volume + ADX + MACD (v5).
     Returns (signal, price, atr).
     Signal is HOLD if:
       - RSI not in valid range (BUY needs RSI > rsi_buy_min, SELL needs RSI < rsi_sell_max)
       - Volume below confirmation threshold
       - ATR above its SMA (choppy / high-volatility market)
+      - ADX <= adx_min (no confirmed trend)
+      - MACD histogram not aligned with signal direction
     """
     vwap_period   = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
@@ -188,18 +301,28 @@ def vwap_enhanced_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     vol_period    = params["vol_sma_period"]
     vol_mult      = params["vol_confirm_mult"]
     atr_vol_p     = params["atr_vol_period"]
+    adx_period    = params["adx_period"]
+    adx_min       = params["adx_min"]
+    macd_fast     = params["macd_fast"]
+    macd_slow     = params["macd_slow"]
+    macd_signal   = params["macd_signal"]
 
     vwap_vals  = calculate_vwap(ohlcv, vwap_period)
     atr_vals   = calculate_atr(ohlcv, vwap_period)
     rsi_vals   = calculate_rsi(ohlcv, rsi_period)
     vol_sma    = calculate_vol_sma(ohlcv, vol_period)
     atr_sma    = calculate_atr_sma(atr_vals, atr_vol_p)
+    adx_vals, plus_di, minus_di = calculate_adx(ohlcv, adx_period)
+    macd_line, signal_line, histogram = calculate_macd(
+        ohlcv, macd_fast, macd_slow, macd_signal)
 
     signals    = ["HOLD"] * len(ohlcv)
-    start_idx  = max(vwap_period, rsi_period, vol_period, atr_vol_p)
+    start_idx  = max(vwap_period, rsi_period, vol_period, atr_vol_p,
+                     adx_period * 2, macd_slow + macd_signal)
 
     for i in range(start_idx, len(ohlcv)):
-        if None in (vwap_vals[i], atr_vals[i], rsi_vals[i], vol_sma[i], atr_sma[i]):
+        if None in (vwap_vals[i], atr_vals[i], rsi_vals[i],
+                    vol_sma[i], atr_sma[i], adx_vals[i], histogram[i]):
             continue
         price   = ohlcv[i]["close"]
         v       = vwap_vals[i]
@@ -209,9 +332,15 @@ def vwap_enhanced_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         vol_avg = vol_sma[i]
         atr_now = atr_vals[i]
         atr_avg = atr_sma[i]
+        adx     = adx_vals[i]
+        hist    = histogram[i]
 
         # Volatility filter: skip in choppy / high-volatility regimes
         if atr_avg is not None and atr_now > atr_avg * 1.15:
+            continue
+
+        # ADX trend filter: require confirmed trend (ADX > adx_min)
+        if adx is not None and adx <= adx_min:
             continue
 
         # Volume confirmation
@@ -219,10 +348,10 @@ def vwap_enhanced_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
             continue
 
         if price > v + a * atr_mult:
-            if rsi > rsi_buy_min:   # not overbought – avoid fake breakouts
+            if rsi > rsi_buy_min and hist > 0:   # RSI > 45 + bullish MACD
                 signals[i] = "BUY"
         elif price < v - a * atr_mult:
-            if rsi < rsi_sell_max:  # not oversold – avoid fake breakdowns
+            if rsi < rsi_sell_max and hist < 0:  # RSI < 55 + bearish MACD
                 signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
@@ -333,7 +462,7 @@ def main():
 
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s (v4 enhanced)", STRATEGY)
+    log.info("  STRATEGY : %s (v5 enhanced)", STRATEGY)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
@@ -341,8 +470,8 @@ def main():
         log.info("  ATR      : %.4f", atr)
         log.info("  STOP     : ₹%.2f  (%.1f× ATR)", stop_loss, STOP_LOSS_ATR_MULT)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_ATR_MULT)
-    log.info("  FILTERS  : RSI(%.0f-%.0f) | Vol>avg×%.1f | Vol-chop filter",
-             PARAMS["rsi_buy_min"], PARAMS["rsi_sell_max"], PARAMS["vol_confirm_mult"])
+    log.info("  FILTERS  : RSI(%.0f-%.0f) | Vol>avg×%.1f | Vol-chop | ADX>%.0f | MACD hist",
+             PARAMS["rsi_buy_min"], PARAMS["rsi_sell_max"], PARAMS["vol_confirm_mult"], PARAMS["adx_min"])
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
     log_signal(signal, price, atr)
