@@ -11,9 +11,21 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked:** 2026-03-22 22:09 UTC
+- **Last checked:** 2026-03-22 22:51 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Iteration:** #13
+- **Iteration:** #14
+
+## Regime-Filter Enhancements (Iteration #14)
+Scripts with 0% WR in DOWNTREND/RANGE regime enhanced with NIFTY-based regime filtering:
+- **live_ICICIBANK.py** (0% WR in DOWNTREND): Added NIFTY regime detection. BUY blocked in DOWNTREND, 50% size in RANGE
+- **live_SBILIFE_NS.py** (0% WR in DOWNTREND): Complete rewrite with regime-filtered VWAP+RSI. BUY blocked in DOWNTREND
+- **live_DRREDDY.py** (0% WR in RANGE): Added NIFTY regime detection. 50% size in RANGE, BUY blocked in DOWNTREND
+
+**Regime filter mechanism:**
+- Detects NIFTY SMA ratio (current vs 20-day SMA)
+- UPTREND (ratio > 1.02): full position size
+- RANGE (0.98-1.02): 50% position size
+- DOWNTREND (ratio < 0.98): 0% position size (BUY signals blocked)
 
 ## Low-WR Enhancements (Iteration #13)
 Scripts with <30% backtest WR enhanced with RSI + Volume filtering:
