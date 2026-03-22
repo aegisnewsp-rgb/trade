@@ -3,7 +3,8 @@
 Live Trading Script - TCS.NS
 Strategy: VWAP_ALPHA_IT — VWAP + RSI + Volume + IT-Sector-Aware Parameters
 Win Rate: 63.64% → Target: 70%+
-Position: ₹10,000 | Daily Loss Cap: 0.3%
+RSI_BUY=55 | RSI_SELL=45 | VOL_THRESH=1.2 | SL_PCT=1.0 | TGT_PCT=3.0
+Entry: 9:30–14:30 IST | Position: ₹10,000 | Daily Loss Cap: 0.3%
 
 Key enhancements (tomorrow edition):
 - USD/INR filter: weaker rupee (higher USD/INR) = tailwind for TCS (IT exporter)

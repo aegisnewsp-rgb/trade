@@ -47,10 +47,10 @@ PARAMS = {
     "vwap_period":         14,
     "atr_multiplier":      1.5,
     "rsi_period":          14,
-    "rsi_buy_min":         40,   # BUY only when RSI > 40 (avoid overbought)
-    "rsi_sell_max":        60,   # SELL only when RSI < 60 (avoid oversold)
-    "vol_sma_period":      20,
-    "vol_confirm_mult":    1.2,  # volume must exceed 20-day SMA by this factor
+    "RSI_BUY": 55,          # BUY when RSI > 55
+    "RSI_SELL": 45,         # SELL when RSI < 45
+    "VOL_THRESH": 1.2,      # volume must exceed 1.2× avg
+    "vol_sma_period": 20,
     "atr_vol_period":      20,   # period for ATR volatility SMA
 }
 

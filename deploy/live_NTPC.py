@@ -44,9 +44,9 @@ PARAMS         = {
     "atr_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "rsi_overbought": 55,   # BUY only when RSI < 55 (not overbought)
-    "rsi_oversold": 45,     # SELL only when RSI > 45 (not oversold)
-    "volume_multiplier": 1.2,
+    "RSI_BUY": 55,        # BUY when RSI < 55
+    "RSI_SELL": 45,       # SELL when RSI > 45
+    "VOL_THRESH": 1.2,    # Volume must be ≥ 1.2× avg
 }
 
 # 3-TIER EXIT SYSTEM

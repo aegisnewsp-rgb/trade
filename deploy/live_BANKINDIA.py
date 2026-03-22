@@ -2,7 +2,8 @@
 """
 Live Trading Script - BANKINDIA.NS (Bank of India)
 Strategy: VWAP + Multi-Timeframe Confirmation
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Position: ₹7000 | RSI_BUY=55 | RSI_SELL=45 | VOL_THRESH=1.2 | SL_PCT=1.0 | TGT_PCT=3.0
+Entry Window: 9:30–14:30 IST | Daily Loss Cap: 0.3%
 Enhanced: Multi-timeframe confirmation (daily + 4hr VWAP alignment)
 """
 
@@ -31,7 +32,15 @@ POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {
+    "vwap_period": 14,
+    "atr_multiplier": 1.5,
+    "RSI_BUY": 55,
+    "RSI_SELL": 45,
+    "VOL_THRESH": 1.2,
+    "SL_PCT": 1.0,
+    "TGT_PCT": 3.0,
+}
 
 # 3-TIER EXIT SYSTEM (enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
