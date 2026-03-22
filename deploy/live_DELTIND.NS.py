@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - RIKGROW.NS
+Live Trading Script - DELTIND.NS
 Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: N/A
+Win Rate: 63.64%
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -24,14 +24,14 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_RIKGROW.log"),
+        logging.FileHandler(LOG_DIR / "live_DELTIND.NS.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_RIKGROW")
+log = logging.getLogger("live_DELTIND.NS")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SYMBOL         = "RIKGROW.NS"
+SYMBOL         = "DELTIND.NS"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
@@ -173,7 +173,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_RIKGROW.json"
+    log_file = LOG_DIR / "signals_DELTIND.NS.json"
     entries = []
     if log_file.exists():
         try:
@@ -193,7 +193,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_RIKGROW.json"
+    cap_file = LOG_DIR / "daily_pnl_DELTIND.NS.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
@@ -207,7 +207,7 @@ def daily_loss_limit_hit() -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: N/A ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s | Win Rate: 63.64%% ===", SYMBOL, STRATEGY)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
