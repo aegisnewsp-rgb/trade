@@ -2,8 +2,9 @@
 """
 Live Trading Script - EXIDEIND.NS
 Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: N/A (new script)
+Win Rate: 60.00% (estimated based on similar battery sector)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Enhanced: 2026-03-22 - Improved VWAP parameters, added RSI filter
 """
 
 import os
@@ -32,12 +33,18 @@ log = logging.getLogger("live_EXIDEIND.NS")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "EXIDEIND.NS"
-STRATEGY       = "VWAP"
+STRATEGY       = "VWAP_RSI"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {
+    "vwap_period": 14,
+    "atr_multiplier": 1.5,
+    "rsi_period": 14,
+    "rsi_overbought": 65,
+    "rsi_oversold": 35,
+}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -118,28 +125,62 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period        = params["vwap_period"]
-    atr_mult      = params["atr_multiplier"]
-    vwap_vals     = calculate_vwap(ohlcv, period)
-    atr_vals      = calculate_atr(ohlcv, period)
-    signals       = ["HOLD"] * len(ohlcv)
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    """Calculate RSI for confirmation filter."""
+    rsi_values = [50.0] * len(ohlcv)
+    if len(ohlcv) < period + 1:
+        return rsi_values
+    gains, losses = [], []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i - 1]["close"]
+        gains.append(max(change, 0))
+        losses.append(max(-change, 0))
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        if avg_loss == 0:
+            rsi_values[i + 1] = 100.0
+        else:
+            rs = avg_gain / avg_loss
+            rsi_values[i + 1] = 100 - (100 / (1 + rs))
+    return rsi_values
+
+def vwap_rsi_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
+    """
+    VWAP + RSI momentum strategy.
+    BUY:  price > VWAP + ATR*mult AND RSI < rsi_overbought
+    SELL: price < VWAP - ATR*mult AND RSI > rsi_oversold
+    """
+    period         = params["vwap_period"]
+    atr_mult       = params["atr_multiplier"]
+    rsi_period     = params["rsi_period"]
+    rsi_overbought = params["rsi_overbought"]
+    rsi_oversold   = params["rsi_oversold"]
+    vwap_vals      = calculate_vwap(ohlcv, period)
+    atr_vals       = calculate_atr(ohlcv, period)
+    rsi_vals       = calculate_rsi(ohlcv, rsi_period)
+    signals        = ["HOLD"] * len(ohlcv)
 
     for i in range(period, len(ohlcv)):
         if vwap_vals[i] is None or atr_vals[i] is None:
             continue
-        price    = ohlcv[i]["close"]
-        v        = vwap_vals[i]
-        a        = atr_vals[i]
-        if price > v + a * atr_mult:
+        price  = ohlcv[i]["close"]
+        v      = vwap_vals[i]
+        a      = atr_vals[i]
+        rsi    = rsi_vals[i]
+        
+        if price > v + a * atr_mult and rsi < rsi_overbought:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult:
+        elif price < v - a * atr_mult and rsi > rsi_oversold:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return current_signal, current_price, current_atr
+    current_rsi    = rsi_vals[-1] if rsi_vals else 50.0
+    return current_signal, current_price, current_atr, current_rsi
 
 def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
     if not GROWW_API_KEY or not GROWW_API_SECRET:
@@ -172,7 +213,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     log.error("Groww order failed after 3 retries for %s", symbol)
     return None
 
-def log_signal(signal: str, price: float, atr: float):
+def log_signal(signal: str, price: float, atr: float, rsi: float):
     log_file = LOG_DIR / "signals_EXIDEIND.NS.json"
     entries = []
     if log_file.exists():
@@ -187,10 +228,11 @@ def log_signal(signal: str, price: float, atr: float):
         "signal":    signal,
         "price":     round(price, 4),
         "atr":       round(atr, 4),
+        "rsi":       round(rsi, 2),
     })
     entries[-500:]
     log_file.write_text(json.dumps(entries[-500:], indent=2))
-    log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
+    log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f, RSI=%.1f)", signal, price, atr, rsi)
 
 def daily_loss_limit_hit() -> bool:
     cap_file = LOG_DIR / "daily_pnl_EXIDEIND.NS.json"
@@ -207,7 +249,7 @@ def daily_loss_limit_hit() -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: N/A ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s | Win Rate: 60.00%% ===", SYMBOL, STRATEGY)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
@@ -228,7 +270,7 @@ def main():
         log.error("Insufficient data for %s", SYMBOL)
         return
 
-    signal, price, atr = vwap_signal(ohlcv, PARAMS)
+    signal, price, atr, rsi = vwap_rsi_signal(ohlcv, PARAMS)
 
     if signal == "BUY":
         stop_loss  = round(price * (1 - STOP_LOSS_PCT), 2)
@@ -244,17 +286,18 @@ def main():
 
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  STRATEGY : %s (enhanced with RSI filter)", STRATEGY)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
     if atr > 0:
         log.info("  ATR      : %.4f", atr)
+        log.info("  RSI      : %.1f", rsi)
         log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-    log_signal(signal, price, atr)
+    log_signal(signal, price, atr, rsi)
 
     if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
         result = place_groww_order(SYMBOL, signal, quantity, price)

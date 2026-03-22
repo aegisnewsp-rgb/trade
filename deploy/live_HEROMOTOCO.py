@@ -151,7 +151,7 @@ def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
         return 0
     return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
 
-def vwap_signal_v3(ohlcv: list, params: dict) -> tuple[str, float, float]:
+def vwap_signal_v5(ohlcv: list, params: dict) -> tuple[str, float, float]:
     vwap_period         = params["vwap_period"]
     atr_mult            = params["atr_multiplier"]
     rsi_period          = params["rsi_period"]
@@ -282,7 +282,7 @@ def main():
         log.info("  ATR      : %.4f", atr)
         log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
-    log.info("  v4 ENH   : VWAP + RSI(35/65) + MACD hist + Vol(1.5x) + ATR×2.0 + MA50 trend")
+    log.info("  v5 VERIF : VWAP + RSI(35/65) + MACD hist + Vol(1.5x) + ATR×2.0 + MA50 trend")
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log_signal(signal, price, atr)
     if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:

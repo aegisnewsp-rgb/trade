@@ -141,28 +141,33 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
     vwap_vals     = calculate_vwap(ohlcv, period)
     atr_vals      = calculate_atr(ohlcv, period)
+    rsi_vals      = calculate_rsi(ohlcv, RSI_PERIOD)
     signals       = ["HOLD"] * len(ohlcv)
 
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
         price    = ohlcv[i]["close"]
         v        = vwap_vals[i]
         a        = atr_vals[i]
+        r        = rsi_vals[i]
         if price > v + a * atr_mult:
-            signals[i] = "BUY"
+            if r < RSI_OVERSOLD:
+                signals[i] = "BUY"
         elif price < v - a * atr_mult:
-            signals[i] = "SELL"
+            if r > RSI_OVERBOUGHT:
+                signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return current_signal, current_price, current_atr
+    current_rsi    = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 50.0
+    return current_signal, current_price, current_atr, current_rsi
 
 def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
     if not GROWW_API_KEY or not GROWW_API_SECRET:
@@ -230,7 +235,7 @@ def daily_loss_limit_hit() -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s | RSI Filter: %d/%d ===", SYMBOL, STRATEGY, RSI_OVERSOLD, RSI_OVERBOUGHT)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")

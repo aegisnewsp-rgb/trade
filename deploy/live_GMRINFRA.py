@@ -291,7 +291,7 @@ def main():
         return
 
     log.info("Market is open. Fetching data...")
-    ohlcv = fetch_recent_data(days=90)
+    ohlcv = fetch_recent_data(days=120)
     if not ohlcv or len(ohlcv) < 30:
         log.error("Insufficient data for %s", SYMBOL)
         return
