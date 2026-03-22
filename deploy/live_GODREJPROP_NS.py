@@ -40,13 +40,14 @@ TARGET_2_MULT = 3.0
 TARGET_3_MULT = 5.0
 STOP_LOSS_ATR_MULT = 0.8
 TARGET_ATR_MULT = 4.0
+TRAIL_ATR_MULT  = 0.3
 
 VWAP_PERIOD = 14
 ATR_PERIOD = 14
 ATR_MULTIPLIER = 1.5
 RSI_PERIOD = 14
-RSI_OVERSOLD = 35
-RSI_OVERBOUGHT = 65
+RSI_OVERSOLD = 45
+RSI_OVERBOUGHT = 55
 
 GROWW_API_KEY = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -181,7 +182,6 @@ def calculate_rsi(ohlcv: List[Dict], period: int = 14) -> List[float]:
 
 # RSI filter: BUY>RSI55, SELL<RSI45
 # Regime filter: skip DOWNTREND
-def get_regime
 def get_signal(ohlcv: List[Dict], vwap: List[float], atr: List[float], rsi: List[float]) -> tuple[str, float, float, float]:
     """VWAP + RSI signal generation."""
     if len(ohlcv) < VWAP_PERIOD or len(vwap) < VWAP_PERIOD or len(atr) < VWAP_PERIOD:

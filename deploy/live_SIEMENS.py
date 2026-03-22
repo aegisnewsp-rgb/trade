@@ -48,8 +48,8 @@ PARAMS         = {
     "rsi_period":      14,
     "atr_period":      14,
     "mom_threshold":   0.0,   # momentum > 0 for BUY
-    "rsi_buy_min":     50,    # RSI must be >= 50 for BUY signal
-    "rsi_sell_max":    50,    # RSI must be <= 50 for SELL signal
+    "rsi_buy_min":     55,    # RSI must be >= 55 for BUY signal
+    "rsi_sell_max":    45,    # RSI must be <= 45 for SELL signal
 }
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")

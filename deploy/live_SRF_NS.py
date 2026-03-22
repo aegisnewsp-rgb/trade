@@ -47,6 +47,11 @@ MACD_FAST = 12
 MACD_SLOW = 26
 MACD_SIGNAL = 9
 ATR_PERIOD = 14
+RSI_PERIOD = 14
+RSI_OVERSOLD = 45
+RSI_OVERBOUGHT = 55
+VOLUME_THRESHOLD = 1.2
+TRAIL_ATR_MULT = 0.3
 
 GROWW_API_KEY = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -174,7 +179,6 @@ def calculate_atr_based_position_size(entry_price: float, atr: float, capital: f
 
 # RSI filter: BUY>RSI55, SELL<RSI45
 # Regime filter: skip DOWNTREND
-def get_regime
 def get_signal(ohlcv: List[Dict], macd_line: List[float], signal_line: List[float]) -> str:
     if len(ohlcv) < max(MACD_FAST, MACD_SLOW, MACD_SIGNAL) + 1:
         return "HOLD"

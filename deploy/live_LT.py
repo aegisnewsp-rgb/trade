@@ -334,6 +334,8 @@ def main():
     # Detect strategy type and run appropriate signal
     signal = None
     price = ohlcv_list[-1][2]  # close price
+    rsi = 50.0
+    vol_ratio = 0.0
     
     try:
         # Try strategy functions in priority order

@@ -207,9 +207,9 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         # ENHANCED: Volume confirmation + RSI 55/45 filter
         if vol_ma[i] is not None and ohlcv[i]["volume"] < vol_ma[i] * vol_mult:
             continue
-        if price < v - a * atr_mult and current_rsi > ENTRY_RSI_MAX:
+        if price < v - a * atr_mult and current_rsi < ENTRY_RSI_MAX:
             signals[i] = "BUY"
-        elif price > v + a * atr_mult and current_rsi < ENTRY_RSI_MIN:
+        elif price > v + a * atr_mult and current_rsi > ENTRY_RSI_MIN:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"

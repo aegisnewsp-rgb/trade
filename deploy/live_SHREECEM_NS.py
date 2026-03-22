@@ -61,8 +61,8 @@ ADX_THRESHOLD = 20.0       # v3: require ADX > 20 for trend strength confirmatio
 ATR_PERIOD = 14
 SMA_PERIOD = 50             # Trend filter period
 RSI_PERIOD = 14
-RSI_OVERSOLD = 45           # v3: was 42 - tighter, only buy in stronger oversold
-RSI_OVERBOUGHT = 58        # v3: was 60 - tighter, sell before overbought
+RSI_OVERSOLD = 45           # RSI oversold threshold for BUY
+RSI_OVERBOUGHT = 55        # RSI overbought threshold for SELL
 VOLUME_MA_PERIOD = 20
 VOLUME_THRESHOLD = 1.5     # v3: was 1.3 - higher quality volume confirm
 MIN_ATR_PCT = 0.015         # Min ATR as % of price (1.5%) - avoid low vol
@@ -334,7 +334,6 @@ def calculate_adx(ohlcv: List[Dict], period: int = 14) -> Tuple[List[float], Lis
 
 # RSI filter: BUY>RSI55, SELL<RSI45
 # Regime filter: skip DOWNTREND
-def get_regime
 def get_signal(ohlcv: List[Dict], tsi: List[float], signal_line: List[float],
                     sma_vals: List[float], ema_vals: List[float], rsi_vals: List[float],
                     vol_ma: List[float], atr_vals: List[float],

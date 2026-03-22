@@ -139,7 +139,6 @@ def find_swing_levels(ohlcv: List[Dict], period: int = 50) -> Tuple[float, float
 
 # RSI filter: BUY>RSI55, SELL<RSI45
 # Regime filter: skip DOWNTREND
-def get_regime
 def get_signal(ohlcv: List[Dict], atr: List[float]) -> str:
     if len(ohlcv) < FIB_PERIOD:
         return "HOLD"

@@ -244,7 +244,6 @@ def check_consumer_staples_filter() -> dict:
 
 # RSI filter: BUY>RSI55, SELL<RSI45
 # Regime filter: skip DOWNTREND
-def get_regime
 def get_signal(ohlcv: List[Dict], rsi: List[float], staples: dict = None) -> str:
     if len(ohlcv) < LOOKBACK + 1 or len(rsi) < LOOKBACK + 1:
         return "HOLD"
