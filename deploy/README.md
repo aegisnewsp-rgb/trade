@@ -223,6 +223,8 @@ If not set, scripts run in **paper mode** (signals logged but no orders placed).
 
 | Script | Change | Target |
 |---|---|---|
+| `live_WIPRO.py` | v6: **CRITICAL FIX** - RSI logic was INVERTED (BUY checked r<70, SELL checked r>30). Fixed to r<30 for BUY (oversold), r>70 for SELL (overbought). This explains the low 52% win rate. | 60%+ |
+| `live_HEROMOTOCO.py` | v6: **CRITICAL FIX** - Same RSI inversion bug as WIPRO. BUY required r<70 (always true), SELL required r>30 (always true). Fixed to proper oversold/overbought thresholds. | 60%+ |
 | `live_WIPRO.py` | v5: ATR×2.5 (was 2.0), vol×2.0 (was 1.5), RSI 30/70 (was 35/65), MACD sig×12 (was 9) | 60%+ |
 | `live_HEROMOTOCO.py` | v5: ATR×2.5 (was 2.0), vol×2.0 (was 1.5), RSI 30/70 (was 35/65), MACD sig×12 (was 9) | 60%+ |
 | `live_DABUR.py` | v2: ADX 25→20, DI gap 10→8, vol×1.2, MA50 filter | 62%+ |
@@ -243,4 +245,5 @@ If not set, scripts run in **paper mode** (signals logged but no orders placed).
 - 83 new scripts added to this README (were missing from prior version).
 - All 470 scripts pass `py_compile` successfully (2026-03-22 19:50 UTC).
 - ⚠ gen_new_scripts.py was accidentally concatenated into each live_*.py file (fixed 2026-03-22 19:35 UTC).
-- ⚠ patch_groww_safe.py had syntax error (elif inside for loop) — fixed 2026-03-22 19:50 UTC.
+- ⚠ patch_groww_safe.py had syntax error (elif inside for loop) — fixed 2026-03-22 19:50 UTC).
+- ⚠ **CRITICAL**: WIPRO and HEROMOTOCO had RSI confirmation logic INVERTED (fixed 2026-03-22 19:54 UTC). BUY checked RSI<70 (almost always true), SELL checked RSI>30 (almost always true). This rendered RSI filter useless and explains their sub-55% win rates.
