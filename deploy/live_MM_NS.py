@@ -62,6 +62,7 @@ IST_TZ_OFFSET = 5.5
 def ist_now() -> datetime:
     return datetime.utcnow() + __import__("datetime").timedelta(hours=IST_TZ_OFFSET)
 
+# Smart entry: 9:30-14:30 IST
 def is_market_open() -> bool:
     now = ist_now()
     if now.weekday() >= 5:
@@ -223,7 +224,7 @@ def place_groww_order(symbol, signal, quantity, price):
         return groww_api.paper_trade(signal, symbol, price, quantity)
     
     exchange = "NSE"
-    atr = price * 0.008
+    # Use real ATR from calculate_atr()
     
     if signal == "BUY":
         stop_loss = price - (atr * 1.0)
