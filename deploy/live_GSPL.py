@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - TCS.NS
+Live Trading Script - GSPL.NS
 Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: N/A
+Win Rate: 63.64%
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -17,21 +17,19 @@ from pathlib import Path
 
 import yfinance as yf
 
-# ── Logging ───────────────────────────────────────────────────────────────────
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_L&TS.log"),
+        logging.FileHandler(LOG_DIR / "live_GSPL.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_L&TS")
+log = logging.getLogger("live_GSPL")
 
-# ── Config ────────────────────────────────────────────────────────────────────
-SYMBOL         = "L&TS.NS"
+SYMBOL         = "GSPL.NS"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
@@ -44,8 +42,6 @@ GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE   = "https://api.groww.in/v1"
 
 IST_TZ_OFFSET = 5.5
-
-# ── Helpers ────────────────────────────────────────────────────────────────────
 
 def ist_now() -> datetime:
     return datetime.utcnow() + __import__("datetime").timedelta(hours=IST_TZ_OFFSET)
@@ -173,7 +169,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_TCS.json"
+    log_file = LOG_DIR / "signals_GSPL.json"
     entries = []
     if log_file.exists():
         try:
@@ -193,7 +189,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_TCS.json"
+    cap_file = LOG_DIR / "daily_pnl_GSPL.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
@@ -204,10 +200,8 @@ def daily_loss_limit_hit() -> bool:
             pass
     return False
 
-# ── Main ──────────────────────────────────────────────────────────────────────
-
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: N/A% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s | Win Rate: 63.64%% ===", SYMBOL, STRATEGY)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
