@@ -12,7 +12,7 @@ sys.path.insert(0, WORKSPACE)
 
 
 def ist_now():
-    return datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
+    return datetime.now(timezone.ist) + timedelta(hours=5, minutes=30)
 
 
 def should_keep_running():

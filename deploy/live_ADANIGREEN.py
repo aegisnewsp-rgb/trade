@@ -51,7 +51,20 @@ SOLAR_MIN_PCT = 0.50    # Solar ETF > 50% of portfolio weight for bullish signal
 WIND_MIN_PCT = 0.30     # Wind ETF > 30% for additional confirmation
 RENEWABLE_CONFIRM = 0.55  # Renewable ETF above this = sector tailwind confirmed
 
-PARAMS = {"vwap_period": 14, "atr_multiplier": 1.5, "sector_tailwind_weight": 0.25}
+PARAMS = {"vwap_period": 14, "atr_multiplier": 1.5, "sector_tailwind_weight": 0.25,
+          "rsi_threshold": 55, "volume_multiplier": 1.2}
+
+# ── Groww Production Enhancements ───────────────────────────────────────────
+# 3-Tier Target System (1.5x / 3x / 5x risk multiples)
+TARGET_1_MULT = 1.5   # Exit 1/3 at 1.5× risk — secure profit
+TARGET_2_MULT = 3.0   # Exit 1/3 at 3× risk — main target
+TARGET_3_MULT = 5.0   # Exit remaining at 5× risk — stretch target
+
+# Smart Entry Window: 9:30 AM – 2:30 PM IST only
+SMART_ENTRY_START = dtime(9, 30)
+SMART_ENTRY_END   = dtime(14, 30)
+
+STOP_LOSS_PCT  = 0.008
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -75,6 +88,52 @@ def is_pre_market() -> bool:
     if now.weekday() >= 5:
         return False
     return dtime(9, 0) <= now.time() < dtime(9, 15)
+
+def can_new_entry() -> bool:
+    """HARD BLOCK: Only allow entries during smart session (9:30 AM - 2:30 PM IST)."""
+    now = ist_now().time()
+    if not (SMART_ENTRY_START <= now <= SMART_ENTRY_END):
+        log.info("🛑 BLOCKED: Outside smart entry window (9:30 AM - 2:30 PM IST)")
+        return False
+    return True
+
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    """Calculate RSI for momentum confirmation."""
+    rsi = [None] * period
+    if len(ohlcv) < period + 1:
+        return rsi
+    gains = []
+    losses = []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i-1]["close"]
+        gains.append(max(change, 0))
+        losses.append(max(-change, 0))
+    if len(gains) < period:
+        return rsi + [None] * (len(ohlcv) - period)
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains) + 1):
+        if i == period:
+            if avg_loss == 0:
+                rsi.append(100)
+            else:
+                rs = avg_gain / avg_loss
+                rsi.append(100 - (100 / (1 + rs)))
+        else:
+            avg_gain = (avg_gain * (period - 1) + gains[i - 1]) / period
+            avg_loss = (avg_loss * (period - 1) + losses[i - 1]) / period
+            if avg_loss == 0:
+                rsi.append(100)
+            else:
+                rs = avg_gain / avg_loss
+                rsi.append(100 - (100 / (1 + rs)))
+    return rsi
+
+def get_avg_volume(ohlcv: list, lookback: int = 20) -> float:
+    """Calculate average volume over lookback period."""
+    if len(ohlcv) < lookback:
+        return sum(ohlcv[j]["volume"] for j in range(len(ohlcv))) / len(ohlcv)
+    return sum(ohlcv[j]["volume"] for j in range(-lookback, 0)) / lookback
 
 def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     for attempt in range(retries):
@@ -242,18 +301,21 @@ def get_green_energy_sector_tailwind() -> dict:
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, dict]:
     """
     VWAP signal with green energy sector tailwind filter.
-    
-    Entry: price > VWAP + ATR AND sector tailwind active (solar/wind/renewable bullish)
-    Exit: price < VWAP - ATR OR sector turns bearish
-    
-    ADANIGREEN is a pure-play renewable energy company — sector momentum directly drives it.
+    Enhanced with RSI filter (55/45) and volume confirmation (1.2x avg).
+
+    Entry: price > VWAP + ATR AND sector tailwind active AND RSI > 55 AND volume > 1.2x avg
+    Exit: price < VWAP - ATR OR RSI < 45 OR sector turns bearish
     """
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
+    rsi_threshold = params.get("rsi_threshold", 55)
+    vol_mult      = params.get("volume_multiplier", 1.2)
     vwap_vals     = calculate_vwap(ohlcv, period)
     atr_vals      = calculate_atr(ohlcv, period)
+    rsi_vals      = calculate_rsi(ohlcv, period)
+    avg_vol       = get_avg_volume(ohlcv)
     signals       = ["HOLD"] * len(ohlcv)
-    
+
     # Get green energy sector tailwind
     sector = get_green_energy_sector_tailwind()
     log.info("🌱 Sector Tailwind: Solar=%s Wind=%s Renewable=%s | Combined=%.2f | Active=%s",
@@ -261,34 +323,41 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, dict]:
              sector["combined"], sector["tailwind_active"])
 
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
         price    = ohlcv[i]["close"]
         v        = vwap_vals[i]
         a        = atr_vals[i]
-        
-        # BUY: price > VWAP + ATR AND sector tailwind active
-        if price > v + a * atr_mult and sector["tailwind_active"]:
+        rsi      = rsi_vals[i]
+        volume   = ohlcv[i]["volume"]
+        vol_ratio = volume / avg_vol if avg_vol > 0 else 0
+
+        # BUY: price > VWAP + ATR AND sector tailwind AND RSI > 55 AND volume > 1.2x avg
+        rsi_confirm = rsi > rsi_threshold
+        vol_confirm = vol_ratio > vol_mult
+        if price > v + a * atr_mult and sector["tailwind_active"] and rsi_confirm and vol_confirm:
             signals[i] = "BUY"
-        # SELL: price < VWAP - ATR OR sector turns bearish
-        elif price < v - a * atr_mult or sector["renewable_signal"] == "BEARISH":
+        # SELL: price < VWAP - ATR OR RSI < 45 OR sector turns bearish
+        elif price < v - a * atr_mult or rsi < 45 or sector["renewable_signal"] == "BEARISH":
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    
+    current_rsi    = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 50.0
+
     vwap_current = vwap_vals[-1] if vwap_vals and vwap_vals[-1] else 0.0
     vwap_premium = ((current_price - vwap_current) / vwap_current * 100) if vwap_current > 0 else 0.0
-    
+
     metadata = {
         "vwap": vwap_current,
         "vwap_premium_pct": vwap_premium,
         "atr": current_atr,
+        "rsi": current_rsi,
         "sector": sector,
-        "entry_threshold": f"VWAP + ATR",
+        "entry_threshold": f"VWAP + ATR + RSI>{rsi_threshold} + Vol>{vol_mult}x",
     }
-    
+
     return current_signal, current_price, current_atr, metadata
 
 def place_groww_order(symbol, signal, quantity, price):

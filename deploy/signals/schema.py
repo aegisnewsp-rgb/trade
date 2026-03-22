@@ -39,7 +39,7 @@ class Signal:
         self.atr = round(atr, 4) if atr else None
         self.confidence = round(confidence, 4) if confidence else None
         self.metadata = metadata or {}
-        self.timestamp = datetime.utcnow().isoformat() + "Z"
+        self.timestamp = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5, minutes=30).isoformat() + "Z"
         self.status = "pending"
     
     def to_dict(self) -> dict:

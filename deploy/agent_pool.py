@@ -47,7 +47,7 @@ def load_status():
 
 
 def save_status(status):
-    status["last_update"] = datetime.utcnow().isoformat()
+    status["last_update"] = datetime.datetime.now(datetime.timezone.ist) + datetime.timedelta(hours=5, minutes=30).isoformat()
     with open(POOL_STATUS, "w") as f:
         json.dump(status, f, indent=2)
 
@@ -59,7 +59,7 @@ def enqueue_task(task: dict, priority: int = 5):
         "task": task["task"],
         "description": task.get("description", ""),
         "priority": priority,
-        "added_at": datetime.utcnow().isoformat(),
+        "added_at": datetime.datetime.now(datetime.timezone.ist) + datetime.timedelta(hours=5, minutes=30).isoformat(),
         "status": "pending",
     })
     tasks.sort(key=lambda x: (x["priority"], x["added_at"]))
@@ -73,7 +73,7 @@ def get_next_task():
     for t in tasks:
         if t["status"] == "pending":
             t["status"] = "claimed"
-            t["claimed_at"] = datetime.utcnow().isoformat()
+            t["claimed_at"] = datetime.datetime.now(datetime.timezone.ist) + datetime.timedelta(hours=5, minutes=30).isoformat()
             save_queue(tasks)
             return t
     return None
@@ -84,7 +84,7 @@ def mark_task_done(task_description: str, status: str = "done"):
     for t in tasks:
         if t["description"] == task_description and t["status"] == "claimed":
             t["status"] = status
-            t["completed_at"] = datetime.utcnow().isoformat()
+            t["completed_at"] = datetime.datetime.now(datetime.timezone.ist) + datetime.timedelta(hours=5, minutes=30).isoformat()
             save_queue(tasks)
             return True
     return False
@@ -169,7 +169,7 @@ TASKS:
         "pool_id": pool_id,
         "task_count": len(task_batch),
         "spawn_prompt": combined_prompt,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.datetime.now(datetime.timezone.ist) + datetime.timedelta(hours=5, minutes=30).isoformat(),
     }
 
 

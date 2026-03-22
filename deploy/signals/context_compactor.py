@@ -90,7 +90,7 @@ def compact_log() -> dict:
     keep = entries[len(entries)//2:]
     
     # Archive older half
-    arc_name = f"arc_{datetime.utcnow().strftime('%H%M%S')}_{len(entries)//2}.jsonl"
+    arc_name = f"arc_{datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5, minutes=30).strftime('%H%M%S')}_{len(entries)//2}.jsonl"
     arc_path = ARCHIVE_DIR / arc_name
     with open(arc_path, "w") as f:
         for e in entries[:len(entries)//2]:

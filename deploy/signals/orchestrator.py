@@ -252,7 +252,7 @@ Write 2-3 sentences max — what matters most from this period?
     # Write to a queue file for the next main agent turn to pick up
     queue_file = ROOT / "logs" / "delegate_queue.json"
     with open(queue_file, "a") as f:
-        f.write(json.dumps({"prompt": summary_prompt, "time": datetime.utcnow().isoformat()}) + "\n")
+        f.write(json.dumps({"prompt": summary_prompt, "time": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5, minutes=30).isoformat()}) + "\n")
     
     print(f"[DELEGATE] Summarization queued for MiniMax: {len(old_entries)} entries")
 
@@ -281,20 +281,20 @@ def _extract_errors(errors: list) -> str:
 # ─── Logging Helpers ────────────────────────────────────────────────────────────
 
 def log_signal(signal_dict: dict):
-    log_context_entry({"type": "signal", **signal_dict, "ts": datetime.utcnow().isoformat()})
+    log_context_entry({"type": "signal", **signal_dict, "ts": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5, minutes=30).isoformat()})
 
 
 def log_decision(summary: str, detail: dict = None):
     log_context_entry({
         "type": "decision", "summary": summary,
-        "detail": detail or {}, "ts": datetime.utcnow().isoformat()
+        "detail": detail or {}, "ts": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5, minutes=30).isoformat()
     })
 
 
 def log_error(summary: str, detail: str = ""):
     log_context_entry({
         "type": "error", "summary": summary, "detail": detail,
-        "ts": datetime.utcnow().isoformat()
+        "ts": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5, minutes=30).isoformat()
     })
 
 
@@ -302,7 +302,7 @@ def log_error(summary: str, detail: str = ""):
 
 def run_cycle():
     """One orchestrator cycle — process signals + compact if needed"""
-    ts = datetime.utcnow().strftime("%H:%M:%S")
+    ts = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5, minutes=30).strftime("%H:%M:%S")
     print(f"\n{'='*60}")
     print(f"ORCHESTRATOR CYCLE — {ts}")
     print(f"{'='*60}")

@@ -275,37 +275,47 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float, atr
     
     exchange = "NSE"
     stop_loss_pct = STOP_LOSS_PCT
-    target_mult = TARGET_MULT
-    
+    atr = price * stop_loss_pct  # ATR approximation
+
     if signal == "BUY":
         stop_loss = round(price * (1 - stop_loss_pct), 2)
-        target = round(price * (1 + stop_loss_pct * target_mult), 2)
+        target_1 = round(price + (TARGET_1_MULT * atr), 2)
+        target_2 = round(price + (TARGET_2_MULT * atr), 2)
+        target_3 = round(price + (TARGET_3_MULT * atr), 2)
         result = place_bo(
             exchange=exchange,
             symbol=symbol,
             transaction="BUY",
             quantity=quantity,
-            target_price=target,
+            target_price=target_3,   # Use final target for BO
             stop_loss_price=stop_loss,
             trailing_sl=0.3,
             trailing_target=0.5
         )
-        log.info("BUY BO placed: price=₹%.2f, sl=₹%.2f, tgt=₹%.2f", price, stop_loss, target)
-        
+        log.info("BUY BO placed: price=₹%.2f, sl=₹%.2f, tgt1=₹%.2f, tgt2=₹%.2f, tgt3=₹%.2f",
+                 price, stop_loss, target_1, target_2, target_3)
+        log.info("🎯 3-Tier Targets: %.0f%% at T1, %.0f%% at T2, %.0f%% at T3",
+                 TARGET_1_MULT, TARGET_2_MULT, TARGET_3_MULT)
+
     elif signal == "SELL":
         stop_loss = round(price * (1 + stop_loss_pct), 2)
-        target = round(price * (1 - stop_loss_pct * target_mult), 2)
+        target_1 = round(price - (TARGET_1_MULT * atr), 2)
+        target_2 = round(price - (TARGET_2_MULT * atr), 2)
+        target_3 = round(price - (TARGET_3_MULT * atr), 2)
         result = place_bo(
             exchange=exchange,
             symbol=symbol,
             transaction="SELL",
             quantity=quantity,
-            target_price=target,
+            target_price=target_3,
             stop_loss_price=stop_loss,
             trailing_sl=0.3,
             trailing_target=0.5
         )
-        log.info("SELL BO placed: price=₹%.2f, sl=₹%.2f, tgt=₹%.2f", price, stop_loss, target)
+        log.info("SELL BO placed: price=₹%.2f, sl=₹%.2f, tgt1=₹%.2f, tgt2=₹%.2f, tgt3=₹%.2f",
+                 price, stop_loss, target_1, target_2, target_3)
+        log.info("🎯 3-Tier Targets: %.0f%% at T1, %.0f%% at T2, %.0f%% at T3",
+                 TARGET_1_MULT, TARGET_2_MULT, TARGET_3_MULT)
     else:
         return None
     
@@ -394,39 +404,45 @@ def main():
     log.info("Strategy Parameters:")
     log.info(f"  VWAP Period: {PARAMS['vwap_period']}")
     log.info(f"  ATR Multiplier: {PARAMS['atr_multiplier']}")
-    log.info(f"  RSI Threshold: >{PARAMS['rsi_threshold']}")
-    log.info(f"  Volume Multiplier: >{PARAMS['volume_multiplier']}×")
+    log.info(f"  RSI Threshold: >{PARAMS['rsi_threshold']} (bull) / <45 (bear)")
+    log.info(f"  Volume Multiplier: >{PARAMS['volume_multiplier']}× avg")
+    log.info(f"  Smart Entry: 9:30 AM - 2:30 PM IST")
     log.info(f"  Stop Loss: {STOP_LOSS_PCT*100}% (0.8%% ATR)")
-    log.info(f"  Target: {TARGET_MULT}× ATR")
+    log.info(f"  3-Tier Targets: {TARGET_1_MULT}× / {TARGET_2_MULT}× / {TARGET_3_MULT}× risk")
     log.info(f"  Position: ₹{POSITION}")
     log.info("-" * 40)
     
-    # Generate actionable signal (only during optimal session)
+    # Generate actionable signal (only during smart entry window 9:30 AM - 2:30 PM IST)
     if signal == "BUY" and can_new_entry():
         log.info("🟢 BUY SIGNAL DETECTED")
         log.info(f"  Entry: ₹{price:.2f}")
         log.info(f"  Stop Loss: ₹{price * (1-STOP_LOSS_PCT):.2f}")
-        log.info(f"  Target: ₹{price * (1 + STOP_LOSS_PCT * TARGET_MULT):.2f}")
-        log.info(f"  Risk: ₹{price * STOP_LOSS_PCT:.2f} per share")
-        
-        # Calculate quantity
+        atr_val = price * STOP_LOSS_PCT
+        log.info(f"  Target 1: ₹{price + TARGET_1_MULT * atr_val:.2f} ({TARGET_1_MULT}× risk) - exit 1/3")
+        log.info(f"  Target 2: ₹{price + TARGET_2_MULT * atr_val:.2f} ({TARGET_2_MULT}× risk) - exit 1/3")
+        log.info(f"  Target 3: ₹{price + TARGET_3_MULT * atr_val:.2f} ({TARGET_3_MULT}× risk) - exit remaining")
+        log.info(f"  Risk: ₹{atr_val:.2f} per share | Entry Window: 9:30 AM - 2:30 PM IST ✓")
+
         quantity = int(POSITION / price)
         if quantity > 0:
             log.info(f"  Quantity: {quantity} shares (₹{quantity * price:.2f})")
             place_groww_order(SYMBOL, signal, quantity, price, atr)
-            
+
     elif signal == "SELL" and can_new_entry():
         log.info("🔴 SELL SIGNAL DETECTED")
         log.info(f"  Entry: ₹{price:.2f}")
         log.info(f"  Stop Loss: ₹{price * (1+STOP_LOSS_PCT):.2f}")
-        log.info(f"  Target: ₹{price * (1 - STOP_LOSS_PCT * TARGET_MULT):.2f}")
-        log.info(f"  Risk: ₹{price * STOP_LOSS_PCT:.2f} per share")
-        
+        atr_val = price * STOP_LOSS_PCT
+        log.info(f"  Target 1: ₹{price - TARGET_1_MULT * atr_val:.2f} ({TARGET_1_MULT}× risk) - exit 1/3")
+        log.info(f"  Target 2: ₹{price - TARGET_2_MULT * atr_val:.2f} ({TARGET_2_MULT}× risk) - exit 1/3")
+        log.info(f"  Target 3: ₹{price - TARGET_3_MULT * atr_val:.2f} ({TARGET_3_MULT}× risk) - exit remaining")
+        log.info(f"  Risk: ₹{atr_val:.2f} per share | Entry Window: 9:30 AM - 2:30 PM IST ✓")
+
         quantity = int(POSITION / price)
         if quantity > 0:
             log.info(f"  Quantity: {quantity} shares (₹{quantity * price:.2f})")
             place_groww_order(SYMBOL, signal, quantity, price, atr)
-            
+
     else:
         log.info("⚪ HOLD - No actionable signal")
         log.info("  Monitoring for next opportunity...")

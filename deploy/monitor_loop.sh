@@ -11,7 +11,7 @@ echo "[monitor] Starting background monitor loop (PID: $$)"
 echo "[monitor] Will report every ${INTERVAL}s"
 
 while true; do
-    TIMESTAMP=$(date '+%Y-%m-%d %H:%M UTC')
+    TIMESTAMP=$(date '+%Y-%m-%d %H:%M IST')
     SCRIPT_COUNT=$(ls "$DEPLOY"/live_*.py 2>/dev/null | wc -l)
     COMMIT_MSG=$(cd "$WORKSPACE" && git log --oneline -1 2>/dev/null | cut -d' ' -f2-)
     
