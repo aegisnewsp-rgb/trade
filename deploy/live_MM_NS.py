@@ -2,6 +2,7 @@
 """
 Live Trading Script - M&M.NS
 Strategy: VWAP (Volume Weighted Average Price)
+Enhanced with: Festival Season Check, Tractor Sales Proxy
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 Research: 2026-03-22 - Top momentum pick (+4.91% 5D), PE 22x, Beta 0.29
 """
@@ -13,8 +14,9 @@ import time
 import logging
 import groww_api
 import requests
-from datetime import datetime, time as dtime
+from datetime import datetime, time as dtime, month
 from pathlib import Path
+from typing import Optional, List
 
 import yfinance as yf
 
@@ -33,13 +35,21 @@ log = logging.getLogger("live_MM_NS")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "M&M.NS"
-STRATEGY       = "VWAP"
-WIN_RATE       = "N/A (new)"  # No backtest yet
+STRATEGY       = "VWAP_AUTOMOBILE_FESTIVE"
+WIN_RATE       = "N/A (new)"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+
+# Festival and seasonality
+# Key Indian festivals affecting tractor sales: Diwali, Holi, Dussehra
+FESTIVE_MONTHS = [1, 9, 10, 11]  # January (post-winter), September-October (festive), November (Diwali)
+HARVEST_SEASON_MONTHS = [2, 3, 4, 10, 11]  # Rabi harvest Oct-Nov, Kharif harvest Mar-Apr
+
+# Tractor sales proxy
+TRACTOR_SALES_ETB_SYMBOL = "TRACTORIND.NS"  # Escorts Tractor (tractor sector proxy)
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -63,6 +73,42 @@ def is_pre_market() -> bool:
     if now.weekday() >= 5:
         return False
     return dtime(9, 0) <= now.time() < dtime(9, 15)
+
+def get_festive_season_status() -> str:
+    """
+    Determine current festive/harvest season status for rural economy
+    Returns: FESTIVE_PEAK, HARVEST_ACTIVE, OFF_SEASON
+    """
+    now = ist_now()
+    month_num = now.month
+    
+    # Check for festive season
+    if month_num in FESTIVE_MONTHS:
+        return "HARVEST_ACTIVE" if month_num in HARVEST_SEASON_MONTHS else "FESTIVE_PEAK"
+    
+    # Check harvest season
+    if month_num in HARVEST_SEASON_MONTHS:
+        return "HARVEST_ACTIVE"
+    
+    return "OFF_SEASON"
+
+def get_tractor_sales_proxy() -> Optional[str]:
+    """
+    Get tractor sales indicator using Escorts Tractor as proxy
+    """
+    try:
+        tractor_etb = yf.Ticker(TRACTOR_SALES_ETB_SYMBOL).history(period="10d")
+        if len(tractor_etb) >= 2:
+            current = float(tractor_etb["Close"].iloc[-1])
+            previous = float(tractor_etb["Close"].iloc[-2])
+            if current > previous * 1.01:
+                return "STRONG"
+            elif current < previous * 0.99:
+                return "WEAK"
+            return "MODERATE"
+    except Exception as e:
+        log.warning(f"Failed to fetch tractor sales proxy: {e}")
+    return None
 
 def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     for attempt in range(retries):
@@ -102,9 +148,9 @@ def calculate_atr(ohlcv: list, period: int = 14) -> list:
         if i < period - 1:
             atr.append(None)
         elif i == period - 1:
-            atr.append(sum(tr for tr in [bar["high"] - bar["low"]][:period]))
+            atr.append(tr)
         else:
-            atr.append(atr[-1] * (period - 1) / period + tr)
+            atr.append((atr[-1] * (period - 1) + tr) / period)
         prev_close = bar["close"]
     return atr
 
@@ -133,62 +179,77 @@ def get_trade_decision(price: float, vwap: float, atr: float, multiplier: float 
         return "SELL"
     return "HOLD"
 
+def apply_festive_and_tractor_filters(signal: str, festive_status: str, 
+                                      tractor_sales: Optional[str]) -> str:
+    """
+    Apply festival season and tractor sales filters for M&M
+    M&M is heavily rural/agriculture focused
+    """
+    if signal == "HOLD":
+        return "HOLD"
+    
+    # Festival season filter
+    log.info(f"Festive/Harvest Status: {festive_status}")
+    
+    if festive_status == "OFF_SEASON":
+        if signal == "BUY":
+            log.info("Off-season - reducing BUY conviction")
+            # Convert to HOLD during off-season for BUY signals
+            return "HOLD"
+    elif festive_status == "FESTIVE_PEAK" or festive_status == "HARVEST_ACTIVE":
+        if signal == "SELL":
+            log.info("Festive/Harvest season - reducing SELL conviction")
+            # Agricultural demand is strong, reduce SELL
+            return "HOLD"
+    
+    # Tractor sales proxy filter
+    if tractor_sales is not None:
+        log.info(f"Tractor Sales Indicator: {tractor_sales}")
+        
+        if signal == "BUY" and tractor_sales == "WEAK":
+            log.info("Weak tractor sales - blocking BUY")
+            return "HOLD"
+        if signal == "SELL" and tractor_sales == "STRONG":
+            log.info("Strong tractor sales - blocking SELL")
+            return "HOLD"
+    
+    return signal
+
 def place_groww_order(symbol, signal, quantity, price):
-    """
-    Place order via Groww API or paper trade.
-    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
-    Falls back to paper trading otherwise.
-    """
+    """Place order via Groww API or paper trade."""
     import groww_api
     
     if not groww_api.is_configured():
         return groww_api.paper_trade(signal, symbol, price, quantity)
     
     exchange = "NSE"
+    atr = price * 0.008
     
     if signal == "BUY":
-        # Calculate target and stop loss  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
+        stop_loss = price - (atr * 1.0)
+        target = price + (atr * 4.0)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="BUY",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
+            exchange=exchange, symbol=symbol, transaction="BUY",
+            quantity=quantity, target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
         )
     elif signal == "SELL":
         stop_loss = price + (atr * 1.0)
         target = price - (atr * 4.0)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="SELL",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
+            exchange=exchange, symbol=symbol, transaction="SELL",
+            quantity=quantity, target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
         )
     else:
         return None
     
     if result:
-        print("Order placed: {} {} {} @ Rs{:.2f}".format(
-            signal, quantity, symbol, price))
+        print("Order placed: {} {} {} @ Rs{:.2f}".format(signal, quantity, symbol, price))
     return result
 
 def main():
-    """
-    Universal main() — detects strategy type and runs appropriate signal.
-    Works with: VWAP, ADX_TREND, TSI, RSI, MACD, Bollinger, MA_ENVELOPE, etc.
-    """
-    import sys
-    from pathlib import Path
+    """Main execution for M&M with festive season and tractor sales filters"""
     sys.path.insert(0, str(Path(__file__).parent))
     
     try:
@@ -197,180 +258,99 @@ def main():
         print("yfinance not installed: pip install yfinance")
         return
     
-    # Detect symbol from filename
-    fname = Path(__file__).stem  # e.g. "live_RELIANCE"
+    fname = Path(__file__).stem
     sym = fname.replace("live_", "").replace("_NS", ".NS").replace("_BO", ".BO")
     ticker_sym = sym.replace(".NS", "").replace(".BO", "")
-    
-    # Determine exchange suffix for yfinance
     exchange_suffix = ".NS" if ".NS" in sym else ".BO"
     yahoo_sym = ticker_sym + exchange_suffix
     
     print(f"\n{'='*60}")
-    print(f"Running: {ticker_sym} ({yahoo_sym})")
+    print(f"Running: {ticker_sym} ({yahoo_sym}) - Enhanced with Festival + Tractor Sales")
     print(f"{'='*60}")
     
-    # Fetch data
+    # Check seasonal indicators
+    festive_status = get_festive_season_status()
+    tractor_sales = get_tractor_sales_proxy()
+    
+    log.info(f"Agriculture Check | Season: {festive_status} | Tractor Sales: {tractor_sales}")
+    
+    # Fetch stock data
     try:
         ticker = yf.Ticker(yahoo_sym)
         data = ticker.history(period="3mo")
         if data.empty:
             print(f"No data for {yahoo_sym}")
             return
-        ohlcv = [[r[0], r[1], r[2], r[3], r[4]] for r in data.itertuples()]
-        print(f"Loaded {len(ohlcv)} candles")
+        
+        ohlcv_list = []
+        for idx, row in data.iterrows():
+            ohlcv_list.append([
+                float(row['Open']),
+                float(row['High']),
+                float(row['Low']),
+                float(row['Close']),
+                float(row['Volume'])
+            ])
+        print(f"Loaded {len(ohlcv_list)} candles")
     except Exception as e:
         print(f"Data fetch error: {e}")
         return
-    
-    # Prepare OHLCV list for strategy functions
-    ohlcv_list = []
-    for idx, row in data.iterrows():
-        ohlcv_list.append([
-            float(row['Open']),
-            float(row['High']),
-            float(row['Low']),
-            float(row['Close']),
-            float(row['Volume'])
-        ])
     
     if not ohlcv_list:
         print("No OHLCV data")
         return
     
-    # Detect strategy type and run appropriate signal
-    signal = None
-    price = ohlcv_list[-1][2]  # close price
+    # Build ohlcv dict list
+    ohlcv_dict = [{"open": o[0], "high": o[1], "low": o[2], "close": o[3], "volume": o[4]} for o in ohlcv_list]
     
-    try:
-        # Try strategy functions in priority order
-        if 'vwap_signal' in dir():
-            sig_result = vwap_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple) and len(sig_result) >= 2:
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        elif 'adx_signal' in dir():
-            sig_result = adx_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple):
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        elif 'rsi_signal' in dir():
-            sig_result = rsi_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple):
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        elif 'macd_signal' in dir():
-            sig_result = macd_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple):
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        else:
-            # Generic: look for any function returning signal
-            for func_name in ['signal', 'get_signal', 'generate_signal']:
-                if func_name in dir():
-                    func = eval(func_name)
-                    if callable(func):
-                        result = func(ohlcv_list)
-                        if isinstance(result, tuple):
-                            signal, price = result[0], float(result[1])
-                        elif isinstance(result, str):
-                            signal = result
-                        break
-        
-        # Default fallback: calculate basic signals
-        if not signal:
-            closes = [o[4] for o in ohlcv_list]
-            if len(closes) >= 20:
-                sma20 = sum(closes[-20:]) / 20
-                current = closes[-1]
-                if current > sma20 * 1.005:
-                    signal = "BUY"
-                    price = current
-                elif current < sma20 * 0.995:
-                    signal = "SELL"
-                    price = current
-                else:
-                    signal = "HOLD"
-                    price = current
+    # Calculate indicators
+    vwap_period = PARAMS["vwap_period"]
+    atr_period = 14
     
-    except Exception as e:
-        print(f"Signal generation error: {e}")
-        signal = "HOLD"
-        price = ohlcv_list[-1][4]
+    vwap_vals = calculate_vwap(ohlcv_dict, vwap_period)
+    atr_vals = calculate_atr(ohlcv_dict, atr_period)
     
-    # Calculate ATR for risk management
-    atr = price * 0.008  # fallback
-    if len(ohlcv_list) >= 14:
-        trs = []
-        for i in range(1, min(15, len(ohlcv_list))):
-            h = ohlcv_list[i][1]
-            l = ohlcv_list[i][2]
-            prev_c = ohlcv_list[i-1][4]
-            tr = max(h-l, abs(h-prev_c), abs(l-prev_c))
-            trs.append(tr)
-        if trs:
-            atr = sum(trs) / len(trs)
+    current_price = ohlcv_dict[-1]["close"]
+    current_vwap = vwap_vals[-1] if vwap_vals and vwap_vals[-1] is not None else current_price
+    current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else current_price * 0.015
     
-    # Output
-    print(f"\nSignal: {signal}")
-    print(f"Price:  Rs{price:.2f}")
-    print(f"ATR:    Rs{atr:.2f}")
+    signal = get_trade_decision(current_price, current_vwap, current_atr, PARAMS["atr_multiplier"])
+    filtered_signal = apply_festive_and_tractor_filters(signal, festive_status, tractor_sales)
     
-    if signal == "BUY":
-        sl = round(price - atr * 1.0, 2)
-        tgt = round(price + atr * 4.0, 2)
-        qty = max(1, int(10000 / price))
+    print(f"\nSignal: {filtered_signal} (raw: {signal})")
+    print(f"Price:  Rs{current_price:.2f}")
+    print(f"VWAP:   Rs{current_vwap:.2f}")
+    print(f"ATR:    Rs{current_atr:.2f}")
+    print(f"Season: {festive_status}")
+    print(f"Tractor Sales Proxy: {tractor_sales}")
+    
+    if filtered_signal == "BUY":
+        sl = round(current_price - current_atr * 1.0, 2)
+        tgt = round(current_price + current_atr * 4.0, 2)
+        qty = max(1, int(10000 / current_price))
         print(f"Qty:    {qty}")
-        print(f"Stop:   Rs{sl:.2f} (Rs{price-sl:.2f} risk)")
-        print(f"Target: Rs{tgt:.2f} (Rs{tgt-price:.2f} reward)")
-        
-        # Place order
-        try:
-            from signals.schema import emit_signal
-            emit_signal(
-                symbol=ticker_sym,
-                signal="BUY",
-                price=price,
-                quantity=qty,
-                strategy="AUTO_DETECTED",
-                atr=atr,
-                metadata={"source": Path(__file__).name}
-            )
-        except ImportError:
-            try:
-                from groww_api import paper_trade
-                paper_trade("BUY", ticker_sym, price, qty)
-            except:
-                pass
-    
-    elif signal == "SELL":
-        sl = round(price + atr * 1.0, 2)
-        tgt = round(price - atr * 4.0, 2)
-        qty = max(1, int(10000 / price))
-        print(f"Qty:    {qty}")
-        print(f"Stop:   Rs{sl:.2f} (Rs{sl-price:.2f} risk)")
-        print(f"Target: Rs{tgt:.2f} (Rs{price-tgt:.2f} reward)")
+        print(f"Stop:   Rs{sl:.2f} (Rs{current_price-sl:.2f} risk)")
+        print(f"Target: Rs{tgt:.2f} (Rs{tgt-current_price:.2f} reward)")
         
         try:
-            from signals.schema import emit_signal
-            emit_signal(
-                symbol=ticker_sym,
-                signal="SELL",
-                price=price,
-                quantity=qty,
-                strategy="AUTO_DETECTED",
-                atr=atr
-            )
-        except ImportError:
-            try:
-                from groww_api import paper_trade
-                paper_trade("SELL", ticker_sym, price, qty)
-            except:
-                pass
+            from groww_api import paper_trade
+            paper_trade("BUY", ticker_sym, current_price, qty)
+        except:
+            pass
+    
+    elif filtered_signal == "SELL":
+        sl = round(current_price + current_atr * 1.0, 2)
+        tgt = round(current_price - current_atr * 4.0, 2)
+        qty = max(1, int(10000 / current_price))
+        print(f"Qty:    {qty}")
+        print(f"Stop:   Rs{sl:.2f} (Rs{sl-current_price:.2f} risk)")
+        print(f"Target: Rs{tgt:.2f} (Rs{current_price-tgt:.2f} reward)")
+        
+        try:
+            from groww_api import paper_trade
+            paper_trade("SELL", ticker_sym, current_price, qty)
+        except:
+            pass
     
     else:
         print("No trade — HOLD signal")
@@ -378,4 +358,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
