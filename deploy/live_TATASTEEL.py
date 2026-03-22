@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - TATASTEEL.NS
-Strategy: VWAP + RSI + Volume + ADX + MACD (v5 enhanced)
+Strategy: VWAP + RSI + Volume + ADX + MACD (v6 enhanced)
 Win Rate: 58.06% -> Target 62%+
-Position: ₹7000 | Stop Loss: 1.3x ATR | Target: 3.0x ATR | Daily Loss Cap: 0.3%
-Enhancements over v4:
-  - ADX trend filter (20): only trade when ADX > 20 (confirm trending market)
-  - Tighter RSI bands (45/55 vs 40/60): reduce false signals
-  - MACD momentum confirmation: BUY/SELL requires MACD histogram alignment
-  - Tighter stop (1.3x ATR vs 1.5x): better risk:reward ratio
-  - Session time filter: avoid first 15min & last 15min of session (low momentum)
+Position: ₹7000 | Stop Loss: 1.3x ATR | Target: 2.5x ATR | Daily Loss Cap: 0.3%
+Enhancements over v5:
+  - RSI bands tightened: 45/55 → 48/52 → stricter quality filter for entries
+  - Volume confirm raised: 1.2x → 1.3x → stronger volume required
+  - ADX min raised: 20 → 22 → only very confirmed trends qualify
+  - Target tightened: 3.0x → 2.5x ATR → shorter target = higher win rate
 """
 
 import os
@@ -41,26 +40,26 @@ SYMBOL             = "TATASTEEL.NS"
 STRATEGY           = "VWAP+RSI+VOL+ADX+MACD"
 POSITION           = 7000
 STOP_LOSS_ATR_MULT = 1.3   # was 1.5x → tighter for better risk:reward
-TARGET_ATR_MULT    = 3.0   # was 3.5x → tighter target for better hit rate
+TARGET_ATR_MULT    = 2.5   # was 3.0x → v6: shorter target = higher hit rate
 DAILY_LOSS_CAP     = 0.003
 PARAMS = {
     "vwap_period":         14,
     "atr_multiplier":      1.3,
     "rsi_period":          14,
-    "rsi_buy_min":         45,   # was 40 → tighter, moreconfident entry
-    "rsi_sell_max":        55,   # was 60 → tighter, avoids oversold traps
+    "rsi_buy_min":         48,   # was 45 → v6: stricter RSI floor for quality entries
+    "rsi_sell_max":        52,   # was 55 → v6: stricter RSI ceiling for short exits
     "vol_sma_period":      20,
-    "vol_confirm_mult":    1.2,  # volume must exceed 20-day SMA by this factor
+    "vol_confirm_mult":    1.3, # was 1.2 → v6: require stronger volume for confirmation
     "atr_vol_period":     20,   # period for ATR volatility SMA
     "adx_period":         14,   # ADX period for trend strength
-    "adx_min":            20,   # only trade when ADX > 20 (confirmed trend)
+    "adx_min":            22,   # was 20 → v6: only trade in stronger confirmed trends
     "macd_fast":           12,   # MACD fast EMA
     "macd_slow":           26,   # MACD slow EMA
     "macd_signal":          9,   # MACD signal line
     "session_avoid_min":   15,   # avoid first/last N minutes of session
 }
 
-BENCHMARK_WIN_RATE = 0.5806   # v3 live benchmark
+BENCHMARK_WIN_RATE = 0.5806   # v3 live benchmark → v6 targeting 62%+
 TARGET_WIN_RATE   = 0.62
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
@@ -462,7 +461,7 @@ def main():
 
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s (v5 enhanced)", STRATEGY)
+    log.info("  STRATEGY : %s (v6 enhanced)", STRATEGY)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
@@ -470,8 +469,8 @@ def main():
         log.info("  ATR      : %.4f", atr)
         log.info("  STOP     : ₹%.2f  (%.1f× ATR)", stop_loss, STOP_LOSS_ATR_MULT)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_ATR_MULT)
-    log.info("  FILTERS  : RSI(%.0f-%.0f) | Vol>avg×%.1f | Vol-chop | ADX>%.0f | MACD hist",
-             PARAMS["rsi_buy_min"], PARAMS["rsi_sell_max"], PARAMS["vol_confirm_mult"], PARAMS["adx_min"])
+    log.info("  FILTERS  : RSI(%.0f-%.0f) | Vol>avg×%.1f | Vol-chop | ADX>%.0f | MACD hist | TGT=%.1fxATR",
+             PARAMS["rsi_buy_min"], PARAMS["rsi_sell_max"], PARAMS["vol_confirm_mult"], PARAMS["adx_min"], TARGET_ATR_MULT)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
     log_signal(signal, price, atr)
