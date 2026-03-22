@@ -2,15 +2,16 @@
 """
 Live Trading Script - HCLTECH.NS
 Strategy: VWAP_RSI_v2 (Enhanced VWAP + RSI Momentum + Volume Confirmation)
-Win Rate: N/A -> Target 65%+ (v2 enhanced: volume filter, tighter RSI bands)
+Enhanced with: USD/INR Exchange Rate Check, NASDAQ Correlation
+Win Rate: N/A -> Target 65%+
 Position: ₹7000 | Stop Loss: 0.8% ATR | Target: 4.0x ATR | Daily Loss Cap: 0.3%
-Research: deploy/research/2026-03-22_hcltech_research.md
 """
 
 import os, sys, json, time, logging, requests
 import groww_api
 from datetime import datetime, time as dtime
 from pathlib import Path
+from typing import Optional
 
 import yfinance as yf
 
@@ -27,7 +28,7 @@ logging.basicConfig(
 log = logging.getLogger("live_HCLTECH")
 
 SYMBOL         = "HCLTECH.NS"
-STRATEGY       = "VWAP_RSI_v2"
+STRATEGY       = "VWAP_RSI_v2_IT"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
@@ -36,11 +37,16 @@ PARAMS         = {
     "vwap_period": 14, "atr_period": 14, "atr_multiplier": 1.5,
     "rsi_period": 14, "rsi_overbought": 60, "rsi_oversold": 40,
     "volume_multiplier": 1.2, "trend_ma_period": 50,
+    "usd_inr_warning": 83.5,  # Block BUY if USD/INR above this
+    "usd_inr_support": 82.0,  # Strong BUY signal if below
 }
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE   = "https://api.groww.in/v1"
+
+# IT sector correlates with NASDAQ
+NASDAQ_SYMBOL = "^IXIC"
 
 def ist_now() -> datetime:
     return datetime.utcnow() + __import__("datetime").timedelta(hours=5, minutes=30)
@@ -74,6 +80,33 @@ def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
             log.warning("Attempt %d/%d failed: %s", attempt + 1, retries, e)
             time.sleep(2 ** attempt)
     log.error("All fetch attempts failed for %s", SYMBOL)
+    return None
+
+def get_usd_inr_rate() -> Optional[float]:
+    """Fetch current USD/INR exchange rate"""
+    try:
+        # Use USD/INR pair from yfinance
+        usd_inr = yf.Ticker("USDINR=X").history(period="5d")
+        if not usd_inr.empty:
+            return float(usd_inr["Close"].iloc[-1])
+    except Exception as e:
+        log.warning(f"Failed to fetch USD/INR: {e}")
+    return None
+
+def get_nasdaq_trend() -> Optional[str]:
+    """Fetch NASDAQ trend direction"""
+    try:
+        nasdaq = yf.Ticker(NASDAQ_SYMBOL).history(period="10d")
+        if len(nasdaq) >= 2:
+            current = float(nasdaq["Close"].iloc[-1])
+            previous = float(nasdaq["Close"].iloc[-2])
+            if current > previous * 1.005:
+                return "BULLISH"
+            elif current < previous * 0.995:
+                return "BEARISH"
+            return "NEUTRAL"
+    except Exception as e:
+        log.warning(f"Failed to fetch NASDAQ: {e}")
     return None
 
 def calculate_atr(ohlcv: list, period: int = 14) -> list:
@@ -144,11 +177,7 @@ def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
     return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
 
 def vwap_rsi_signal_v2(ohlcv: list, params: dict) -> tuple:
-    """
-    v2 VWAP + RSI: adds volume confirmation + trend MA alignment for IT sector.
-    BUY: price > VWAP + ATR band AND RSI < overbought AND volume spike AND price > MA50
-    SELL: price < VWAP - ATR band AND RSI > oversold AND volume spike AND price < MA50
-    """
+    """v2 VWAP + RSI: adds volume confirmation + trend MA alignment for IT sector."""
     period     = params["vwap_period"]
     atr_period = params["atr_period"]
     atr_mult   = params["atr_multiplier"]
@@ -190,62 +219,74 @@ def vwap_rsi_signal_v2(ohlcv: list, params: dict) -> tuple:
     current_rsi = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 50.0
     return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], current_atr, current_rsi
 
+def apply_it_sector_filters(signal: str, usd_inr: Optional[float], 
+                            nasdaq_trend: Optional[str], params: dict) -> str:
+    """Apply IT sector-specific filters: USD/INR and NASDAQ correlation"""
+    if signal == "HOLD":
+        return "HOLD"
+    
+    # USD/INR filter - IT companies benefit from weaker rupee
+    if usd_inr is not None:
+        warning_threshold = params.get("usd_inr_warning", 83.5)
+        support_threshold = params.get("usd_inr_support", 82.0)
+        
+        if usd_inr > warning_threshold:
+            log.info(f"USD/INR elevated: {usd_inr:.2f} - Negative for IT exports")
+            # Weaken SELL conviction but don't block
+            if signal == "SELL":
+                log.info("SELL signal weakened by high USD/INR")
+        
+        if usd_inr < support_threshold:
+            log.info(f"USD/INR supportive: {usd_inr:.2f} - Positive for IT exports")
+            if signal == "BUY":
+                log.info("BUY signal strengthened by low USD/INR")
+    
+    # NASDAQ correlation filter
+    if nasdaq_trend is not None:
+        if signal == "BUY" and nasdaq_trend == "BEARISH":
+            log.info(f"NASDAQ bearish - blocking BUY signal")
+            return "HOLD"
+        if signal == "SELL" and nasdaq_trend == "BULLISH":
+            log.info(f"NASDAQ bullish - blocking SELL signal")
+            return "HOLD"
+    
+    return signal
+
 def place_groww_order(symbol, signal, quantity, price):
-    """
-    Place order via Groww API or paper trade.
-    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
-    Falls back to paper trading otherwise.
-    """
+    """Place order via Groww API or paper trade."""
     import groww_api
     
     if not groww_api.is_configured():
         return groww_api.paper_trade(signal, symbol, price, quantity)
     
     exchange = "NSE"
+    atr = price * 0.008
     
     if signal == "BUY":
-        # Calculate target and stop loss  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
+        stop_loss = price - (atr * 1.0)
+        target = price + (atr * 4.0)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="BUY",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
+            exchange=exchange, symbol=symbol, transaction="BUY",
+            quantity=quantity, target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
         )
     elif signal == "SELL":
         stop_loss = price + (atr * 1.0)
         target = price - (atr * 4.0)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="SELL",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
+            exchange=exchange, symbol=symbol, transaction="SELL",
+            quantity=quantity, target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
         )
     else:
         return None
     
     if result:
-        print("Order placed: {} {} {} @ Rs{:.2f}".format(
-            signal, quantity, symbol, price))
+        print("Order placed: {} {} {} @ Rs{:.2f}".format(signal, quantity, symbol, price))
     return result
 
 def main():
-    """
-    Universal main() — detects strategy type and runs appropriate signal.
-    Works with: VWAP, ADX_TREND, TSI, RSI, MACD, Bollinger, MA_ENVELOPE, etc.
-    """
-    import sys
-    from pathlib import Path
+    """Main execution for HCLTECH with USD/INR and NASDAQ filters"""
     sys.path.insert(0, str(Path(__file__).parent))
     
     try:
@@ -254,130 +295,63 @@ def main():
         print("yfinance not installed: pip install yfinance")
         return
     
-    # Detect symbol from filename
-    fname = Path(__file__).stem  # e.g. "live_RELIANCE"
+    fname = Path(__file__).stem
     sym = fname.replace("live_", "").replace("_NS", ".NS").replace("_BO", ".BO")
     ticker_sym = sym.replace(".NS", "").replace(".BO", "")
-    
-    # Determine exchange suffix for yfinance
     exchange_suffix = ".NS" if ".NS" in sym else ".BO"
     yahoo_sym = ticker_sym + exchange_suffix
     
     print(f"\n{'='*60}")
-    print(f"Running: {ticker_sym} ({yahoo_sym})")
+    print(f"Running: {ticker_sym} ({yahoo_sym}) - Enhanced with USD/INR + NASDAQ")
     print(f"{'='*60}")
     
-    # Fetch data
+    # Fetch IT sector indicators
+    usd_inr = get_usd_inr_rate()
+    nasdaq_trend = get_nasdaq_trend()
+    
+    log.info(f"IT Sector Check | USD/INR: {usd_inr:.4f if usd_inr else 'N/A'} | NASDAQ: {nasdaq_trend}")
+    
+    # Fetch stock data
     try:
         ticker = yf.Ticker(yahoo_sym)
         data = ticker.history(period="3mo")
         if data.empty:
             print(f"No data for {yahoo_sym}")
             return
-        ohlcv = [[r[0], r[1], r[2], r[3], r[4]] for r in data.itertuples()]
-        print(f"Loaded {len(ohlcv)} candles")
+        
+        ohlcv_list = []
+        for idx, row in data.iterrows():
+            ohlcv_list.append([
+                float(row['Open']),
+                float(row['High']),
+                float(row['Low']),
+                float(row['Close']),
+                float(row['Volume'])
+            ])
+        print(f"Loaded {len(ohlcv_list)} candles")
     except Exception as e:
         print(f"Data fetch error: {e}")
         return
-    
-    # Prepare OHLCV list for strategy functions
-    ohlcv_list = []
-    for idx, row in data.iterrows():
-        ohlcv_list.append([
-            float(row['Open']),
-            float(row['High']),
-            float(row['Low']),
-            float(row['Close']),
-            float(row['Volume'])
-        ])
     
     if not ohlcv_list:
         print("No OHLCV data")
         return
     
-    # Detect strategy type and run appropriate signal
-    signal = None
-    price = ohlcv_list[-1][2]  # close price
+    # Build ohlcv dict list
+    ohlcv_dict = [{"open": o[0], "high": o[1], "low": o[2], "close": o[3], "volume": o[4]} for o in ohlcv_list]
     
-    try:
-        # Try strategy functions in priority order
-        if 'vwap_signal' in dir():
-            sig_result = vwap_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple) and len(sig_result) >= 2:
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        elif 'adx_signal' in dir():
-            sig_result = adx_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple):
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        elif 'rsi_signal' in dir():
-            sig_result = rsi_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple):
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        elif 'macd_signal' in dir():
-            sig_result = macd_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple):
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        else:
-            # Generic: look for any function returning signal
-            for func_name in ['signal', 'get_signal', 'generate_signal']:
-                if func_name in dir():
-                    func = eval(func_name)
-                    if callable(func):
-                        result = func(ohlcv_list)
-                        if isinstance(result, tuple):
-                            signal, price = result[0], float(result[1])
-                        elif isinstance(result, str):
-                            signal = result
-                        break
-        
-        # Default fallback: calculate basic signals
-        if not signal:
-            closes = [o[4] for o in ohlcv_list]
-            if len(closes) >= 20:
-                sma20 = sum(closes[-20:]) / 20
-                current = closes[-1]
-                if current > sma20 * 1.005:
-                    signal = "BUY"
-                    price = current
-                elif current < sma20 * 0.995:
-                    signal = "SELL"
-                    price = current
-                else:
-                    signal = "HOLD"
-                    price = current
+    # Get signal
+    signal, price, atr, rsi = vwap_rsi_signal_v2(ohlcv_dict, PARAMS)
+    filtered_signal = apply_it_sector_filters(signal, usd_inr, nasdaq_trend, PARAMS)
     
-    except Exception as e:
-        print(f"Signal generation error: {e}")
-        signal = "HOLD"
-        price = ohlcv_list[-1][4]
-    
-    # Calculate ATR for risk management
-    atr = price * 0.008  # fallback
-    if len(ohlcv_list) >= 14:
-        trs = []
-        for i in range(1, min(15, len(ohlcv_list))):
-            h = ohlcv_list[i][1]
-            l = ohlcv_list[i][2]
-            prev_c = ohlcv_list[i-1][4]
-            tr = max(h-l, abs(h-prev_c), abs(l-prev_c))
-            trs.append(tr)
-        if trs:
-            atr = sum(trs) / len(trs)
-    
-    # Output
-    print(f"\nSignal: {signal}")
+    print(f"\nSignal: {filtered_signal} (raw: {signal})")
     print(f"Price:  Rs{price:.2f}")
     print(f"ATR:    Rs{atr:.2f}")
+    print(f"RSI:    {rsi:.2f}")
+    print(f"USD/INR: {usd_inr:.4f if usd_inr else 'N/A'}")
+    print(f"NASDAQ: {nasdaq_trend}")
     
-    if signal == "BUY":
+    if filtered_signal == "BUY":
         sl = round(price - atr * 1.0, 2)
         tgt = round(price + atr * 4.0, 2)
         qty = max(1, int(10000 / price))
@@ -385,26 +359,13 @@ def main():
         print(f"Stop:   Rs{sl:.2f} (Rs{price-sl:.2f} risk)")
         print(f"Target: Rs{tgt:.2f} (Rs{tgt-price:.2f} reward)")
         
-        # Place order
         try:
-            from signals.schema import emit_signal
-            emit_signal(
-                symbol=ticker_sym,
-                signal="BUY",
-                price=price,
-                quantity=qty,
-                strategy="AUTO_DETECTED",
-                atr=atr,
-                metadata={"source": Path(__file__).name}
-            )
-        except ImportError:
-            try:
-                from groww_api import paper_trade
-                paper_trade("BUY", ticker_sym, price, qty)
-            except:
-                pass
+            from groww_api import paper_trade
+            paper_trade("BUY", ticker_sym, price, qty)
+        except:
+            pass
     
-    elif signal == "SELL":
+    elif filtered_signal == "SELL":
         sl = round(price + atr * 1.0, 2)
         tgt = round(price - atr * 4.0, 2)
         qty = max(1, int(10000 / price))
@@ -413,21 +374,10 @@ def main():
         print(f"Target: Rs{tgt:.2f} (Rs{price-tgt:.2f} reward)")
         
         try:
-            from signals.schema import emit_signal
-            emit_signal(
-                symbol=ticker_sym,
-                signal="SELL",
-                price=price,
-                quantity=qty,
-                strategy="AUTO_DETECTED",
-                atr=atr
-            )
-        except ImportError:
-            try:
-                from groww_api import paper_trade
-                paper_trade("SELL", ticker_sym, price, qty)
-            except:
-                pass
+            from groww_api import paper_trade
+            paper_trade("SELL", ticker_sym, price, qty)
+        except:
+            pass
     
     else:
         print("No trade — HOLD signal")
@@ -435,4 +385,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
