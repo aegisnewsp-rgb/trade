@@ -33,13 +33,15 @@ STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {
+    # Sniper-optimized params (2026-03-22 Round 4)
     "vwap_period": 14,
     "atr_multiplier": 1.5,
-    "RSI_BUY": 55,
+    "RSI_BUY": 50,
     "RSI_SELL": 45,
-    "VOL_THRESH": 1.2,
+    "VOL_THRESH": 0.5,
     "SL_PCT": 1.0,
     "TGT_PCT": 3.0,
+    "HOLD_DAYS": 5,
 }
 
 # 3-TIER EXIT SYSTEM (enhancement)

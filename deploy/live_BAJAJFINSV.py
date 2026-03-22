@@ -37,7 +37,15 @@ POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {
+    # Sniper-optimized params (2026-03-22 Round 4)
+    "vwap_period": 14,
+    "atr_multiplier": 1.5,
+    "RSI_BUY": 45,
+    "RSI_SELL": 55,
+    "VOL_THRESH": 0.75,
+    "HOLD_DAYS": 5,
+}
 
 # 3-TIER EXIT SYSTEM (enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR

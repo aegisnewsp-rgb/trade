@@ -41,7 +41,15 @@ TARGET_3_MULT = 5.0
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {
+    # Sniper-optimized params (2026-03-22 Round 4)
+    "vwap_period": 14,
+    "atr_multiplier": 1.5,
+    "RSI_BUY": 50,
+    "RSI_SELL": 45,
+    "VOL_THRESH": 1.0,
+    "HOLD_DAYS": 5,
+}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")

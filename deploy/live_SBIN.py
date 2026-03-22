@@ -47,14 +47,16 @@ NO_ENTRY_AFTER = dtime(14, 30)
 BEST_ENTRY_START = dtime(9, 30)
 BEST_ENTRY_END = dtime(14, 30)
 
-# PSU-OPTIMIZED PARAMETERS
+# Sniper-optimized params (2026-03-22 Round 4)
 # Tighter VWAP band (0.3% vs 0.5%) — SBIN mean-reverts closer to VWAP
 ENTRY_VWAP_PCT = 0.003
-# RSI filter: BUY only when RSI > 55, SELL only when RSI < 45
-ENTRY_RSI_MIN = 55
-ENTRY_RSI_MAX = 45
-# Volume 1.2x avg for entry confirmation
-ENTRY_VOL_MULT = 1.2
+# RSI filter: BUY only when RSI < 45
+ENTRY_RSI_MIN = 45
+ENTRY_RSI_MAX = 55
+# Volume 1.0x avg for entry confirmation
+ENTRY_VOL_MULT = 1.0
+# Hold for 10 days
+HOLD_DAYS = 10
 
 # 0.8% ATR stop loss (task spec)
 SL_ATR_MULT = 1.0      # 1.0x ATR = 0.8% ATR at current prices
