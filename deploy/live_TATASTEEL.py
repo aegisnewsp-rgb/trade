@@ -64,6 +64,7 @@ PARAMS = {
     "vwap_entry_margin":   0.005, # v7: price must be > VWAP + 0.5% for BUY
     "session_start_avoid": 15,   # v7: minutes to avoid at session open
     "session_end_avoid":   15,   # v7: minutes to avoid at session close
+    "hold_days": 5,              # sniper (2026-03-22)
 }
 
 BENCHMARK_WIN_RATE = 0.6154   # v7 live benchmark targeting 62%+
