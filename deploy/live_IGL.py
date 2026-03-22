@@ -78,10 +78,41 @@ def calculate_atr(ohlcv: list, period: int = 14) -> list:
         prev_close = bar["close"]
     return atr
 
-def adx_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+def check_gas_price_correlation() -> dict:
+    """
+    Check natural gas price correlation with IGL stock.
+    Uses Henry Hub Natural Gas futures (NG=F) as benchmark.
+    Positive correlation supports BUY, negative/diverging supports caution.
+    """
+    correlation = {"symbol": "NG=F", "trend": "NEUTRAL", "correlation": 0.0, "favorable": True}
+    if not YFINANCE_AVAILABLE:
+        log.warning("Gas price check: yfinance unavailable")
+        return correlation
+    try:
+        ticker = yf.Ticker("NG=F")
+        df = ticker.history(period="10d")
+        if df.empty or len(df) < 3:
+            log.warning("No gas futures data available")
+            return correlation
+        closes = df["Close"].values
+        if len(closes) >= 3:
+            gas_trend = (closes[-1] - closes[0]) / closes[0] * 100 if closes[0] > 0 else 0
+            correlation["trend"] = "BULLISH" if gas_trend > 2 else "BEARISH" if gas_trend < -2 else "NEUTRAL"
+            correlation["change_pct"] = round(gas_trend, 2)
+            correlation["current_price"] = round(closes[-1], 3)
+            # For IGL (gas distribution), rising gas prices are generally FAVORABLE (pass-through pricing)
+            correlation["favorable"] = correlation["trend"] != "BEARISH" or gas_trend > -5
+            log.info("Gas futures: $%.3f, trend=%s (%.2f%%), IGL favorable=%s",
+                     correlation["current_price"], correlation["trend"], gas_trend, correlation["favorable"])
+    except Exception as e:
+        log.warning("Gas price correlation check failed: %s", e)
+    return correlation
+
+def adx_signal(ohlcv: list, params: dict, gas_corr: dict = None) -> tuple[str, float, float]:
     """
     ADX Trend strategy: BUY when +DI > -DI with strong trend (ADX > threshold),
     SELL when -DI > +DI. Uses simplified True Range / Directional Movement.
+    Gas price correlation filter: block SELL when gas prices are rising (unfavorable for IGL).
     """
     period     = params["adx_period"]
     threshold  = params["adx_threshold"]
@@ -133,7 +164,12 @@ def adx_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         if plus_di[-1] > minus_di[-1] and plus_di[-2] <= minus_di[-2]:
             signal = "BUY"
         elif minus_di[-1] > plus_di[-1] and minus_di[-2] <= plus_di[-2]:
-            signal = "SELL"
+            # Block SELL if gas prices are rising (unfavorable for IGL gas distribution)
+            if gas_corr and gas_corr.get("trend") == "BULLISH" and not gas_corr.get("favorable", True) is False:
+                log.info("SELL signal blocked: gas prices are rising (favorable for IGL)")
+                signal = "HOLD"
+            else:
+                signal = "SELL"
         else:
             signal = "HOLD"
     else:
@@ -248,6 +284,9 @@ def main():
         print("No OHLCV data")
         return
     
+    # Check gas price correlation for IGL (gas distribution company)
+    gas_corr = check_gas_price_correlation()
+    
     # Detect strategy type and run appropriate signal
     signal = None
     price = ohlcv_list[-1][2]  # close price
@@ -261,7 +300,7 @@ def main():
             elif isinstance(sig_result, str):
                 signal = sig_result
         elif 'adx_signal' in dir():
-            sig_result = adx_signal(ohlcv_list, {})
+            sig_result = adx_signal(ohlcv_list, {}, gas_corr)
             if isinstance(sig_result, tuple):
                 signal, price = sig_result[0], float(sig_result[1])
             elif isinstance(sig_result, str):

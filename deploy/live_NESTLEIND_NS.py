@@ -161,7 +161,59 @@ def calculate_rsi(ohlcv: List[Dict], period: int = 14) -> List[float]:
             rsi_values.append(rsi)
     return rsi_values
 
-def generate_signal(ohlcv: List[Dict], rsi: List[float]) -> str:
+def check_consumer_staples_filter() -> dict:
+    """
+    Check consumer staples / FMCG sector health for NESTLEIND.
+    Uses Nifty FMCG index (^NSEFMCG) as benchmark.
+    Also checks gold/commodity prices as input cost indicator.
+    """
+    fmcg = {"symbol": "^NSEFMCG", "trend": "NEUTRAL", "strength": 0.0, "favorable": True}
+    if not YFINANCE_AVAILABLE:
+        logger.warning("Consumer staples filter: yfinance unavailable")
+        return fmcg
+    try:
+        ticker = yf.Ticker("^NSEFMCG")
+        df = ticker.history(period="5d")
+        if df.empty or len(df) < 2:
+            logger.warning("No FMCG index data available")
+            return fmcg
+        closes = df["Close"].values
+        sma5 = sum(closes[-5:]) / min(5, len(closes))
+        current = closes[-1]
+        pct_change = ((current - closes[0]) / closes[0]) * 100 if closes[0] > 0 else 0
+        
+        if current > sma5 * 1.01:
+            fmcg["trend"] = "BULLISH"
+            fmcg["strength"] = min(pct_change / 2, 5.0)
+        elif current < sma5 * 0.99:
+            fmcg["trend"] = "BEARISH"
+            fmcg["strength"] = max(pct_change / 2, -5.0)
+        fmcg["current"] = round(current, 2)
+        fmcg["sma5"] = round(sma5, 2)
+        # FMCG bullish = favorable for NESTLEIND
+        fmcg["favorable"] = fmcg["trend"] != "BEARISH"
+        logger.info("FMCG sector: %s (%.2f), strength=%.2f, favorable=%s", 
+                    fmcg["trend"], current, fmcg["strength"], fmcg["favorable"])
+        
+        # Also check gold as commodity input cost (inverse relationship)
+        try:
+            gold = yf.Ticker("GC=F")
+            gold_df = gold.history(period="5d")
+            if not gold_df.empty and len(gold_df) >= 2:
+                gold_closes = gold_df["Close"].values
+                gold_trend = ((gold_closes[-1] - gold_closes[0]) / gold_closes[0]) * 100 if gold_closes[0] > 0 else 0
+                fmcg["gold_trend_pct"] = round(gold_trend, 2)
+                # High gold prices = higher input costs = unfavorable for FMCG
+                if gold_trend > 3:
+                    fmcg["favorable"] = fmcg["favorable"] and False
+                    logger.info("High gold trend (%.2f%%) signals input cost pressure", gold_trend)
+        except Exception:
+            pass
+    except Exception as e:
+        logger.warning("Consumer staples filter check failed: %s", e)
+    return fmcg
+
+def generate_signal(ohlcv: List[Dict], rsi: List[float], staples: dict = None) -> str:
     if len(ohlcv) < LOOKBACK + 1 or len(rsi) < LOOKBACK + 1:
         return "HOLD"
     
@@ -172,12 +224,19 @@ def generate_signal(ohlcv: List[Dict], rsi: List[float]) -> str:
     
     # Bullish divergence: price lower, RSI higher
     if price_now < price_then and current_rsi > prev_rsi:
+        # Check consumer staples sector health
+        if staples and not staples.get("favorable", True):
+            logger.info("BUY signal blocked: consumer staples sector unfavorable (trend=%s)", staples.get("trend"))
+            return "HOLD"
         return "BUY"
     # Bearish divergence: price higher, RSI lower
     elif price_now > price_then and current_rsi < prev_rsi:
         return "SELL"
     # Overbought/Oversold
     if current_rsi < 30:
+        if staples and not staples.get("favorable", True):
+            logger.info("RSI oversold but consumer staples unfavorable - skipping")
+            return "HOLD"
         return "BUY"
     elif current_rsi > 70:
         return "SELL"
@@ -280,7 +339,11 @@ def main():
     rsi = calculate_rsi(ohlcv, RSI_PERIOD)
     current_price = ohlcv[-1]["close"]
     current_atr = atr[-1] if atr[-1] else (current_price * 0.02)
-    signal = generate_signal(ohlcv, rsi)
+    
+    # Check consumer staples sector health
+    staples = check_consumer_staples_filter()
+    
+    signal = generate_signal(ohlcv, rsi, staples)
     logger.info(f"Current Price: ₹{current_price:.2f} | ATR: ₹{current_atr:.2f} | RSI: {rsi[-1]:.2f}")
     logger.info(f"GENERATED SIGNAL: {signal}")
     if signal != "HOLD":

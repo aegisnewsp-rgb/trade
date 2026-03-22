@@ -143,6 +143,30 @@ def calculate_macd(ohlcv: List[Dict], fast: int = 12, slow: int = 26, signal: in
     histogram = [m - s for m, s in zip(macd_line, signal_line)]
     return macd_line, signal_line, histogram
 
+def calculate_atr_based_position_size(entry_price: float, atr: float, capital: float = 100000, risk_pct: float = 0.02) -> dict:
+    """
+    Calculate position size based on ATR-based risk management.
+    Risk: 2% of capital per trade
+    Stop loss: 1.5x ATR (more aggressive for SRF's volatility)
+    Max position capped at 2x typical size
+    """
+    risk_amount = capital * risk_pct
+    atr_stop = atr * 1.5
+    max_shares_by_risk = int(risk_amount / atr_stop)
+    max_shares_by_cap = int(capital * 0.10 / entry_price)  # Max 10% of capital
+    recommended_shares = min(max_shares_by_risk, max_shares_by_cap, 200)  # Cap at 200 shares
+    position_value = recommended_shares * entry_price
+    risk_reward_ratio = (atr * TARGET_ATR_MULT) / atr_stop if atr_stop > 0 else 0
+    return {
+        "shares": recommended_shares,
+        "position_value": round(position_value, 2),
+        "atr_stop": round(atr_stop, 2),
+        "risk_amount": round(risk_amount, 2),
+        "risk_reward": round(risk_reward_ratio, 2),
+        "max_shares_by_cap": max_shares_by_cap,
+        "max_shares_by_risk": max_shares_by_risk
+    }
+
 def generate_signal(ohlcv: List[Dict], macd_line: List[float], signal_line: List[float]) -> str:
     if len(ohlcv) < max(MACD_FAST, MACD_SLOW, MACD_SIGNAL) + 1:
         return "HOLD"
@@ -196,15 +220,21 @@ def execute_trade(signal: str, current_price: float, atr: float, state: Dict, ca
         return result
     if check_daily_loss_limit(state, capital):
         return result
-    quantity = int(POSITION_SIZE / current_price)
+    
+    # ATR-based position sizing
+    pos_info = calculate_atr_based_position_size(current_price, atr, capital)
+    quantity = pos_info["shares"]
+    
     if quantity < 1:
+        logger.warning(f"Position size too small: {quantity} shares")
         return result
+        
     if signal == "BUY":
         stop_loss = calculate_stop_loss(current_price, atr)
         target = calculate_target(current_price, atr)
-        logger.info(f"🟢 BUY: ₹{current_price:.2f} | Qty:{quantity} | SL:₹{stop_loss:.2f} | TGT:₹{target:.2f}")
+        logger.info(f"🟢 BUY: ₹{current_price:.2f} | Qty:{quantity} ({pos_info['position_value']:.0f}₹) | SL:₹{stop_loss:.2f} | TGT:₹{target:.2f} | RR:{pos_info['risk_reward']:.1f}x")
         order = groww_place_order(SYMBOL, "BUY", quantity, current_price)
-        result = {"action": "BUY", "signal": signal, "price": current_price, "quantity": quantity, "stop_loss": stop_loss, "target": target, "order": order}
+        result = {"action": "BUY", "signal": signal, "price": current_price, "quantity": quantity, "stop_loss": stop_loss, "target": target, "atr_stop": pos_info["atr_stop"], "risk_reward": pos_info["risk_reward"], "order": order}
         state["trades_today"] += 1
         state["position"] = {"entry_price": current_price, "quantity": quantity, "stop_loss": stop_loss, "target": target, "entry_time": datetime.now().isoformat()}
     elif signal == "SELL":

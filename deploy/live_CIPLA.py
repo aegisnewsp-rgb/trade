@@ -208,12 +208,13 @@ def calculate_rsi(ohlcv: List[Dict], period: int = 14) -> List[float]:
             rsi_values.append(100 - (100 / (1 + rs)))
     return rsi_values
 
-def detect_momentum_divergence(ohlcv: List[Dict], rsi: List[float]) -> str:
+def detect_momentum_divergence(ohlcv: List[Dict], rsi: List[float], sector: dict = None) -> str:
     """
     MOMENTUM_DIVERGENCE strategy:
     - Bullish divergence: price making lower lows, RSI making higher lows → BUY
     - Bearish divergence: price making higher highs, RSI making lower highs → SELL
     - RSI oversold/overbought confirmation
+    - Sector health filter for pharma defensive stance
     """
     if len(ohlcv) < LOOKBACK + 1 or len(rsi) < LOOKBACK + 1:
         return "HOLD"
@@ -225,12 +226,19 @@ def detect_momentum_divergence(ohlcv: List[Dict], rsi: List[float]) -> str:
 
     # Bullish divergence: price ↓, RSI ↑
     if price_now < price_then and current_rsi > prev_rsi:
+        # Block BUY if pharma sector unhealthy (defensive filter)
+        if sector and not sector.get("healthy", True):
+            log.info("BUY signal blocked: pharma sector unhealthy (trend=%s)", sector.get("trend"))
+            return "HOLD"
         return "BUY"
     # Bearish divergence: price ↑, RSI ↓
     elif price_now > price_then and current_rsi < prev_rsi:
         return "SELL"
     # RSI oversold / overbought zones
     if current_rsi < 30:
+        if sector and not sector.get("healthy", True):
+            log.info("RSI oversold but pharma sector unhealthy - skipping")
+            return "HOLD"
         return "BUY"
     elif current_rsi > 70:
         return "SELL"
@@ -327,7 +335,11 @@ def main():
 
     atr_vals = calculate_atr(ohlcv, ATR_PERIOD)
     rsi_vals = calculate_rsi(ohlcv, RSI_PERIOD)
-    signal   = detect_momentum_divergence(ohlcv, rsi_vals)
+    
+    # Check pharma sector health for defensive filter
+    sector = check_pharma_sector_health()
+    
+    signal   = detect_momentum_divergence(ohlcv, rsi_vals, sector)
 
     current_price = ohlcv[-1]["close"]
     current_atr  = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
