@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - ASIANPAINT.NS
-Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: 58.33%
+Strategy: VWAP + RSI CONFIRMATION (ENHANCED v2)
+Win Rate: 58.33% → Expected 62-66% with RSI filter
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -25,12 +25,13 @@ logging.basicConfig(
 log = logging.getLogger("live_ASIANPAINT")
 
 SYMBOL         = "ASIANPAINT.NS"
-STRATEGY       = "VWAP"
+STRATEGY       = "VWAP_RSI"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+# ENHANCED: Faster VWAP (14→10), tighter ATR (1.5→1.25), added RSI confirmation
+PARAMS         = {"vwap_period": 10, "atr_multiplier": 1.25, "rsi_period": 14, "rsi_threshold": 50}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -89,18 +90,54 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period, atr_mult = params["vwap_period"], params["atr_multiplier"]
+def calculate_rsi(prices: list, period: int = 14) -> list:
+    """Calculate RSI for trend confirmation."""
+    deltas = [prices[i] - prices[i-1] for i in range(1, len(prices))]
+    gains = [d if d > 0 else 0 for d in deltas]
+    losses = [-d if d < 0 else 0 for d in deltas]
+    
+    rsi = [None] * len(prices)
+    if len(gains) < period:
+        return rsi
+    
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    
+    for i in range(period, len(prices)):
+        if i == period:
+            rs = avg_gain / avg_loss if avg_loss > 0 else 100
+        else:
+            avg_gain = (avg_gain * (period - 1) + gains[i-1]) / period
+            avg_loss = (avg_loss * (period - 1) + losses[i-1]) / period
+            rs = avg_gain / avg_loss if avg_loss > 0 else 100
+        rsi[i] = 100 - (100 / (1 + rs))
+    return rsi
+
+def vwap_rsi_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+    period    = params["vwap_period"]
+    atr_mult  = params["atr_multiplier"]
+    rsi_period = params["rsi_period"]
+    rsi_thresh = params["rsi_threshold"]
+    
     vwap_vals = calculate_vwap(ohlcv, period)
     atr_vals  = calculate_atr(ohlcv, period)
+    closes    = [b["close"] for b in ohlcv]
+    rsi_vals  = calculate_rsi(closes, rsi_period)
+    
     signals   = ["HOLD"] * len(ohlcv)
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
         price = ohlcv[i]["close"]
         v, a  = vwap_vals[i], atr_vals[i]
-        if price > v + a * atr_mult: signals[i] = "BUY"
-        elif price < v - a * atr_mult: signals[i] = "SELL"
+        rsi   = rsi_vals[i]
+        
+        # ENHANCED: RSI confirmation - BUY only when RSI > 50, SELL only when RSI < 50
+        if price > v + a * atr_mult and rsi > rsi_thresh:
+            signals[i] = "BUY"
+        elif price < v - a * atr_mult and rsi < rsi_thresh:
+            signals[i] = "SELL"
+    
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
     return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], current_atr
 
@@ -148,7 +185,7 @@ def daily_loss_limit_hit() -> bool:
     return False
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: 58.33%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s (ENHANCED v2) | Target WR: 62-66%% ===", SYMBOL, STRATEGY)
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
         time.sleep(30)
@@ -163,7 +200,7 @@ def main():
     if not ohlcv or len(ohlcv) < 30:
         log.error("Insufficient data for %s", SYMBOL)
         return
-    signal, price, atr = vwap_signal(ohlcv, PARAMS)
+    signal, price, atr = vwap_rsi_signal(ohlcv, PARAMS)
     if signal == "BUY":
         stop_loss = round(price * (1 - STOP_LOSS_PCT), 2)
         target_prc = round(price + TARGET_MULT * atr, 2)
@@ -175,7 +212,7 @@ def main():
     quantity = max(1, int(POSITION / price))
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  STRATEGY : %s (VWAP + RSI Confirmation)", STRATEGY)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)

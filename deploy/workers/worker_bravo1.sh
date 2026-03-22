@@ -1,9 +1,20 @@
+#!/bin/bash
+# Worker BRAVO-1: Enhance BAJFINANCE VWAP strategy with volume confirmation
+cd /home/node/workspace/trade-project
+
+# Read the current script
+SCRIPT="deploy/live_BAJFINANCE.py"
+
+# Add volume confirmation filter to VWAP strategy
+# Enhancement: Add volume confirmation - only signal when volume > 20-day avg volume
+
+cat > "$SCRIPT.enhanced" << 'ENHANCED_SCRIPT'
 #!/usr/bin/env python3
 """
-Live Trading Script - GMRINFRA.NS
-Strategy: VWAP_RSI_VOL_v2 (Enhanced VWAP + RSI + Volume + Trend Confirmation)
-Win Rate: 63.64% -> Target 65%+ (v2 enhanced: RSI confirm, volume filter, trend MA)
+Live Trading Script - BAJFINANCE.NS
+Strategy: VWAP + Volume Confirmation Filter
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Enhanced: Volume confirmation filter added
 """
 
 import os
@@ -24,29 +35,20 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_GMRINFRA.log"),
+        logging.FileHandler(LOG_DIR / "live_BAJFINANCE.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_GMRINFRA")
+log = logging.getLogger("live_BAJFINANCE")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SYMBOL         = "GMRINFRA.NS"
-STRATEGY       = "VWAP_RSI_VOL_v2"
+SYMBOL         = "BAJFINANCE.NS"
+STRATEGY       = "VWAP+Volume"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {
-    "vwap_period": 14,
-    "atr_multiplier": 1.5,
-    "rsi_period": 14,
-    "rsi_oversold": 35,
-    "rsi_overbought": 65,
-    "volume_multiplier": 1.2,
-    "trend_ma_period": 50,
-    "atr_period": 14,
-}
+PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5, "volume_ma_period": 20}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -127,22 +129,42 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
+def calculate_volume_ma(ohlcv: list, period: int = 20) -> list:
+    """Calculate volume moving average for confirmation filter"""
+    vol_ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            vol_ma.append(None)
+        else:
+            vol_avg = sum(ohlcv[j]["volume"] for j in range(i - period + 1, i + 1)) / period
+            vol_ma.append(vol_avg)
+    return vol_ma
+
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+    """VWAP signal with volume confirmation filter"""
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
+    vol_ma_period = params.get("volume_ma_period", 20)
     vwap_vals     = calculate_vwap(ohlcv, period)
     atr_vals      = calculate_atr(ohlcv, period)
+    vol_ma        = calculate_volume_ma(ohlcv, vol_ma_period)
     signals       = ["HOLD"] * len(ohlcv)
 
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        if vwap_vals[i] is None or atr_vals[i] is None or vol_ma[i] is None:
             continue
         price    = ohlcv[i]["close"]
         v        = vwap_vals[i]
         a        = atr_vals[i]
-        if price > v + a * atr_mult:
+        current_vol = ohlcv[i]["volume"]
+        avg_vol = vol_ma[i]
+        
+        # Volume confirmation: volume must be above average
+        volume_confirmed = current_vol > avg_vol
+        
+        if price > v + a * atr_mult and volume_confirmed:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult:
+        elif price < v - a * atr_mult and volume_confirmed:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
@@ -182,7 +204,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_GMRINFRA.json"
+    log_file = LOG_DIR / "signals_BAJFINANCE.json"
     entries = []
     if log_file.exists():
         try:
@@ -202,7 +224,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_GMRINFRA.json"
+    cap_file = LOG_DIR / "daily_pnl_BAJFINANCE.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
@@ -216,7 +238,7 @@ def daily_loss_limit_hit() -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: 63.64%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s (Enhanced with Volume Filter) ===", SYMBOL, STRATEGY)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
@@ -253,7 +275,7 @@ def main():
 
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  STRATEGY : %s (Enhanced)", STRATEGY)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
@@ -276,3 +298,17 @@ def main():
 
 if __name__ == "__main__":
     main()
+ENHANCED_SCRIPT
+
+# Replace original with enhanced
+mv "$SCRIPT.enhanced" "$SCRIPT"
+
+# Verify Python syntax
+python3 -m py_compile "$SCRIPT" && echo "BRAVO-1: BAJFINANCE compile OK" || echo "BRAVO-1: BAJFINANCE compile FAILED"
+
+# Git commit
+cd /home/node/workspace/trade-project
+git add deploy/live_BAJFINANCE.py
+git commit -m "BRAVO-1: Enhance BAJFINANCE VWAP with volume confirmation filter" 2>&1 || echo "BRAVO-1: No changes to commit"
+
+echo "BRAVO-1 WORKER COMPLETE"

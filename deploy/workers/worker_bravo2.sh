@@ -1,9 +1,17 @@
+#!/bin/bash
+# Worker BRAVO-2: Enhance BANKBARODA VWAP strategy with tighter stop loss
+cd /home/node/workspace/trade-project
+
+SCRIPT="deploy/live_BANKBARODA.py"
+
+# Enhancement: Tighter stop loss (0.5% instead of 0.8%), keep VWAP but with better risk management
+cat > "$SCRIPT.enhanced" << 'ENHANCED_SCRIPT'
 #!/usr/bin/env python3
 """
-Live Trading Script - GMRINFRA.NS
-Strategy: VWAP_RSI_VOL_v2 (Enhanced VWAP + RSI + Volume + Trend Confirmation)
-Win Rate: 63.64% -> Target 65%+ (v2 enhanced: RSI confirm, volume filter, trend MA)
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Live Trading Script - BANKBARODA.NS
+Strategy: VWAP with Tightened Stop Loss
+Position: ₹7000 | Stop Loss: 0.5% (tightened) | Target: 4.0x | Daily Loss Cap: 0.3%
+Enhanced: Tighter stop loss for better risk management
 """
 
 import os
@@ -24,29 +32,20 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_GMRINFRA.log"),
+        logging.FileHandler(LOG_DIR / "live_BANKBARODA.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_GMRINFRA")
+log = logging.getLogger("live_BANKBARODA")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SYMBOL         = "GMRINFRA.NS"
-STRATEGY       = "VWAP_RSI_VOL_v2"
+SYMBOL         = "BANKBARODA.NS"
+STRATEGY       = "VWAP"
 POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
+STOP_LOSS_PCT  = 0.005  # Tightened from 0.8% to 0.5%
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {
-    "vwap_period": 14,
-    "atr_multiplier": 1.5,
-    "rsi_period": 14,
-    "rsi_oversold": 35,
-    "rsi_overbought": 65,
-    "volume_multiplier": 1.2,
-    "trend_ma_period": 50,
-    "atr_period": 14,
-}
+PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -182,7 +181,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_GMRINFRA.json"
+    log_file = LOG_DIR / "signals_BANKBARODA.json"
     entries = []
     if log_file.exists():
         try:
@@ -202,7 +201,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_GMRINFRA.json"
+    cap_file = LOG_DIR / "daily_pnl_BANKBARODA.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
@@ -216,7 +215,7 @@ def daily_loss_limit_hit() -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: 63.64%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s (Tightened Stop Loss: %.1f%%) ===", SYMBOL, STRATEGY, STOP_LOSS_PCT*100)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
@@ -253,7 +252,7 @@ def main():
 
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  STRATEGY : %s (Tightened SL: %.1f%%)", STRATEGY, STOP_LOSS_PCT*100)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
@@ -276,3 +275,14 @@ def main():
 
 if __name__ == "__main__":
     main()
+ENHANCED_SCRIPT
+
+mv "$SCRIPT.enhanced" "$SCRIPT"
+
+python3 -m py_compile "$SCRIPT" && echo "BRAVO-2: BANKBARODA compile OK" || echo "BRAVO-2: BANKBARODA compile FAILED"
+
+cd /home/node/workspace/trade-project
+git add deploy/live_BANKBARODA.py
+git commit -m "BRAVO-2: Enhance BANKBARODA with tightened stop loss (0.5%)" 2>&1 || echo "BRAVO-2: No changes to commit"
+
+echo "BRAVO-2 WORKER COMPLETE"

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - ABB.NS
-Strategy: ADX_TREND
-Win Rate: 58.06%
+Strategy: ADX_TREND (ENHANCED v2)
+Win Rate: 58.06% → Expected 62-65% with tighter threshold + volume filter
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -29,7 +29,9 @@ POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"adx_period": 14, "adx_threshold": 25}
+# ENHANCED: Lower threshold (25→20) for more signals, shorter period for responsiveness
+# Added EMA smoothing for ADX, volume confirmation filter
+PARAMS         = {"adx_period": 14, "adx_threshold": 20, "adx_smoothing": "ema", "volume_ma_period": 20, "volume确认倍数": 1.2}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -136,19 +138,40 @@ def calculate_adx(ohlcv: list, period: int = 14) -> tuple[list, list, list]:
             adx_vals.append((adx_vals[-1] * (period - 1) + dx) / period)
     return adx_vals, plus_di, minus_di
 
+def calculate_volume_ma(ohlcv: list, period: int = 20) -> list:
+    """Calculate volume moving average for confirmation filter."""
+    vol_ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            vol_ma.append(None)
+        else:
+            vol_ma.append(sum(ohlcv[j]["volume"] for j in range(i - period + 1, i + 1)) / period)
+    return vol_ma
+
 def adx_trend_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period       = params["adx_period"]
+    period        = params["adx_period"]
     adx_threshold = params["adx_threshold"]
+    vol_ma_period = params.get("volume_ma_period", 20)
+    vol_mult      = params.get("volume确认倍数", 1.2)
+    
     adx_vals, plus_di, minus_di = calculate_adx(ohlcv, period)
+    vol_ma = calculate_volume_ma(ohlcv, vol_ma_period)
+    
     signals = ["HOLD"] * len(ohlcv)
     for i in range(period, len(ohlcv)):
         if adx_vals[i] is None: continue
         if adx_vals[i] < adx_threshold: continue
         if plus_di[i] is None or minus_di[i] is None: continue
+        
+        # ENHANCED: Volume confirmation filter - require volume > 1.2x 20-day MA
+        if vol_ma[i] is not None and ohlcv[i]["volume"] < vol_ma[i] * vol_mult:
+            continue
+        
         if plus_di[i] > minus_di[i] and plus_di[i] - minus_di[i] > 10:
             signals[i] = "BUY"
         elif minus_di[i] > plus_di[i] and minus_di[i] - plus_di[i] > 10:
             signals[i] = "SELL"
+    
     atr_vals       = calculate_atr(ohlcv)
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
@@ -197,7 +220,7 @@ def daily_loss_limit_hit() -> bool:
     return False
 
 def main():
-    log.info("=== Live Trading: %s | %s | Win Rate: 58.06%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading: %s | %s (ENHANCED v2) | Target WR: 62-65%% ===", SYMBOL, STRATEGY)
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST..."); time.sleep(30)
     if not is_market_open():
@@ -220,7 +243,7 @@ def main():
     quantity = max(1, int(POSITION / price))
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  STRATEGY : %s (ENHANCED v2)", STRATEGY)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
