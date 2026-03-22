@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - DABUR.NS
-Strategy: ADX_TREND_v2 (Enhanced: lower threshold + volume + trend filter)
-Win Rate: 57.32% -> Target 62%+ (v2 enhanced)
+Strategy: ADX_TREND_v8 (Enhanced: tightened ADX + DI + volume thresholds + BB filter)
+Win Rate: 57.32% -> Target 62%+ (v8: Raised ADX threshold 20→25, DI crossover 8→12, vol 1.2→1.5, added BB)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -25,18 +25,20 @@ logging.basicConfig(
 log = logging.getLogger("live_DABUR")
 
 SYMBOL         = "DABUR.NS"
-STRATEGY       = "ADX_TREND_v2"
+STRATEGY       = "ADX_TREND_v8"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS = {
     "adx_period": 14,
-    "adx_threshold": 20,         # lowered from 25 for more signals
-    "di_crossover": 8,           # lowered from 10 for more signals
-    "volume_multiplier": 1.2,    # new: volume confirmation
-    "trend_ma_period": 50,       # new: trend filter
+    "adx_threshold": 25,         # v8: raised from 20 for stronger trends only
+    "di_crossover": 12,          # v8: raised from 8 for stronger signals
+    "volume_multiplier": 1.5,    # v8: raised from 1.2 for stronger confirmation
+    "trend_ma_period": 50,       # trend filter
     "atr_period": 14,
+    "bb_period": 20,             # v8: Bollinger Band period
+    "bb_std": 2.0,              # v8: Bollinger Band std dev
 }
 
 # 3-TIER EXIT SYSTEM (v3 enhancement)
@@ -176,29 +178,52 @@ def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
         return 0
     return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
 
+def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.0) -> tuple[list, list, list]:
+    """Returns (upper_band, middle_band, lower_band)."""
+    middle = calculate_ma(ohlcv, period)
+    upper, lower = [], []
+    for i in range(len(ohlcv)):
+        if middle[i] is None:
+            upper.append(None); lower.append(None)
+        else:
+            window = ohlcv[max(0, i - period + 1):i + 1]
+            mean = middle[i]
+            variance = sum((b["close"] - mean) ** 2 for b in window) / len(window)
+            std = variance ** 0.5
+            upper.append(mean + std_dev * std)
+            lower.append(mean - std_dev * std)
+    return upper, middle, lower
+
 def adx_trend_signal_v2(ohlcv: list, params: dict) -> tuple[str, float, float]:
     period       = params["adx_period"]
     threshold    = params["adx_threshold"]
     di_cross     = params["di_crossover"]
     trend_period = params["trend_ma_period"]
     vol_mult     = params["volume_multiplier"]
+    bb_period    = params.get("bb_period", 20)
+    bb_std       = params.get("bb_std", 2.0)
 
     adx_vals, plus_di, minus_di = calculate_adx(ohlcv, period)
     ma_vals   = calculate_ma(ohlcv, trend_period)
     avg_vol   = calculate_avg_volume(ohlcv, period)
     atr_vals  = calculate_atr(ohlcv, params["atr_period"])
+    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
 
     signals = ["HOLD"] * len(ohlcv)
-    for i in range(period + trend_period, len(ohlcv)):
+    start_idx = max(period + trend_period, bb_period)
+    for i in range(start_idx, len(ohlcv)):
         if adx_vals[i] is None or plus_di[i] is None or minus_di[i] is None:
             continue
-        if ma_vals[i] is None:
+        if ma_vals[i] is None or bb_upper[i] is None:
             continue
 
         price   = ohlcv[i]["close"]
         trend   = ma_vals[i]
         vol     = ohlcv[i]["volume"]
+        bb_up   = bb_upper[i]
+        bb_lo   = bb_lower[i]
         volume_confirmed = vol > avg_vol * vol_mult
+        bb_near_middle = bb_lo < price < bb_up  # v8: avoid extended positions
 
         # Trend filter: only trade in direction of MA
         bull_market = price > trend
@@ -210,9 +235,11 @@ def adx_trend_signal_v2(ohlcv: list, params: dict) -> tuple[str, float, float]:
 
         di_gap = plus_di[i] - minus_di[i] if plus_di[i] > minus_di[i] else minus_di[i] - plus_di[i]
 
-        if (plus_di[i] > minus_di[i] and di_gap > di_cross and bull_market and volume_confirmed):
+        if (plus_di[i] > minus_di[i] and di_gap > di_cross and bull_market
+                and volume_confirmed and bb_near_middle):
             signals[i] = "BUY"
-        elif (minus_di[i] > plus_di[i] and di_gap > di_cross and bear_market and volume_confirmed):
+        elif (minus_di[i] > plus_di[i] and di_gap > di_cross and bear_market
+                and volume_confirmed and bb_near_middle):
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
