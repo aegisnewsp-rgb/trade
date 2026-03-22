@@ -16,12 +16,13 @@ WORKSPACE = Path("/home/node/workspace/trade-project")
 DEPLOY = WORKSPACE / "deploy"
 LOG_FILE = DEPLOY / "qa_loop.log"
 
+# Clear any existing handlers to avoid duplicates
+logging.root.handlers = []
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
         logging.FileHandler(LOG_FILE),
-        logging.StreamHandler(sys.stdout),
     ],
 )
 log = logging.getLogger("qa_loop")
@@ -31,7 +32,8 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 
 
 def ist_now():
-    return datetime.utcnow()
+    from datetime import timezone
+    return datetime.now(timezone.utc)
 
 
 def send_telegram(msg: str):
