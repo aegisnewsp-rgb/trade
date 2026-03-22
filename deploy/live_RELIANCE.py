@@ -69,7 +69,7 @@ MORNING_MOMENTUM_END = dtime(10, 30)  # Morning momentum window
 
 # Smart Entry thresholds
 ENTRY_VWAP_PCT = 0.005    # price > VWAP + 0.5%
-ENTRY_RSI_MIN = 55        # RSI > 55
+ENTRY_RSI_MIN = 50        # RSI > 50
 ENTRY_VOL_MULT = 1.2      # volume > 1.2x 20-day avg
 VWAP_SLOPE_PCT = 0.0005   # VWAP must be rising (0.05% per candle)
 

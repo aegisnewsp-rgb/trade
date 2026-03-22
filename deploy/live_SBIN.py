@@ -54,7 +54,7 @@ ENTRY_VWAP_PCT = 0.003
 ENTRY_RSI_MIN = 45
 ENTRY_RSI_MAX = 55
 # Volume 1.0x avg for entry confirmation
-ENTRY_VOL_MULT = 1.0
+ENTRY_VOL_MULT = 1.0  # Volume 1.0x avg for entry confirmation
 # Hold for 10 days
 HOLD_DAYS = 10
 
