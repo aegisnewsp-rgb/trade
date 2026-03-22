@@ -1,534 +1,236 @@
 #!/usr/bin/env python3
 """
-Live Trading Script for HDFCBANK.NS
-Strategy: ADX_TREND (Trend Following)
+Live Trading Script - HDFCBANK.NS
+Strategy: ADX_TREND (Average Directional Index)
 Win Rate: 60.61%
-Position Size: ₹7,000 | Stop Loss: 0.8% ATR | Target: 4.0x ATR
-Daily Loss Cap: 0.3% of capital
-Max 1 trade per day
-
-⚠️ FOR EDUCATIONAL/PAPER TRADING USE ⚠️
-Requires GROWW_API_KEY and GROWW_API_SECRET env vars for live orders.
+Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
-import os
-import sys
-import logging
-import json
-import time
-import requests
-from datetime import datetime, timedelta, date
-from typing import Optional, List, Dict, Tuple
+import os, sys, json, time, logging, requests, math
+from datetime import datetime, time as dtime
 from pathlib import Path
 
-try:
-    import yfinance as yf
-    YFINANCE_AVAILABLE = True
-except ImportError:
-    YFINANCE_AVAILABLE = False
+import yfinance as yf
 
-# ============== CONFIGURATION ==============
-SYMBOL = "HDFCBANK.NS"
-STRATEGY = "ADX_TREND"
-BENCHMARK_WIN_RATE = 0.6061
+LOG_DIR = Path(__file__).parent / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(LOG_DIR / "live_HDFCBANK.log"),
+        logging.StreamHandler(sys.stdout),
+    ],
+)
+log = logging.getLogger("live_HDFCBANK")
 
-POSITION_SIZE = 7000
+SYMBOL         = "HDFCBANK.NS"
+STRATEGY       = "ADX_TREND"
+POSITION       = 7000
+STOP_LOSS_PCT  = 0.008
+TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-MAX_TRADES_PER_DAY = 1
-STOP_LOSS_ATR_MULT = 0.8
-TARGET_ATR_MULT = 4.0
+PARAMS         = {"adx_period": 14, "adx_threshold": 25}
 
-ADX_PERIOD = 14
-ADX_THRESHOLD = 25
-ATR_PERIOD = 14
-
-GROWW_API_KEY = os.getenv("GROWW_API_KEY")
+GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
-GROWW_API_BASE = "https://api.groww.in"
-GROWW_API_TIMEOUT = 30
+GROWW_API_BASE   = "https://api.groww.in/v1"
 
-LOG_DIR = Path("/home/node/workspace/trade-project/deploy/logs")
-STATE_FILE = Path("/home/node/workspace/trade-project/deploy/state_HDFCBANK.json")
-
-def setup_logging():
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    log_file = LOG_DIR / f"live_HDFCBANK_{date.today().isoformat()}.log"
-    
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(message)s',
-        handlers=[
-            logging.FileHandler(log_file),
-            logging.StreamHandler(sys.stdout)
-        ]
-    )
-    return logging.getLogger(__name__)
-
-logger = setup_logging()
-
-def load_state() -> Dict:
-    if STATE_FILE.exists():
-        try:
-            with open(STATE_FILE, 'r') as f:
-                return json.load(f)
-        except Exception as e:
-            logger.warning(f"Failed to load state: {e}")
-    return {
-        "trades_today": 0,
-        "last_trade_date": None,
-        "daily_pnl": 0,
-        "daily_loss": 0,
-        "position": None,
-        "last_signal": None
-    }
-
-def save_state(state: Dict):
-    try:
-        with open(STATE_FILE, 'w') as f:
-            json.dump(state, f, indent=2)
-    except Exception as e:
-        logger.error(f"Failed to save state: {e}")
-
-def reset_daily_state(state: Dict) -> Dict:
-    today = date.today().isoformat()
-    if state.get("last_trade_date") != today:
-        state["trades_today"] = 0
-        state["last_trade_date"] = today
-        state["daily_pnl"] = 0
-        state["daily_loss"] = 0
-    return state
-
-def fetch_recent_data(symbol: str, days: int = 90) -> Optional[List[Dict]]:
-    if not YFINANCE_AVAILABLE:
-        logger.error("yfinance not available")
-        return None
-    
-    try:
-        ticker = yf.Ticker(symbol)
-        df = ticker.history(period=f"{days}d")
-        
-        if df.empty:
-            logger.error(f"No data returned for {symbol}")
-            return None
-        
-        ohlcv = []
-        for idx, row in df.iterrows():
-            ohlcv.append({
-                "date": idx.isoformat(),
-                "open": float(row["Open"]),
-                "high": float(row["High"]),
-                "low": float(row["Low"]),
-                "close": float(row["Close"]),
-                "volume": int(row["Volume"])
-            })
-        
-        logger.info(f"Fetched {len(ohlcv)} days of data for {symbol}")
-        return ohlcv
-    
-    except Exception as e:
-        logger.error(f"Failed to fetch data: {e}")
-        return None
-
-def calculate_atr(ohlcv: List[Dict], period: int = 14) -> List[float]:
-    atr = []
-    prev_close = None
-    
-    for i, bar in enumerate(ohlcv):
-        high = bar["high"]
-        low = bar["low"]
-        
-        if prev_close is None:
-            tr = high - low
-        else:
-            tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
-        
-        if i < period - 1:
-            atr.append(None)
-        elif i == period - 1:
-            atr.append(tr)
-        else:
-            atr.append((atr[-1] * (period - 1) + tr) / period)
-        
-        prev_close = bar["close"]
-    
-    return atr
-
-def calculate_adx(ohlcv: List[Dict], period: int = 14) -> Tuple[List[float], List[float], List[float]]:
-    """
-    Calculate ADX (Average Directional Index) and directional indicators.
-    Returns: (adx, plus_di, minus_di)
-    """
-    if len(ohlcv) < period * 2:
-        return [0.0] * len(ohlcv), [0.0] * len(ohlcv), [0.0] * len(ohlcv)
-    
-    high = [bar["high"] for bar in ohlcv]
-    low = [bar["low"] for bar in ohlcv]
-    close = [bar["close"] for bar in ohlcv]
-    
-    # Calculate True Range and Directional Movement
-    tr_list = []
-    plus_dm_list = []
-    minus_dm_list = []
-    
-    for i in range(len(ohlcv)):
-        if i == 0:
-            tr = high[0] - low[0]
-            plus_dm = 0
-            minus_dm = 0
-        else:
-            tr = max(
-                high[i] - low[i],
-                abs(high[i] - close[i-1]),
-                abs(low[i] - close[i-1])
-            )
-            plus_dm = max(high[i] - high[i-1], 0) if (high[i] - high[i-1]) > (low[i-1] - low[i]) else 0
-            minus_dm = max(low[i-1] - low[i], 0) if (low[i-1] - low[i]) > (high[i] - high[i-1]) else 0
-        
-        tr_list.append(tr)
-        plus_dm_list.append(plus_dm)
-        minus_dm_list.append(minus_dm)
-    
-    # Smooth using Wilder's smoothing
-    def wilder_smooth(data, period):
-        result = []
-        for i in range(len(data)):
-            if i < period - 1:
-                result.append(None)
-            elif i == period - 1:
-                result.append(sum(data[:period]))
-            else:
-                result.append(result[-1] - (result[-1] / period) + data[i])
-        return result
-    
-    smoothed_tr = wilder_smooth(tr_list, period)
-    smoothed_plus_dm = wilder_smooth(plus_dm_list, period)
-    smoothed_minus_dm = wilder_smooth(minus_dm_list, period)
-    
-    # Calculate DI
-    plus_di = []
-    minus_di = []
-    dx = []
-    
-    for i in range(len(ohlcv)):
-        if smoothed_tr[i] is None or smoothed_tr[i] == 0:
-            plus_di.append(0)
-            minus_di.append(0)
-            dx.append(0)
-        else:
-            pd = (smoothed_plus_dm[i] / smoothed_tr[i]) * 100
-            md = (smoothed_minus_dm[i] / smoothed_tr[i]) * 100
-            plus_di.append(pd)
-            minus_di.append(md)
-            dx.append(abs(pd - md) / (pd + md) * 100 if (pd + md) > 0 else 0)
-    
-    # Calculate ADX (smoothed DX)
-    adx = wilder_smooth(dx, period)
-    adx = [0 if v is None else v for v in adx]
-    
-    return adx, plus_di, minus_di
-
-def generate_signal(ohlcv: List[Dict], adx: List[float], plus_di: List[float], minus_di: List[float], atr: List[float]) -> str:
-    """
-    Generate trading signal based on ADX_TREND strategy.
-    BUY: ADX above threshold and plus_DI > minus_DI (strong uptrend)
-    SELL: ADX above threshold and minus_DI > plus_DI (strong downtrend)
-    HOLD: ADX below threshold (no trend)
-    """
-    if len(ohlcv) < ADX_PERIOD * 2:
-        return "HOLD"
-    
-    i = -1
-    current_price = ohlcv[i]["close"]
-    current_adx = adx[i] if i < len(adx) else 0
-    current_plus_di = plus_di[i] if i < len(plus_di) else 0
-    current_minus_di = minus_di[i] if i < len(minus_di) else 0
-    current_atr = atr[i] if atr[i] else (current_price * 0.02)
-    
-    # Strong trend detection
-    if current_adx > ADX_THRESHOLD:
-        # Uptrend
-        if current_plus_di > current_minus_di:
-            return "BUY"
-        # Downtrend
-        elif current_minus_di > current_plus_di:
-            return "SELL"
-    
-    return "HOLD"
-
-def calculate_stop_loss(entry_price: float, atr: float) -> float:
-    return entry_price - (atr * STOP_LOSS_ATR_MULT)
-
-def calculate_target(entry_price: float, atr: float) -> float:
-    return entry_price + (atr * TARGET_ATR_MULT)
-
-def check_daily_loss_limit(state: Dict, capital: float) -> bool:
-    daily_loss_cap_amount = capital * DAILY_LOSS_CAP
-    if abs(state.get("daily_loss", 0)) >= daily_loss_cap_amount:
-        logger.warning(f"Daily loss limit reached: {abs(state['daily_loss']):.2f} >= {daily_loss_cap_amount:.2f}")
-        return True
-    return False
-
-def groww_place_order(symbol: str, transaction_type: str, quantity: int, price: float) -> Optional[Dict]:
-    if not GROWW_API_KEY or not GROWW_API_SECRET:
-        logger.info(f"📋 SIGNAL: {transaction_type} {quantity} shares of {symbol} at ₹{price:.2f}")
-        logger.info("   (No API credentials - order not placed)")
-        return None
-    
-    try:
-        headers = {
-            "Content-Type": "application/json",
-            "X-Api-Key": GROWW_API_KEY,
-            "X-Secret-Key": GROWW_API_SECRET
-        }
-        
-        payload = {
-            "symbol": symbol,
-            "transaction_type": transaction_type,
-            "quantity": quantity,
-            "price": price,
-            "order_type": "LIMIT"
-        }
-        
-        response = requests.post(
-            f"{GROWW_API_BASE}/v1/orders",
-            headers=headers,
-            json=payload,
-            timeout=GROWW_API_TIMEOUT
-        )
-        
-        if response.status_code == 200:
-            result = response.json()
-            logger.info(f"Order placed successfully: {result}")
-            return result
-        else:
-            logger.error(f"Order failed: {response.status_code} - {response.text}")
-            return None
-    
-    except requests.exceptions.Timeout:
-        logger.error("Groww API timeout")
-        return None
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Groww API error: {e}")
-        return None
-
-def groww_get_positions() -> List[Dict]:
-    if not GROWW_API_KEY or not GROWW_API_SECRET:
-        return []
-    
-    try:
-        headers = {
-            "X-Api-Key": GROWW_API_KEY,
-            "X-Secret-Key": GROWW_API_SECRET
-        }
-        
-        response = requests.get(
-            f"{GROWW_API_BASE}/v1/positions",
-            headers=headers,
-            timeout=GROWW_API_TIMEOUT
-        )
-        
-        if response.status_code == 200:
-            return response.json().get("positions", [])
-        else:
-            return []
-    
-    except Exception:
-        return []
-
-def execute_trade(signal: str, current_price: float, atr: float, state: Dict, capital: float) -> Dict:
-    result = {"action": "NONE", "signal": signal, "price": current_price}
-    
-    state = reset_daily_state(state)
-    
-    if signal == "HOLD":
-        return result
-    
-    if state["trades_today"] >= MAX_TRADES_PER_DAY:
-        logger.info("Max trades reached for today")
-        return result
-    
-    if check_daily_loss_limit(state, capital):
-        return result
-    
-    quantity = int(POSITION_SIZE / current_price)
-    if quantity < 1:
-        logger.warning(f"Position size too small: ₹{POSITION_SIZE} / ₹{current_price}")
-        return result
-    
-    if signal == "BUY":
-        stop_loss = calculate_stop_loss(current_price, atr)
-        target = calculate_target(current_price, atr)
-        
-        logger.info(f"🟢 BUY SIGNAL: ₹{current_price:.2f}")
-        logger.info(f"   Quantity: {quantity} | Position: ₹{quantity * current_price:.2f}")
-        logger.info(f"   Stop Loss: ₹{stop_loss:.2f} | Target: ₹{target:.2f}")
-        
-        order = groww_place_order(SYMBOL, "BUY", quantity, current_price)
-        
-        result = {
-            "action": "BUY",
-            "signal": signal,
-            "price": current_price,
-            "quantity": quantity,
-            "stop_loss": stop_loss,
-            "target": target,
-            "order": order
-        }
-        
-        state["trades_today"] += 1
-        state["position"] = {
-            "entry_price": current_price,
-            "quantity": quantity,
-            "stop_loss": stop_loss,
-            "target": target,
-            "entry_time": datetime.now().isoformat()
-        }
-    
-    elif signal == "SELL":
-        if not state.get("position"):
-            logger.info(f"🔴 SELL SIGNAL: ₹{current_price:.2f} (No long position to close)")
-            return result
-        
-        pos = state["position"]
-        quantity = pos["quantity"]
-        
-        logger.info(f"🔴 SELL SIGNAL: ₹{current_price:.2f}")
-        logger.info(f"   Closing position from ₹{pos['entry_price']:.2f}")
-        
-        pnl = (current_price - pos["entry_price"]) * quantity
-        logger.info(f"   P&L: ₹{pnl:.2f}")
-        
-        order = groww_place_order(SYMBOL, "SELL", quantity, current_price)
-        
-        result = {
-            "action": "SELL",
-            "signal": signal,
-            "price": current_price,
-            "quantity": quantity,
-            "entry_price": pos["entry_price"],
-            "pnl": pnl,
-            "order": order
-        }
-        
-        state["trades_today"] += 1
-        state["daily_pnl"] += pnl
-        if pnl < 0:
-            state["daily_loss"] += pnl
-        state["position"] = None
-    
-    save_state(state)
-    return result
+def ist_now() -> datetime:
+    return datetime.utcnow() + __import__("datetime").timedelta(hours=5.5)
 
 def is_market_open() -> bool:
-    now = datetime.now()
-    
-    if now.weekday() >= 5:
-        return False
-    
-    hour = now.hour
-    minute = now.minute
-    
-    if hour < 9 or hour >= 16:
-        return False
-    if hour == 9 and minute < 15:
-        return False
-    if hour == 15 and minute >= 30:
-        return False
-    
-    return True
+    now = ist_now()
+    return now.weekday() < 5 and dtime(9, 15) <= now.time() <= dtime(15, 30)
 
-def wait_for_market_open():
-    now = datetime.now()
-    
-    if now.weekday() >= 5:
-        logger.info("Weekend - market closed")
-        return False
-    
-    if now.hour < 9:
-        logger.info("Pre-market: waiting for market open at 9:15 AM...")
-        return True
-    
-    if now.hour == 9 and now.minute < 15:
-        logger.info("Pre-market: waiting for market open at 9:15 AM...")
-        return True
-    
-    return True
+def is_pre_market() -> bool:
+    now = ist_now()
+    return now.weekday() < 5 and dtime(9, 0) <= now.time() < dtime(9, 15)
+
+def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
+    for attempt in range(retries):
+        try:
+            df = yf.Ticker(SYMBOL).history(period=f"{days}d")
+            if df.empty:
+                raise ValueError("Empty dataframe")
+            ohlcv = [
+                {"date": str(idx.date()), "open": float(r["Open"]), "high": float(r["High"]),
+                 "low": float(r["Low"]), "close": float(r["Close"]), "volume": int(r["Volume"])}
+                for idx, r in df.iterrows()
+            ]
+            log.info("Fetched %d candles for %s", len(ohlcv), SYMBOL)
+            return ohlcv
+        except Exception as e:
+            log.warning("Attempt %d/%d failed: %s", attempt + 1, retries, e)
+            time.sleep(2 ** attempt)
+    log.error("All fetch attempts failed for %s", SYMBOL)
+    return None
+
+def calculate_atr(ohlcv: list, period: int = 14) -> list:
+    atr, prev_close = [], None
+    for i, bar in enumerate(ohlcv):
+        tr = bar["high"] - bar["low"] if prev_close is None else max(
+            bar["high"] - bar["low"], abs(bar["high"] - prev_close), abs(bar["low"] - prev_close))
+        if i < period - 1: atr.append(None)
+        elif i == period - 1: atr.append(tr)
+        else: atr.append((atr[-1] * (period - 1) + tr) / period)
+        prev_close = bar["close"]
+    return atr
+
+def adx_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+    """
+    ADX Trend strategy: BUY when +DI > -DI with strong trend (ADX > threshold),
+    SELL when -DI > +DI. Uses simplified True Range / Directional Movement.
+    """
+    period     = params["adx_period"]
+    threshold  = params["adx_threshold"]
+
+    high  = [bar["high"] for bar in ohlcv]
+    low   = [bar["low"]  for bar in ohlcv]
+    close = [bar["close"] for bar in ohlcv]
+
+    tr_list = [high[i] - low[i]] + [
+        max(high[i] - low[i], abs(high[i] - close[i - 1]), abs(low[i] - close[i - 1]))
+        for i in range(1, len(ohlcv))
+    ]
+
+    plus_dm = [0.0] * len(ohlcv)
+    minus_dm = [0.0] * len(ohlcv)
+    for i in range(1, len(ohlcv)):
+        up_move  = high[i] - high[i - 1]
+        down_move = low[i - 1] - low[i]
+        plus_dm[i]  = up_move if up_move > down_move and up_move > 0 else 0.0
+        minus_dm[i] = down_move if down_move > up_move and down_move > 0 else 0.0
+
+    # Smooth with EMA
+    def ema(data, period):
+        k = 2 / (period + 1)
+        result = [data[0]]
+        for v in data[1:]:
+            result.append(v * k + result[-1] * (1 - k))
+        return result
+
+    if len(ohlcv) < period * 2:
+        return "HOLD", close[-1], 0.0
+
+    tr_smooth  = ema(tr_list, period)
+    plus_dm_sm = ema(plus_dm, period)
+    minus_dm_sm = ema(minus_dm, period)
+
+    plus_di  = [100 * plus_dm_sm[i] / tr_smooth[i] if tr_smooth[i] != 0 else 0 for i in range(len(ohlcv))]
+    minus_di = [100 * minus_dm_sm[i] / tr_smooth[i] if tr_smooth[i] != 0 else 0 for i in range(len(ohlcv))]
+
+    dx = [100 * abs(plus_di[i] - minus_di[i]) / (plus_di[i] + minus_di[i])
+          if (plus_di[i] + minus_di[i]) != 0 else 0 for i in range(len(ohlcv))]
+    adx_vals = ema(dx, period)
+
+    if len(adx_vals) < 2:
+        return "HOLD", close[-1], 0.0
+
+    # Signal: trending ADX with directional crossover
+    if adx_vals[-1] > threshold:
+        if plus_di[-1] > minus_di[-1] and plus_di[-2] <= minus_di[-2]:
+            signal = "BUY"
+        elif minus_di[-1] > plus_di[-1] and minus_di[-2] <= plus_di[-2]:
+            signal = "SELL"
+        else:
+            signal = "HOLD"
+    else:
+        signal = "HOLD"
+
+    atr_vals = calculate_atr(ohlcv, period)
+    current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
+    return signal, close[-1], current_atr
+
+def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
+    if not GROWW_API_KEY or not GROWW_API_SECRET:
+        return None
+    url = f"{GROWW_API_BASE}/orders"
+    payload = {"symbol": symbol, "exchange": "NSE",
+               "transaction": "BUY" if signal == "BUY" else "SELL",
+               "quantity": quantity, "price": round(price, 2),
+               "order_type": "LIMIT", "product": "CNC"}
+    headers = {"Authorization": f"Bearer {GROWW_API_KEY}",
+               "X-Api-Secret": GROWW_API_SECRET, "Content-Type": "application/json"}
+    for attempt in range(3):
+        try:
+            resp = requests.post(url, json=payload, headers=headers, timeout=10)
+            if resp.status_code in (200, 201):
+                log.info("Groww order placed: %s", resp.json())
+                return resp.json()
+            log.warning("Groww API attempt %d: HTTP %d – %s", attempt + 1, resp.status_code, resp.text)
+        except Exception as e:
+            log.warning("Groww order attempt %d failed: %s", attempt + 1, e)
+        time.sleep(2 ** attempt)
+    log.error("Groww order failed after 3 retries for %s", symbol)
+    return None
+
+def log_signal(signal: str, price: float, atr: float):
+    log_file = LOG_DIR / "signals_HDFCBANK.json"
+    entries = json.loads(log_file.read_text()) if log_file.exists() else []
+    entries.append({"timestamp": ist_now().isoformat(), "symbol": SYMBOL, "strategy": STRATEGY,
+                    "signal": signal, "price": round(price, 4), "atr": round(atr, 4)})
+    log_file.write_text(json.dumps(entries[-500:], indent=2))
+    log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
+
+def daily_loss_limit_hit() -> bool:
+    cap_file = LOG_DIR / "daily_pnl_HDFCBANK.json"
+    today_str = ist_now().strftime("%Y-%m-%d")
+    if cap_file.exists():
+        try:
+            data = json.loads(cap_file.read_text())
+            if data.get("date") == today_str and data.get("loss_pct", 0) >= DAILY_LOSS_CAP:
+                return True
+        except Exception:
+            pass
+    return False
 
 def main():
-    logger.info("=" * 60)
-    logger.info(f"LIVE TRADING - {SYMBOL} | {STRATEGY}")
-    logger.info(f"Win Rate: {BENCHMARK_WIN_RATE * 100:.2f}%")
-    logger.info(f"Position Size: ₹{POSITION_SIZE:,}")
-    logger.info(f"Stop Loss: {STOP_LOSS_ATR_MULT * 100:.1f}% ATR")
-    logger.info(f"Target: {TARGET_ATR_MULT}x ATR")
-    logger.info("=" * 60)
-    
-    state = load_state()
-    state = reset_daily_state(state)
-    logger.info(f"State loaded: {state.get('trades_today', 0)} trades today")
-    
-    CAPITAL = 100000
-    
-    if check_daily_loss_limit(state, CAPITAL):
-        logger.info("Daily loss limit already reached. Exiting.")
-        sys.exit(0)
-    
-    if not wait_for_market_open():
-        sys.exit(0)
-    
-    logger.info("Pre-market warmup: Fetching data...")
-    
-    ohlcv = fetch_recent_data(SYMBOL, 90)
-    if not ohlcv:
-        logger.error("Failed to fetch data. Exiting.")
-        sys.exit(1)
-    
-    atr = calculate_atr(ohlcv, ATR_PERIOD)
-    adx, plus_di, minus_di = calculate_adx(ohlcv, ADX_PERIOD)
-    
-    current_price = ohlcv[-1]["close"]
-    current_atr = atr[-1] if atr[-1] else (current_price * 0.02)
-    signal = generate_signal(ohlcv, adx, plus_di, minus_di, atr)
-    
-    logger.info(f"Current Price: ₹{current_price:.2f}")
-    logger.info(f"Current ATR: ₹{current_atr:.2f}")
-    logger.info(f"Current ADX: {adx[-1]:.2f}")
-    logger.info(f"+DI: {plus_di[-1]:.2f} | -DI: {minus_di[-1]:.2f}")
-    logger.info(f"GENERATED SIGNAL: {signal}")
-    
-    if signal != "HOLD":
-        result = execute_trade(signal, current_price, current_atr, state, CAPITAL)
-        state["last_signal"] = signal
-        
-        if result["action"] != "NONE":
-            logger.info(f"Trade executed: {result}")
+    log.info("=== Live Trading Script: %s | %s | Win Rate: 60.61%% ===", SYMBOL, STRATEGY)
+    while is_pre_market():
+        log.info("Pre-market warmup – waiting until 9:15 IST...")
+        time.sleep(30)
+    if not is_market_open():
+        log.info("Market is closed. Exiting.")
+        return
+    if daily_loss_limit_hit():
+        log.warning("Daily loss cap (0.3%%) hit – skipping trading today.")
+        return
+    log.info("Market is open. Fetching data...")
+    ohlcv = fetch_recent_data(days=90)
+    if not ohlcv or len(ohlcv) < 30:
+        log.error("Insufficient data for %s", SYMBOL)
+        return
+    signal, price, atr = adx_signal(ohlcv, PARAMS)
+    if signal == "BUY":
+        stop_loss = round(price * (1 - STOP_LOSS_PCT), 2)
+        target_prc = round(price + TARGET_MULT * atr, 2)
+    elif signal == "SELL":
+        stop_loss = round(price * (1 + STOP_LOSS_PCT), 2)
+        target_prc = round(price - TARGET_MULT * atr, 2)
     else:
-        logger.info("No trade - HOLD signal")
-    
-    if state.get("position"):
-        pos = state["position"]
-        pos_price = pos["entry_price"]
-        stop_loss = pos["stop_loss"]
-        target = pos["target"]
-        
-        logger.info(f"Open Position:")
-        logger.info(f"   Entry: ₹{pos_price:.2f}")
-        logger.info(f"   Current: ₹{current_price:.2f}")
-        logger.info(f"   Stop Loss: ₹{stop_loss:.2f}")
-        logger.info(f"   Target: ₹{target:.2f}")
-        
-        pnl_pct = ((current_price - pos_price) / pos_price) * 100
-        logger.info(f"   P&L: {pnl_pct:.2f}")
-        
-        if current_price <= stop_loss:
-            logger.info("STOP LOSS HIT!")
-        elif current_price >= target:
-            logger.info("TARGET REACHED!")
-    
-    logger.info("=" * 60)
-    logger.info("Script completed successfully")
-    
-    return 0
+        stop_loss, target_prc = 0.0, 0.0
+    quantity = max(1, int(POSITION / price))
+    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    log.info("  SYMBOL   : %s", SYMBOL)
+    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  SIGNAL   : ★ %s ★", signal)
+    log.info("  PRICE    : ₹%.2f", price)
+    log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
+    if atr > 0:
+        log.info("  ATR      : %.4f", atr)
+        log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
+        log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
+    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    log_signal(signal, price, atr)
+    if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
+        result = place_groww_order(SYMBOL, signal, quantity, price)
+        if result:
+            log.info("✓ Order executed via Groww: %s", result)
+        else:
+            log.warning("⚠ Groww order could not be placed – signal still printed/logged.")
+    elif signal != "HOLD":
+        log.info("📋 No Groww credentials found – signal printed only (paper mode).")
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
