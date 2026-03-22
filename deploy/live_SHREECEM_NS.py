@@ -64,8 +64,9 @@ RSI_PERIOD = 14
 RSI_OVERSOLD = 45           # RSI oversold threshold for BUY
 RSI_OVERBOUGHT = 55        # RSI overbought threshold for SELL
 VOLUME_MA_PERIOD = 20
-VOLUME_THRESHOLD = 1.5     # v3: was 1.3 - higher quality volume confirm
+VOLUME_THRESHOLD = 1.2     # volume must be >= 1.2x avg for signal
 MIN_ATR_PCT = 0.015         # Min ATR as % of price (1.5%) - avoid low vol
+TRAIL_ATR_MULT = 0.3
 
 GROWW_API_KEY = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")

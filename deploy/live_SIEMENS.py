@@ -50,7 +50,9 @@ PARAMS         = {
     "mom_threshold":   0.0,   # momentum > 0 for BUY
     "rsi_buy_min":     55,    # RSI must be >= 55 for BUY signal
     "rsi_sell_max":    45,    # RSI must be <= 45 for SELL signal
+    "volume_threshold": 1.2,  # volume must be >= 1.2x avg for signal
 }
+TRAIL_ATR_MULT  = 0.3
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
