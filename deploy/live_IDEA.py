@@ -90,6 +90,27 @@ def calculate_atr(ohlcv: list, period: int = 14) -> list:
         prev_close = bar["close"]
     return atr
 
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    gains = []
+    losses = []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i-1]["close"]
+        gains.append(max(change, 0))
+        losses.append(max(-change, 0))
+    rsi = []
+    for i in range(len(gains)):
+        if i < period - 1:
+            rsi.append(None)
+        elif i == period - 1:
+            avg_gain = sum(gains[i-period+1:i+1]) / period
+            avg_loss = sum(losses[i-period+1:i+1]) / period
+            rsi.append(100 if avg_loss == 0 else 100 - (100 / (1 + avg_gain / avg_loss)))
+        else:
+            avg_gain = (rsi[-1] * (period - 1) + gains[i]) / period
+            avg_loss = (losses[-1] * (period - 1) + losses[i]) / period
+            rsi.append(100 if avg_loss == 0 else 100 - (100 / (1 + avg_gain / avg_loss)))
+    return [None] + rsi
+
 def calculate_ma(prices: list, period: int) -> list:
     ma = []
     for i in range(len(prices)):
@@ -99,7 +120,7 @@ def calculate_ma(prices: list, period: int) -> list:
             ma.append(sum(prices[i - period + 1:i + 1]) / period)
     return ma
 
-def volume_divergence_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+def volume_divergence_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
     ma_period     = params["ma_period"]
     vol_period    = params["volume_ma_period"]
     div_threshold = params["div_threshold"]
@@ -109,27 +130,32 @@ def volume_divergence_signal(ohlcv: list, params: dict) -> tuple[str, float, flo
 
     ma_vals  = calculate_ma(closes,  ma_period)
     vol_ma   = calculate_ma(volumes, vol_period)
+    rsi_vals = calculate_rsi(ohlcv, RSI_PERIOD)
 
     signals = ["HOLD"] * len(ohlcv)
     for i in range(ma_period, len(ohlcv)):
-        if ma_vals[i] is None or vol_ma[i] is None or vol_ma[i] == 0:
+        if ma_vals[i] is None or vol_ma[i] is None or vol_ma[i] == 0 or rsi_vals[i] is None:
             continue
         price      = closes[i]
         prev_price = closes[i - 1]
         vol_ratio  = volumes[i] / vol_ma[i]
+        r          = rsi_vals[i]
 
-        # Bullish divergence: price drops but volume surges
+        # Bullish divergence: price drops but volume surges + RSI oversold
         if price < ma_vals[i] and vol_ratio > (1 + div_threshold):
-            signals[i] = "BUY"
-        # Bearish divergence: price rises but volume drops
+            if r < RSI_OVERSOLD:
+                signals[i] = "BUY"
+        # Bearish divergence: price rises but volume drops + RSI overbought
         elif price > ma_vals[i] and vol_ratio < (1 - div_threshold):
-            signals[i] = "SELL"
+            if r > RSI_OVERBOUGHT:
+                signals[i] = "SELL"
 
     atr_vals = calculate_atr(ohlcv)
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return current_signal, current_price, current_atr
+    current_rsi    = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 50.0
+    return current_signal, current_price, current_atr, current_rsi
 
 def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
     if not GROWW_API_KEY or not GROWW_API_SECRET: return None

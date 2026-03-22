@@ -248,7 +248,7 @@ def daily_loss_limit_hit() -> bool:
     return False
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Position: ₹%d ===", SYMBOL, STRATEGY, POSITION)
+    log.info("=== Live Trading: %s | %s | Win Rate: N/A -> Target 65%%+ (v2 enhanced IT sector) ===", SYMBOL, STRATEGY)
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
         time.sleep(30)
@@ -259,11 +259,11 @@ def main():
         log.warning("Daily loss cap (0.3%%) hit – skipping trading today.")
         return
     log.info("Market is open. Fetching data...")
-    ohlcv = fetch_recent_data(days=90)
-    if not ohlcv or len(ohlcv) < 30:
+    ohlcv = fetch_recent_data(days=120)
+    if not ohlcv or len(ohlcv) < 60:
         log.error("Insufficient data for %s", SYMBOL)
         return
-    signal, price, atr, rsi = vwap_momentum_signal(ohlcv, PARAMS)
+    signal, price, atr, rsi = vwap_rsi_signal_v2(ohlcv, PARAMS)
     if signal == "BUY":
         stop_loss  = round(price * (1 - STOP_LOSS_PCT), 2)
         target_prc = round(price + TARGET_MULT * atr, 2)
@@ -276,6 +276,7 @@ def main():
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
     log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  v2 ENH   : VWAP + RSI(40/60) + Vol(1.2x) + ATR×1.5 + MA50 trend (IT sector)")
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
