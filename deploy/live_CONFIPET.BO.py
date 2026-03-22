@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""Live Trading Script - CONFIPET.BO
-Strategy: VWAP | Win Rate: 63.64% | Position: ₹7000 | Stop: 0.8% ATR | Target: 4.0× ATR"""
+"""Live Trading Script - CONFIPET.BO"""
 
 import os, sys, json, time, logging, requests
 from datetime import datetime, time as dtime
@@ -51,11 +50,14 @@ def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
         try:
             df = yf.Ticker(SYMBOL).history(period=f"{days}d")
             if df.empty: raise ValueError("Empty dataframe")
-            ohlcv = [{
-                "date": str(idx.date()), "open": float(row["Open"]),
-                "high": float(row["High"]), "low": float(row["Low"]),
-                "close": float(row["Close"]), "volume": int(row["Volume"]),
-            } for idx, row in df.iterrows()]
+            ohlcv = [
+                {
+                    "date": str(idx.date()), "open": float(row["Open"]),
+                    "high": float(row["High"]), "low": float(row["Low"]),
+                    "close": float(row["Close"]), "volume": int(row["Volume"]),
+                }
+                for idx, row in df.iterrows()
+            ]
             log.info("Fetched %d candles for %s", len(ohlcv), SYMBOL)
             return ohlcv
         except Exception as e:
@@ -99,10 +101,10 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
 
 def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
     if not GROWW_API_KEY or not GROWW_API_SECRET: return None
-    url = f"GROWW_API_BASE/orders"
+    url = f"{GROWW_API_BASE}/orders"
     payload = {"symbol": symbol, "exchange": EXCHANGE, "transaction": "BUY" if signal == "BUY" else "SELL",
                 "quantity": quantity, "price": round(price, 2), "order_type": "LIMIT", "product": "CNC"}
-    headers = {"Authorization": f"Bearer GROWW_API_KEY", "X-Api-Secret": "GROWW_API_SECRET", "Content-Type": "application/json"}
+    headers = {"Authorization": f"Bearer {GROWW_API_KEY}", "X-Api-Secret": GROWW_API_SECRET, "Content-Type": "application/json"}
     for attempt in range(3):
         try:
             resp = requests.post(url, json=payload, headers=headers, timeout=10)
