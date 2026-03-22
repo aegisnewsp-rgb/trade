@@ -1,39 +1,47 @@
-# NSE Market Research - 2026-03-22
+# NSE Market Research - March 22, 2026
 
-## Top Gainers Today (NSE)
+## Top NSE Gainers Today
 
-| Stock | Price | Day's Change | Sector |
-|-------|-------|--------------|--------|
-| Brainbees Solutions | 250.87 | +19.43% | Miscellaneous |
-| Happiest Minds | 410.85 | +10.55% | IT Services |
-| Olectra Greentech | 1097.40 | +9.65% | Telecom |
-| AWL Agri | 192.10 | +8.97% | Consumer Food |
-| Raymond Lifestyle | 869.20 | +8.08% | Textiles |
-| Guj Mineral | 575.70 | +7.78% | Mining |
-| IOB | 33.72 | +6.54% | PSU Bank |
-| C E Info Systems (MapMyIndia) | 915.70 | +6.05% | Software |
-| Escorts Kubota | 3059.40 | +5.96% | Automobile |
-| Schaeffler India | 4186.50 | +5.75% | Bearings |
+| Rank | Stock | Price | Change | % Gain |
+|------|-------|-------|--------|--------|
+| 1 | Brainbees Solutions | 250.87 | +40.81 | +19.43% |
+| 2 | Happiest Minds | 410.85 | +39.20 | +10.55% |
+| 3 | Olectra Greentech | 1,097.40 | +96.60 | +9.65% |
+| 4 | AWL Agri | 192.10 | +15.82 | +8.97% |
+| 5 | Raymond Lifestyle | 869.20 | +65.00 | +8.08% |
+| 6 | Gujarat Mineral | 575.70 | +41.55 | +7.78% |
+| 7 | IOB | 33.72 | +2.07 | +6.54% |
+| 8 | C.E. Info Systems (MapMyIndia) | 915.70 | +52.20 | +6.05% |
+| 9 | Escorts Kubota | 3,059.40 | +172.20 | +5.96% |
+| 10 | Schaeffler India | 4,186.50 | +227.50 | +5.75% |
 
-## Selected for Trading: HAPPSTMIND.NS
+## Analysis
 
-**Why Happiest Minds (HAPPSTMIND):**
-- IT services sector - follows similar patterns to INFY, TCS
-- Strong momentum today (+10.55%)
-- Mid-cap IT with growth potential
-- Not yet in existing portfolio
+**Brainbees Solutions (BSL06)** - Top performer with 19.43% gain. Baby care products company showing strong momentum.
 
-**Symbol:** HAPPSTMIND.NS
-**Exchange:** NSE
-**Sector:** IT Services / Consulting
-**Price (approx):** ₹410.85
+**Key Observations:**
+- Top gainer Brainbees Solutions showing exceptional momentum
+- Several IT stocks (Happiest Minds, MapMyIndia) in top gainers
+- Auto/industrial sector showing strength (Escorts Kubota, Schaeffler)
+- PSU Banks (IOB) continuing momentum
 
-## Related Existing Scripts
-- live_INFY.py (IT sector reference)
-- live_TCS.py (IT sector reference)
-- live_TECHM.py (IT sector reference)
+## Recommendation
 
-## Notes
-- Market timing: 09:15 - 15:30 IST
-- T+0 settlement available
-- VWAP Momentum strategy recommended for IT sector
+**Brainbees Solutions (BRAINBEES)** selected as promising candidate for live trading script:
+- Strongest mover today (+19.43%)
+- Consumer retail sector with growth potential
+- Momentum strategy appropriate for such movers
+
+## Existing Coverage
+- `live_HAPPSTMIND.py` - Already exists for Happiest Minds
+- `live_OLECTRA.py` - Already exists for Olectra Greentech
+- `live_MAPMYINDIA.py` - Already exists for C.E. Info Systems
+- `live_SCHAEFFLER.py` - Already exists for Schaeffler India
+- `live_IOB.py` - Already exists for IOB
+
+## New Script Created
+- `live_BRAINBEES.py` - For Brainbees Solutions (BSL06)
+
+---
+*Research Date: 2026-03-22*
+*Data Source: Moneycontrol NSE Top Gainers*
