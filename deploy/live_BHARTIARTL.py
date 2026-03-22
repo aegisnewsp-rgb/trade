@@ -186,6 +186,31 @@ def momentum_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
     return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], current_atr
 
+
+def main():
+    """Main trading loop for BHARTIARTL"""
+    symbol = "BHARTIARTL"
+    params = {
+        "rsi_period": 14,
+        "atr_period": 14,
+        "rsi_buy": 60,
+        "rsi_sell": 40,
+    }
+    data = fetch_recent_data(days=60)
+    if not data:
+        print(f"No data for {symbol}")
+        return
+    signal, price, atr = momentum_signal(data, params)
+    if signal in ("BUY", "SELL"):
+        print(f"SIGNAL: {signal} {symbol} @ Rs{price:.2f} ATR: {atr:.2f}")
+        quantity = max(1, 7000 // price)
+        place_groww_order(symbol, signal, quantity, price)
+    else:
+        print(f"No signal: {signal}")
+
+if __name__ == "__main__":
+    main()
+
 def place_groww_order(symbol, signal, quantity, price):
     """
     Place order via Groww API or paper trade.
@@ -236,5 +261,4 @@ def place_groww_order(symbol, signal, quantity, price):
     return result
 
 
-if __name__ == "__main__":
-    main()
+# Entry point below

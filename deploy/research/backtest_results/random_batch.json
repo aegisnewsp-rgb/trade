@@ -1,0 +1,92 @@
+[
+  {
+    "symbol": "HINDALCO",
+    "trades": 12,
+    "wins": 2,
+    "losses": 2,
+    "win_rate": 16.7,
+    "avg_return": 0.07,
+    "total_return": 0.81
+  },
+  {
+    "symbol": "SBIN",
+    "trades": 11,
+    "wins": 2,
+    "losses": 1,
+    "win_rate": 18.2,
+    "avg_return": 1.09,
+    "total_return": 12.01
+  },
+  {
+    "symbol": "BAJFINANCE",
+    "trades": 6,
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "avg_return": -0.62,
+    "total_return": -3.72
+  },
+  {
+    "symbol": "RELIANCE",
+    "trades": 6,
+    "wins": 0,
+    "losses": 1,
+    "win_rate": 0.0,
+    "avg_return": -1.59,
+    "total_return": -9.55
+  },
+  {
+    "symbol": "KOTAKBANK",
+    "trades": 5,
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "avg_return": -0.85,
+    "total_return": -4.24
+  },
+  {
+    "symbol": "TCS",
+    "trades": 5,
+    "wins": 0,
+    "losses": 2,
+    "win_rate": 0.0,
+    "avg_return": -2.86,
+    "total_return": -14.32
+  },
+  {
+    "symbol": "INFY",
+    "trades": 4,
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "avg_return": -1.54,
+    "total_return": -6.15
+  },
+  {
+    "symbol": "TATASTEEL",
+    "trades": 14,
+    "wins": 1,
+    "losses": 0,
+    "win_rate": 7.1,
+    "avg_return": 0.95,
+    "total_return": 13.29
+  },
+  {
+    "symbol": "ICICIBANK",
+    "trades": 9,
+    "wins": 1,
+    "losses": 1,
+    "win_rate": 11.1,
+    "avg_return": -0.14,
+    "total_return": -1.27
+  },
+  {
+    "symbol": "HDFCBANK",
+    "trades": 3,
+    "wins": 0,
+    "losses": 0,
+    "win_rate": 0.0,
+    "avg_return": -0.75,
+    "total_return": -2.26
+  }
+]
