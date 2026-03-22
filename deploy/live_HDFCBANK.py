@@ -36,11 +36,11 @@ PARAMS         = {
     "adx_period": 14,
     "adx_threshold": 28,          # RAISED from 25: stricter trend confirmation
     "rsi_period": 14,
-    "rsi_oversold": 45,          # RAISED from 40: sweet spot 45-60 for buys
-    "rsi_overbought": 60,
-    "rsi_sweet_spot_min": 45,     # NEW: RSI sweet spot lower bound
-    "rsi_sweet_spot_max": 60,    # NEW: RSI sweet spot upper bound
-    "volume_multiplier": 1.5,     # RAISED from 1.2: HDFCBANK high-volume, need stronger spike
+    "rsi_oversold": 45,          # RSI < 45 for SELL
+    "rsi_overbought": 55,        # RSI > 55 for BUY
+    "rsi_sweet_spot_min": 45,     # RSI sweet spot lower bound
+    "rsi_sweet_spot_max": 55,    # RSI sweet spot upper bound
+    "volume_multiplier": 1.2,     # Volume 1.2x avg for entry confirmation
     "atr_period": 14,
     "vwap_period": 14,            # NEW: VWAP confirmation
     "confidence_threshold": 0.60, # NEW: minimum confidence to enter

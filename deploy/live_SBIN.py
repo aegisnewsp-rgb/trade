@@ -50,10 +50,11 @@ BEST_ENTRY_END = dtime(12, 0)
 # PSU-OPTIMIZED PARAMETERS
 # Tighter VWAP band (0.3% vs 0.5%) — SBIN mean-reverts closer to VWAP
 ENTRY_VWAP_PCT = 0.003
-# Lower RSI threshold — SBIN mean-reverts, doesn't push RSI to 55+ before bouncing
-ENTRY_RSI_MIN = 38       # PSU bank — RSI bounces at 35-40 oversold, not 55+
-# Lower vol threshold — PSU banks have steadier volume, less dramatic spikes
-ENTRY_VOL_MULT = 1.1
+# RSI filter: BUY only when RSI > 55, SELL only when RSI < 45
+ENTRY_RSI_MIN = 55
+ENTRY_RSI_MAX = 45
+# Volume 1.2x avg for entry confirmation
+ENTRY_VOL_MULT = 1.2
 
 # 0.8% ATR stop loss (task spec)
 SL_ATR_MULT = 1.0      # 1.0x ATR = 0.8% ATR at current prices
@@ -311,9 +312,9 @@ def smart_entry_conditions_met(intraday_15m: list, intraday_1hr: list,
     # PSU-optimized entry conditions
     # Tighter VWAP band (0.3% vs 0.5%) — SBIN mean-reverts within 0.3% of VWAP
     cond1 = current_price > vwap_val * (1 + ENTRY_VWAP_PCT)
-    # Lower RSI threshold (50 vs 55) — SBIN bounces before RSI reaches 55+
+    # RSI filter: BUY only when RSI > 55, SELL only when RSI < 45
     cond2 = rsi_15m > ENTRY_RSI_MIN and rsi_1hr > ENTRY_RSI_MIN - 5
-    # Lower volume threshold (1.1 vs 1.2) — PSU banks have steadier volume
+    # Volume 1.2x avg
     cond3 = vol_ratio > ENTRY_VOL_MULT
     # Market direction confirmation via RSI alignment
     mt_confirmation = (rsi_15m > ENTRY_RSI_MIN) == (rsi_1hr > ENTRY_RSI_MIN - 5)

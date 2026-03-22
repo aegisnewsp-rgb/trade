@@ -73,8 +73,11 @@ CONSumer_MIN_CORRELATION = 0.55  # If consumer index RSI below this, proceed wit
 
 # === ENTRY PARAMETERS (consumer stocks = lower volatility → tighter stops) ===
 ENTRY_VWAP_PCT = 0.004    # 0.4% — tighter than high-vol stocks
-ENTRY_RSI_MIN = 52        # Slightly lower — consumer stocks consolidate more
-ENTRY_VOL_MULT = 1.15     # Adjusted by season
+# RSI filter: BUY only when RSI > 55, SELL only when RSI < 45
+ENTRY_RSI_MIN = 55
+ENTRY_RSI_MAX = 45
+# Volume 1.2x avg for entry confirmation
+ENTRY_VOL_MULT = 1.2
 
 # ATR: consumer stocks have lower daily range
 SL_ATR_MULT = 1.5         # Tighter stop — consumer ATR is lower than IT/banking
@@ -369,6 +372,7 @@ def smart_entry_conditions_met(intraday_15m: list, intraday_1hr: list,
              current_price, vwap_val, rsi_15m, rsi_1hr, vol_ratio, adjusted_vol_mult)
     
     cond1 = current_price > vwap_val * (1 + ENTRY_VWAP_PCT)
+    # RSI filter: BUY only when RSI > 55, SELL only when RSI < 45
     cond2 = rsi_15m > ENTRY_RSI_MIN and rsi_1hr > ENTRY_RSI_MIN - 5
     cond3 = vol_ratio > adjusted_vol_mult
     mt_confirmation = (rsi_15m > ENTRY_RSI_MIN) == (rsi_1hr > ENTRY_RSI_MIN - 5)
@@ -378,7 +382,7 @@ def smart_entry_conditions_met(intraday_15m: list, intraday_1hr: list,
     gold_penalty = gold_trend == "BEARISH_GOLD"
     
     # Consumer confirmation bonus
-    consumer_ok = consumer_regime in ["BULLISH_CONSUMER", "NEUTRAL_CONSUMER"] or consumer_regime == "UNKNOWN"
+    consumer_ok = consumer_regime in ["BULLISH_CONSUMER", "NEUTRAL_CONSUMER"] and consumer_regime != "UNKNOWN"
     
     entry_score = sum([cond1, cond2, cond3, mt_confirmation, consumer_ok])
     if gold_bonus:
