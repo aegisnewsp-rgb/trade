@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - Gocol.NS
+Live Trading Script - FINOPINT.NS
 Strategy: VWAP (Volume Weighted Average Price)
 Win Rate: 63.64%
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
@@ -24,14 +24,14 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_Gocol.log"),
+        logging.FileHandler(LOG_DIR / "live_FINOPINT.NS.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_Gocol")
+log = logging.getLogger("live_FINOPINT.NS")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SYMBOL         = "Gocol.NS"
+SYMBOL         = "FINOPINT.NS"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
@@ -173,7 +173,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_Gocol.json"
+    log_file = LOG_DIR / "signals_FINOPINT.NS.json"
     entries = []
     if log_file.exists():
         try:
@@ -193,7 +193,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_Gocol.json"
+    cap_file = LOG_DIR / "daily_pnl_FINOPINT.NS.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
@@ -219,4 +219,51 @@ def main():
 
     today_str = ist_now().strftime("%Y-%m-%d")
     if daily_loss_limit_hit():
-        log.warning("Daily loss cap (0.3%%) hit – skipping
+        log.warning("Daily loss cap (0.3%%) hit – skipping trading today.")
+        return
+
+    log.info("Market is open. Fetching data...")
+    ohlcv = fetch_recent_data(days=90)
+    if not ohlcv or len(ohlcv) < 30:
+        log.error("Insufficient data for %s", SYMBOL)
+        return
+
+    signal, price, atr = vwap_signal(ohlcv, PARAMS)
+
+    if signal == "BUY":
+        stop_loss  = round(price * (1 - STOP_LOSS_PCT), 2)
+        target_prc = round(price + TARGET_MULT * atr, 2)
+    elif signal == "SELL":
+        stop_loss  = round(price * (1 + STOP_LOSS_PCT), 2)
+        target_prc = round(price - TARGET_MULT * atr, 2)
+    else:
+        stop_loss  = 0.0
+        target_prc = 0.0
+
+    quantity = max(1, int(POSITION / price))
+
+    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    log.info("  SYMBOL   : %s", SYMBOL)
+    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  SIGNAL   : ★ %s ★", signal)
+    log.info("  PRICE    : ₹%.2f", price)
+    log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
+    if atr > 0:
+        log.info("  ATR      : %.4f", atr)
+        log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
+        log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
+    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+    log_signal(signal, price, atr)
+
+    if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
+        result = place_groww_order(SYMBOL, signal, quantity, price)
+        if result:
+            log.info("✓ Order executed via Groww: %s", result)
+        else:
+            log.warning("⚠ Groww order could not be placed – signal still printed/logged.")
+    elif signal != "HOLD":
+        log.info("📋 No Groww credentials found – signal printed only (paper mode).")
+
+if __name__ == "__main__":
+    main()
