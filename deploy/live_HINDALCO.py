@@ -32,12 +32,21 @@ log = logging.getLogger("live_HINDALCO")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "HINDALCO.NS"
-STRATEGY       = "VWAP"
+STRATEGY       = "VWAP_TREND_VOL_v2"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {
+    "vwap_period": 14,
+    "atr_multiplier": 1.5,
+    "rsi_period": 14,
+    "rsi_oversold": 35,
+    "rsi_overbought": 65,
+    "volume_multiplier": 1.2,
+    "trend_ma_period": 50,
+    "atr_period": 14,
+}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -118,22 +127,80 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period        = params["vwap_period"]
-    atr_mult      = params["atr_multiplier"]
-    vwap_vals     = calculate_vwap(ohlcv, period)
-    atr_vals      = calculate_atr(ohlcv, period)
-    signals       = ["HOLD"] * len(ohlcv)
-
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    if len(ohlcv) < period + 1:
+        return [None] * len(ohlcv)
+    gains, losses = [], []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i-1]["close"]
+        gains.append(max(change, 0))
+        losses.append(max(-change, 0))
+    rsi = [None] * period
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        rs = avg_gain / avg_loss if avg_loss > 0 else 100
+        rsi.append(100 - (100 / (1 + rs)))
+    return rsi
+
+def calculate_ma(ohlcv: list, period: int) -> list:
+    ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            ma.append(None)
+        else:
+            ma.append(sum(ohlcv[j]["close"] for j in range(i - period + 1, i + 1)) / period)
+    return ma
+
+def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
+    if len(ohlcv) < period:
+        return 0
+    return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
+
+def vwap_signal_v2(ohlcv: list, params: dict) -> tuple[str, float, float]:
+    """
+    v2 VWAP with trend confirmation: adds RSI filter + volume confirmation + trend MA
+    Commodity stocks like HINDALCO need trend alignment to avoid false breakouts.
+    """
+    vwap_period    = params["vwap_period"]
+    atr_mult       = params["atr_multiplier"]
+    rsi_period     = params["rsi_period"]
+    rsi_oversold   = params["rsi_oversold"]
+    rsi_overbought = params["rsi_overbought"]
+    vol_mult       = params["volume_multiplier"]
+    trend_period   = params["trend_ma_period"]
+
+    vwap_vals = calculate_vwap(ohlcv, vwap_period)
+    atr_vals  = calculate_atr(ohlcv, params["atr_period"])
+    rsi_vals  = calculate_rsi(ohlcv, rsi_period)
+    ma_vals   = calculate_ma(ohlcv, trend_period)
+    avg_vol   = calculate_avg_volume(ohlcv, vwap_period)
+
+    signals = ["HOLD"] * len(ohlcv)
+    for i in range(max(vwap_period, rsi_period, trend_period), len(ohlcv)):
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
-        price    = ohlcv[i]["close"]
-        v        = vwap_vals[i]
-        a        = atr_vals[i]
-        if price > v + a * atr_mult:
+        if ma_vals[i] is None:
+            continue
+
+        price  = ohlcv[i]["close"]
+        v      = vwap_vals[i]
+        a      = atr_vals[i]
+        r      = rsi_vals[i]
+        vol    = ohlcv[i]["volume"]
+        trend  = ma_vals[i]
+
+        volume_ok   = vol > avg_vol * vol_mult
+        above_trend = price > trend
+        below_trend = price < trend
+
+        # BUY: bullish VWAP breakout + RSI not overbought + volume + trend alignment
+        if price > v + a * atr_mult and r < rsi_overbought and volume_ok and above_trend:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult:
+        # SELL: bearish VWAP breakdown + RSI not oversold + volume + trend alignment
+        elif price < v - a * atr_mult and r > rsi_oversold and volume_ok and below_trend:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
@@ -207,7 +274,7 @@ def daily_loss_limit_hit() -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: N/A ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s | Win Rate: N/A -> Target 60%%+ (v2 enhanced) ===", SYMBOL, STRATEGY)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
@@ -223,12 +290,12 @@ def main():
         return
 
     log.info("Market is open. Fetching data...")
-    ohlcv = fetch_recent_data(days=90)
+    ohlcv = fetch_recent_data(days=120)
     if not ohlcv or len(ohlcv) < 30:
         log.error("Insufficient data for %s", SYMBOL)
         return
 
-    signal, price, atr = vwap_signal(ohlcv, PARAMS)
+    signal, price, atr = vwap_signal_v2(ohlcv, PARAMS)
 
     if signal == "BUY":
         stop_loss  = round(price * (1 - STOP_LOSS_PCT), 2)
@@ -245,6 +312,7 @@ def main():
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
     log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  v2 ENH   : VWAP + RSI(35/65) + Vol(1.2x) + ATR×1.5 + MA50 trend")
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)

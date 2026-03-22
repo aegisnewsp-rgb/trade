@@ -25,7 +25,7 @@ logging.basicConfig(
 log = logging.getLogger("live_HEROMOTOCO")
 
 SYMBOL         = "HEROMOTOCO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_v4"
+STRATEGY       = "VWAP_RSI_MACD_VOL_v5"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
@@ -247,7 +247,7 @@ def daily_loss_limit_hit() -> bool:
     return False
 
 def main():
-    log.info("=== Live Trading: %s | %s | Win Rate: 55.00%% -> Target 60%%+ (v3 enhanced) ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading: %s | %s | Win Rate: 55.00%% -> Target 60%%+ (v5 verified) ===", SYMBOL, STRATEGY)
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
         time.sleep(30)
@@ -262,7 +262,7 @@ def main():
     if not ohlcv or len(ohlcv) < 60:
         log.error("Insufficient data for %s", SYMBOL)
         return
-    signal, price, atr = vwap_signal_v3(ohlcv, PARAMS)
+    signal, price, atr = vwap_signal_v5(ohlcv, PARAMS)
     if signal == "BUY":
         stop_loss = round(price * (1 - STOP_LOSS_PCT), 2)
         target_prc = round(price + TARGET_MULT * atr, 2)

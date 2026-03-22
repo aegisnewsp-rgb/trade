@@ -31,11 +31,14 @@ log = logging.getLogger("live_ICICIBANK")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "ICICIBANK.NS"
-STRATEGY       = "VWAP"
+STRATEGY       = "VWAP_RSI_FILTER"
 POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
+STOP_LOSS_PCT  = 0.005
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
+RSI_PERIOD     = 14
+RSI_OVERSOLD   = 35
+RSI_OVERBOUGHT = 65
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
@@ -104,6 +107,27 @@ def calculate_atr(ohlcv: list, period: int = 14) -> list:
             atr.append((atr[-1] * (period - 1) + tr) / period)
         prev_close = bar["close"]
     return atr
+
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    gains = []
+    losses = []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i-1]["close"]
+        gains.append(max(change, 0))
+        losses.append(max(-change, 0))
+    rsi = []
+    for i in range(len(gains)):
+        if i < period - 1:
+            rsi.append(None)
+        elif i == period - 1:
+            avg_gain = sum(gains[i-period+1:i+1]) / period
+            avg_loss = sum(losses[i-period+1:i+1]) / period
+            rsi.append(100 if avg_loss == 0 else 100 - (100 / (1 + avg_gain / avg_loss)))
+        else:
+            avg_gain = (rsi[-1] * (period - 1) + gains[i]) / period
+            avg_loss = (losses[-1] * (period - 1) + losses[i]) / period
+            rsi.append(100 if avg_loss == 0 else 100 - (100 / (1 + avg_gain / avg_loss)))
+    return [None] + rsi
 
 def calculate_vwap(ohlcv: list, period: int = 14) -> list:
     vwap = []
