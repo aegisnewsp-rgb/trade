@@ -30,6 +30,7 @@ GROWW_API_KEY = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 
 def ist_now(): return datetime.utcnow() + __import__("datetime").timedelta(hours=5.5)
+# Smart entry: 9:30-14:30 IST
 def is_market_open():
     now = ist_now()
     return now.weekday() < 5 and dtime(9, 15) <= now.time() <= dtime(15, 30)
