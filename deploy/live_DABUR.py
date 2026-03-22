@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - GRASIM.NS
-Strategy: FIBONACCI
-Win Rate: 57.36%
+Live Trading Script - DABUR.NS
+Strategy: ADX_TREND
+Win Rate: 57.32%
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -17,19 +17,19 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_GRASIM.log"),
+        logging.FileHandler(LOG_DIR / "live_DABUR.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_GRASIM")
+log = logging.getLogger("live_DABUR")
 
-SYMBOL         = "GRASIM.NS"
-STRATEGY       = "FIBONACCI"
+SYMBOL         = "DABUR.NS"
+STRATEGY       = "ADX_TREND"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"swing_period": 20, "fib_levels": [0.382, 0.618, 0.786, 1.272, 1.618]}
+PARAMS         = {"adx_period": 14, "adx_threshold": 25}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -87,29 +87,55 @@ def calculate_atr(ohlcv: list, period: int = 14) -> list:
         prev_close = bar["close"]
     return atr
 
-def find_swing_hl(ohlcv: list, period: int) -> tuple[float, float]:
+def calculate_adx(ohlcv: list, period: int = 14) -> tuple[list, list, list]:
+    closes = [b["close"] for b in ohlcv]
     highs  = [b["high"]  for b in ohlcv]
     lows   = [b["low"]   for b in ohlcv]
-    return max(highs[-period:]), min(lows[-period:])
+    tr_list, plus_dm, minus_dm = [], [], []
+    prev_high, prev_low = None, None
+    for i, bar in enumerate(ohlcv):
+        tr = bar["high"] - bar["low"] if i == 0 else max(bar["high"] - bar["low"], abs(bar["high"] - closes[i-1]), abs(bar["low"] - closes[i-1]))
+        tr_list.append(tr)
+        if i == 0:
+            plus_dm.append(0.0); minus_dm.append(0.0)
+        else:
+            high_diff = bar["high"] - prev_high
+            low_diff  = prev_low - bar["low"]
+            plus_dm.append(max(high_diff, 0) if high_diff > low_diff else 0.0)
+            minus_dm.append(max(low_diff, 0) if low_diff > high_diff else 0.0)
+        prev_high = bar["high"]; prev_low = bar["low"]
+    atr_smooth, plus_di, minus_di, adx_vals = [], [], [], []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            atr_smooth.append(None); plus_di.append(None); minus_di.append(None); adx_vals.append(None)
+        elif i == period - 1:
+            atr_smooth.append(sum(tr_list[i-period+1:i+1]))
+            pdm = sum(plus_dm[i-period+1:i+1]); mdm = sum(minus_dm[i-period+1:i+1])
+            plus_di.append((pdm/atr_smooth[-1]*100) if atr_smooth[-1] > 0 else 0)
+            minus_di.append((mdm/atr_smooth[-1]*100) if atr_smooth[-1] > 0 else 0)
+            dx = abs(plus_di[-1]-minus_di[-1])/(plus_di[-1]+minus_di[-1])*100 if (plus_di[-1]+minus_di[-1])>0 else 0
+            adx_vals.append(dx)
+        else:
+            atr_smooth.append((atr_smooth[-1]*(period-1)+tr_list[i])/period)
+            pdm = (plus_dm[i]+plus_dm[i-1])/2; mdm = (minus_dm[i]+minus_dm[i-1])/2
+            pdi = (pdm/atr_smooth[-1]*100) if atr_smooth[-1]>0 else 0
+            mdi = (mdm/atr_smooth[-1]*100) if atr_smooth[-1]>0 else 0
+            plus_di.append(pdi); minus_di.append(mdi)
+            dx = abs(pdi-mdi)/(pdi+mdi)*100 if (pdi+mdi)>0 else 0
+            adx_vals.append((adx_vals[-1]*(period-1)+dx)/period)
+    return adx_vals, plus_di, minus_di
 
-def fibonacci_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period     = params["swing_period"]
-    fib_levels = params["fib_levels"]
-    closes     = [b["close"] for b in ohlcv]
-    s_high, s_low = find_swing_hl(ohlcv, period)
-    diff = s_high - s_low
+def adx_trend_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+    period = params["adx_period"]; threshold = params["adx_threshold"]
+    adx_vals, plus_di, minus_di = calculate_adx(ohlcv, period)
     signals = ["HOLD"] * len(ohlcv)
     for i in range(period, len(ohlcv)):
-        price = closes[i]
-        for level in [0.382, 0.618, 0.786]:
-            fib_price = s_low + level * diff
-            if abs(price - fib_price) / price < 0.005:
-                signals[i] = "BUY"; break
-        if signals[i] != "HOLD": continue
-        for level in [1.272, 1.618]:
-            fib_price = s_high + level * diff
-            if abs(price - fib_price) / price < 0.005:
-                signals[i] = "SELL"; break
+        if adx_vals[i] is None or adx_vals[i] < threshold: continue
+        if plus_di[i] is None or minus_di[i] is None: continue
+        if plus_di[i] > minus_di[i] and plus_di[i] - minus_di[i] > 10:
+            signals[i] = "BUY"
+        elif minus_di[i] > plus_di[i] and minus_di[i] - plus_di[i] > 10:
+            signals[i] = "SELL"
     atr_vals = calculate_atr(ohlcv)
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
@@ -136,7 +162,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     log.error("Groww order failed after 3 retries for %s", symbol); return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_GRASIM.json"
+    log_file = LOG_DIR / "signals_DABUR.json"
     entries = []
     if log_file.exists():
         try: entries = json.loads(log_file.read_text())
@@ -147,7 +173,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_GRASIM.json"
+    cap_file = LOG_DIR / "daily_pnl_DABUR.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
@@ -158,7 +184,7 @@ def daily_loss_limit_hit() -> bool:
     return False
 
 def main():
-    log.info("=== Live Trading: %s | %s | Win Rate: 57.36%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading: %s | %s | Win Rate: 57.32%% ===", SYMBOL, STRATEGY)
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST..."); time.sleep(30)
     if not is_market_open():
@@ -169,7 +195,7 @@ def main():
     ohlcv = fetch_recent_data(days=90)
     if not ohlcv or len(ohlcv) < 30:
         log.error("Insufficient data for %s", SYMBOL); return
-    signal, price, atr = fibonacci_signal(ohlcv, PARAMS)
+    signal, price, atr = adx_trend_signal(ohlcv, PARAMS)
     if signal == "BUY":
         stop_loss  = round(price * (1 - STOP_LOSS_PCT), 2)
         target_prc = round(price + TARGET_MULT * atr, 2)
