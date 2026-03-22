@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script for HINDPETRO.NS
-Strategy: FIBONACCI_RETRACEMENT
+Strategy: FIBONACCI_RETRACEMENT + RSI_FILTER
 Win Rate: 59.38%
-Position Size: ₹7,000 | Stop Loss: 0.8% ATR | Target: 4.0x ATR
+Position Size: ₹7,000 | Stop Loss: 0.5% ATR | Target: 4.0x ATR
+RSI Filter: BUY when RSI < 35, SELL when RSI > 65
 Daily Loss Cap: 0.3% of capital
 Max 1 trade per day
 
@@ -272,11 +273,13 @@ def main():
     if not ohlcv:
         sys.exit(1)
     atr = calculate_atr(ohlcv, ATR_PERIOD)
+    rsi = calculate_rsi(ohlcv, RSI_PERIOD)
     current_price = ohlcv[-1]["close"]
     current_atr = atr[-1] if atr[-1] else (current_price * 0.02)
-    signal = generate_signal(ohlcv, atr)
+    current_rsi = rsi[-1] if rsi[-1] is not None else 50
+    signal = generate_signal(ohlcv, atr, rsi)
     swing_high, swing_low, range_size = find_swing_levels(ohlcv, FIB_PERIOD)
-    logger.info(f"Price: ₹{current_price:.2f} | ATR: ₹{current_atr:.2f} | Swing H:₹{swing_high:.2f} L:₹{swing_low:.2f} | Signal: {signal}")
+    logger.info(f"Price: ₹{current_price:.2f} | ATR: ₹{current_atr:.2f} | RSI: {current_rsi:.1f} | Swing H:₹{swing_high:.2f} L:₹{swing_low:.2f} | Signal: {signal}")
     if signal != "HOLD":
         result = execute_trade(signal, current_price, current_atr, state, CAPITAL)
         state["last_signal"] = signal
