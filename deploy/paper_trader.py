@@ -143,9 +143,9 @@ def get_signal(sym):
     if now.hour >= 14 and now.minute >= 30:
         return None, None, None
     vr_thresh = 1.5 if reg == "RANGE" else 1.2
-    if price > vwap * 1.005 and rsi > 55.0 and vol_ratio(ohlcv) > vr_thresh:
+    if price > vwap * 1.005 and rsi > 50.0 and vol_ratio(ohlcv) > vr_thresh:
         return "BUY", price, atr
-    if price < vwap * 0.995 and rsi < 45.0 and vol_ratio(ohlcv) > vr_thresh:
+    if price < vwap * 0.995 and rsi < 50.0 and vol_ratio(ohlcv) > vr_thresh:
         return "SELL", price, atr
     return None, None, None
 
