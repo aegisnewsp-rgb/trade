@@ -40,6 +40,19 @@ VOLUME_MULT   = 1.2      # Volume must be 1.2x average
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5, "rsi_period": 14}
 
 # 3-TIER EXIT SYSTEM (enhancement)
+
+# OPTIMIZED PARAMS (sniper scan — 2yr data)
+RSI_BUY = 50
+RSI_SELL = 50
+VOL_THRESH = 0.5
+HOLD_DAYS = 10
+VWAP_TOL = 0.01
+SL_PCT = 1.0
+TGT_PCT = 3.0
+TRAIL_ATR_MULT = 0.3
+BEST_ENTRY_START = "09:30"
+BEST_ENTRY_END = "14:30"
+
 SL_ATR_MULT       = 1.0     # Stop loss: 1.0x ATR
 MAX_SL_PCT        = 0.015   # Hard cap: 1.5% max stop
 TRAIL_TRIGGER_PCT = 0.008   # Trail after 0.8% profit

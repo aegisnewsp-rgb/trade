@@ -31,6 +31,19 @@ logging.basicConfig(
 )
 log = logging.getLogger("live_SUNPHARMA")
 
+
+# OPTIMIZED PARAMS (sniper scan — 2yr data)
+RSI_BUY = 55
+RSI_SELL = 45
+VOL_THRESH = 0.5
+HOLD_DAYS = 5
+VWAP_TOL = 0.005
+SL_PCT = 1.0
+TGT_PCT = 3.0
+TRAIL_ATR_MULT = 0.3
+BEST_ENTRY_START = "09:30"
+BEST_ENTRY_END = "14:30"
+
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "SUNPHARMA.NS"
 STRATEGY       = "VWAP"
