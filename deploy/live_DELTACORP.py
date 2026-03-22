@@ -18,13 +18,13 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_RIKGROW.log"),
+        logging.FileHandler(LOG_DIR / "live_DELTACORP.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_RIKGROW")
+log = logging.getLogger("live_DELTACORP")
 
-SYMBOL         = "RIKGROW.NS"
+SYMBOL         = "DELTACORP.NS"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
@@ -128,7 +128,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_RIKGROW.json"
+    log_file = LOG_DIR / "signals_DELTACORP.json"
     entries = json.loads(log_file.read_text()) if log_file.exists() else []
     entries.append({"timestamp": ist_now().isoformat(), "symbol": SYMBOL, "strategy": STRATEGY,
                     "signal": signal, "price": round(price, 4), "atr": round(atr, 4)})
