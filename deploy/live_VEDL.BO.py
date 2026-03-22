@@ -45,6 +45,24 @@ TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
 
+# Entry parameters
+RSI_BUY       = 55       # BUY only when RSI > 55
+RSI_SELL      = 45       # SELL only when RSI < 45
+VOL_THRESH    = 1.2      # Volume 1.2x avg for entry confirmation
+
+# Entry window
+BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
+BEST_ENTRY_END   = dtime(14, 30) # 2:30 PM IST
+NO_ENTRY_AFTER   = dtime(14, 30) # No new entries after 2:30 PM
+
+# Stop loss / target
+SL_ATR_MULT   = 1.0      # 1.0x ATR stop loss
+MAX_SL_PCT    = 0.010    # Hard cap: 1.0% max stop
+TGT_PCT       = 3.0      # 3.0x ATR target
+
+# Trailing stop
+TRAIL_ATR_MULT = 0.3    # 0.3x ATR trailing stop
+
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE   = "https://api.groww.in/v1"
