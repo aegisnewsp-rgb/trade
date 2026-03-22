@@ -301,11 +301,10 @@ def main():
     """
     import sys
     from pathlib import Path
-    sys.path.insert(0, str(Path(__file__).parent))
-    
     try:
         import yfinance
-YFINANCE_AVAILABLE = True yf
+        YFINANCE_AVAILABLE = True
+    
     except ImportError:
         print("yfinance not installed: pip install yfinance")
         return

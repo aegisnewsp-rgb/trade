@@ -11,8 +11,7 @@ import groww_api
 from datetime import datetime, time as dtime
 from pathlib import Path
 import yfinance
-YFINANCE_AVAILABLE = True yf
-
+YFINANCE_AVAILABLE = True
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s",

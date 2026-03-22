@@ -14,8 +14,7 @@ from pathlib import Path
 from typing import Optional
 
 import yfinance
-YFINANCE_AVAILABLE = True yf
-
+YFINANCE_AVAILABLE = True
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 logging.basicConfig(
@@ -340,11 +339,10 @@ def place_groww_order(symbol, signal, quantity, price, atr=0.0):
 
 def main():
     """Main execution for HEROMOTOCO with fuel price and rural demand filters"""
-    sys.path.insert(0, str(Path(__file__).parent))
-    
     try:
         import yfinance
-YFINANCE_AVAILABLE = True yf
+        YFINANCE_AVAILABLE = True
+    
     except ImportError:
         print("yfinance not installed: pip install yfinance")
         return

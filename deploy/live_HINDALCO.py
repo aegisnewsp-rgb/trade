@@ -19,8 +19,7 @@ from datetime import datetime, time as dtime
 from pathlib import Path
 
 import yfinance
-YFINANCE_AVAILABLE = True yf
-
+YFINANCE_AVAILABLE = True
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -407,11 +406,10 @@ def place_groww_order(symbol, signal, quantity, price):
 
 def main():
     """Main execution for HINDALCO with ADX and commodity correlation"""
-    sys.path.insert(0, str(Path(__file__).parent))
-    
     try:
         import yfinance
-YFINANCE_AVAILABLE = True yf
+        YFINANCE_AVAILABLE = True
+    
     except ImportError:
         print("yfinance not installed: pip install yfinance")
         return
