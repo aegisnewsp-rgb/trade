@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - PENIN.BO
+Live Trading Script - PERFECT.BO
 Strategy: VWAP (Volume Weighted Average Price)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x ATR | Daily Loss Cap: 0.3%
 """
@@ -16,13 +16,13 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_PENIN.log"),
+        logging.FileHandler(LOG_DIR / "live_PERFECT.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_PENIN")
+log = logging.getLogger("live_PERFECT")
 
-SYMBOL         = "PENIN.BO"
+SYMBOL         = "PERFECT.BO"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
@@ -151,7 +151,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_PENIN.json"
+    log_file = LOG_DIR / "signals_PERFECT.json"
     entries = []
     if log_file.exists():
         try:
@@ -168,7 +168,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_PENIN.json"
+    cap_file = LOG_DIR / "daily_pnl_PERFECT.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
