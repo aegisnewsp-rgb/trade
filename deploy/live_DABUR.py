@@ -270,4 +270,38 @@ def place_groww_order(symbol, signal, quantity, price):
     return result
 
 
+
+def main():
+    """Main trading loop for DABUR"""
+    import yfinance as yf
+    try:
+        t = yf.Ticker("DABUR.NS")
+        d = t.history(period="3mo")
+        if len(d) < 30:
+            print(f"No data for DABUR")
+            return
+        ohlcv = [[float(r.Open), float(r.High), float(r.Low),
+                   float(r.Close), float(r.Volume)] for r in d.itertuples()]
+        closes = [row[3] for row in ohlcv]
+        
+        # Get regime
+        regime_val = "UPTREND"
+        if len(closes) >= 20:
+            sma = sum(closes[-20:]) / 20
+            if closes[-1] < sma * 0.98:
+                regime_val = "DOWNTREND"
+        
+        if regime_val == "DOWNTREND":
+            print(f"DABUR: DOWNTREND - no entries")
+            return
+        
+        # Placeholder for full strategy
+        print(f"DABUR: UPTREND/RANGE - strategy ready")
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == "__main__":
+    main()
+
+
 if __name__ == "__main__": main()
