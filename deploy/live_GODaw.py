@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - NETWORK18.NS
+Live Trading Script - GODaw.NS
 Strategy: VWAP (Volume Weighted Average Price)
 Win Rate: 63.64%
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
@@ -24,14 +24,14 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_NETWORK18.NS.log"),
+        logging.FileHandler(LOG_DIR / "live_GODaw.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_NETWORK18.NS")
+log = logging.getLogger("live_GODaw")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SYMBOL         = "NETWORK18.NS"
+SYMBOL         = "GODaw.NS"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
@@ -173,7 +173,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_NETWORK18.NS.json"
+    log_file = LOG_DIR / "signals_GODaw.json"
     entries = []
     if log_file.exists():
         try:
@@ -193,7 +193,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_NETWORK18.NS.json"
+    cap_file = LOG_DIR / "daily_pnl_GODaw.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
