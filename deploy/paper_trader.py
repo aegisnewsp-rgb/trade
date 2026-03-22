@@ -145,7 +145,7 @@ def get_signal(sym):
     vr_thresh = 1.5 if reg == "RANGE" else 1.2
     if price > vwap * 1.005 and rsi > 50.0 and vol_ratio(ohlcv) > vr_thresh:
         return "BUY", price, atr
-    if price < vwap * 0.995 and rsi < 50.0 and vol_ratio(ohlcv) > vr_thresh:
+    if price < vwap * 0.995 and rsi < 45.0 and vol_ratio(ohlcv) > vr_thresh:
         return "SELL", price, atr
     return None, None, None
 
