@@ -113,43 +113,44 @@ def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     return None
 
 def calculate_atr(ohlcv: list, period: int = 14) -> list:
+    """Index-based ATR: ohlcv[i] = [open, high, low, close, volume]"""
     atr = []
     prev_close = None
     for i, bar in enumerate(ohlcv):
-        tr = bar["high"] - bar["low"] if prev_close is None else max(
-            bar["high"] - bar["low"],
-            abs(bar["high"] - prev_close),
-            abs(bar["low"]  - prev_close),
-        )
+        high, low = bar[1], bar[2]
+        close     = bar[3]
+        tr = high - low if prev_close is None else max(
+            high - low, abs(high - prev_close), abs(low - prev_close))
         if i < period - 1:
             atr.append(None)
         elif i == period - 1:
             atr.append(tr)
         else:
             atr.append((atr[-1] * (period - 1) + tr) / period)
-        prev_close = bar["close"]
+        prev_close = close
     return atr
 
 def calculate_vwap(ohlcv: list, period: int = 14) -> list:
+    """Index-based VWAP: ohlcv[i] = [open, high, low, close, volume]"""
     vwap = []
     for i in range(len(ohlcv)):
         if i < period - 1:
             vwap.append(None)
         else:
-            tp_sum  = sum((ohlcv[j]["high"] + ohlcv[j]["low"] + ohlcv[j]["close"]) / 3
+            tp_sum  = sum((ohlcv[j][1] + ohlcv[j][2] + ohlcv[j][3]) / 3
                           for j in range(i - period + 1, i + 1))
-            vol_sum = sum(ohlcv[j]["volume"] for j in range(i - period + 1, i + 1))
+            vol_sum = sum(ohlcv[j][4] for j in range(i - period + 1, i + 1))
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
 def calculate_rsi(ohlcv: list, period: int = 14) -> list:
-    """Calculate RSI for confirmation filter."""
+    """Index-based RSI: ohlcv[i] = [open, high, low, close, volume]"""
     rsi_values = [50.0] * len(ohlcv)
     if len(ohlcv) < period + 1:
         return rsi_values
     gains, losses = [], []
     for i in range(1, len(ohlcv)):
-        change = ohlcv[i]["close"] - ohlcv[i - 1]["close"]
+        change = ohlcv[i][3] - ohlcv[i - 1][3]
         gains.append(max(change, 0))
         losses.append(max(-change, 0))
     avg_gain = sum(gains[:period]) / period
@@ -164,37 +165,120 @@ def calculate_rsi(ohlcv: list, period: int = 14) -> list:
             rsi_values[i + 1] = 100 - (100 / (1 + rs))
     return rsi_values
 
-def vwap_rsi_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
-    """
-    VWAP + RSI momentum strategy.
-    BUY:  price > VWAP + ATR*mult AND RSI < rsi_overbought
-    SELL: price < VWAP - ATR*mult AND RSI > rsi_oversold
-    """
-    period         = params["vwap_period"]
-    atr_mult       = params["atr_multiplier"]
-    rsi_period     = params["rsi_period"]
-    rsi_overbought = params["rsi_overbought"]
-    rsi_oversold   = params["rsi_oversold"]
-    vwap_vals      = calculate_vwap(ohlcv, period)
-    atr_vals       = calculate_atr(ohlcv, period)
-    rsi_vals       = calculate_rsi(ohlcv, rsi_period)
-    signals        = ["HOLD"] * len(ohlcv)
+def calculate_macd(ohlcv: list, fast: int = 12, slow: int = 26, signal: int = 9) -> tuple[list, list, list]:
+    """Index-based MACD: ohlcv[i] = [open, high, low, close, volume]"""
+    closes = [b[3] for b in ohlcv]
+    ema_fast, ema_slow, macd_line = [], [], []
+    k_fast = 2 / (fast + 1); k_slow = 2 / (slow + 1)
+    ema_fast.append(closes[0]); ema_slow.append(closes[0])
+    for i in range(1, len(closes)):
+        ema_fast.append(closes[i] * k_fast + ema_fast[-1] * (1 - k_fast))
+        ema_slow.append(closes[i] * k_slow + ema_slow[-1] * (1 - k_slow))
+    macd_line = [ema_fast[i] - ema_slow[i] for i in range(len(closes))]
+    signal_line = []
+    k_sig = 2 / (signal + 1)
+    signal_line.append(macd_line[0])
+    for i in range(1, len(macd_line)):
+        signal_line.append(macd_line[i] * k_sig + signal_line[-1] * (1 - k_sig))
+    histogram = [macd_line[i] - signal_line[i] for i in range(len(macd_line))]
+    return macd_line, signal_line, histogram
 
-    for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+def calculate_ma(ohlcv: list, period: int) -> list:
+    """Index-based SMA: ohlcv[i] = [open, high, low, close, volume]"""
+    ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            ma.append(None)
+        else:
+            ma.append(sum(ohlcv[j][3] for j in range(i - period + 1, i + 1)) / period)
+    return ma
+
+def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
+    """Index-based avg volume: ohlcv[i] = [open, high, low, close, volume]"""
+    if len(ohlcv) < period:
+        return 0
+    return sum(ohlcv[j][4] for j in range(len(ohlcv) - period, len(ohlcv))) / period
+
+def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.0) -> tuple[list, list, list]:
+    """Index-based Bollinger Bands: ohlcv[i] = [open, high, low, close, volume]"""
+    middle = calculate_ma(ohlcv, period)
+    upper, lower = [], []
+    for i in range(len(ohlcv)):
+        if middle[i] is None:
+            upper.append(None); lower.append(None)
+        else:
+            window = ohlcv[max(0, i - period + 1):i + 1]
+            mean = middle[i]
+            variance = sum((b[3] - mean) ** 2 for b in window) / len(window)
+            std = variance ** 0.5
+            upper.append(mean + std_dev * std)
+            lower.append(mean - std_dev * std)
+    return upper, middle, lower
+
+def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
+    """
+    VWAP + RSI + MACD + Volume + Trend + Bollinger Band strategy (v8).
+    BUY:  price > VWAP + ATR*mult AND RSI < rsi_confirm_oversold AND MACD bullish
+          AND volume confirmed AND above trend MA AND price within BB bands
+    SELL: price < VWAP - ATR*mult AND RSI > rsi_confirm_overbought AND MACD bearish
+          AND volume confirmed AND below trend MA AND price within BB bands
+    Returns: (signal, price, atr, rsi)
+    """
+    period          = params["vwap_period"]
+    atr_mult        = params["atr_multiplier"]
+    rsi_period      = params["rsi_period"]
+    rsi_overbought  = params.get("rsi_confirm_overbought", 68)
+    rsi_oversold    = params.get("rsi_confirm_oversold", 32)
+    vol_mult        = params.get("volume_multiplier", 2.0)
+    trend_period    = params.get("trend_ma_period", 50)
+    bb_period       = params.get("bb_period", 20)
+    bb_std          = params.get("bb_std", 2.0)
+
+    vwap_vals    = calculate_vwap(ohlcv, period)
+    atr_vals     = calculate_atr(ohlcv, period)
+    rsi_vals     = calculate_rsi(ohlcv, rsi_period)
+    macd_line, signal_line, histogram = calculate_macd(
+        ohlcv, params["macd_fast"], params["macd_slow"], params["macd_signal"])
+    ma_vals      = calculate_ma(ohlcv, trend_period)
+    avg_vol      = calculate_avg_volume(ohlcv, period)
+    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
+
+    start_idx = max(period, rsi_period, params["macd_slow"], params["macd_signal"], bb_period, trend_period)
+    signals   = ["HOLD"] * len(ohlcv)
+
+    for i in range(start_idx, len(ohlcv)):
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
-        price  = ohlcv[i]["close"]
-        v      = vwap_vals[i]
-        a      = atr_vals[i]
-        rsi    = rsi_vals[i]
-        
-        if price > v + a * atr_mult and rsi < rsi_overbought:
+        if macd_line[i] is None or ma_vals[i] is None or bb_upper[i] is None:
+            continue
+
+        price   = ohlcv[i][3]
+        v       = vwap_vals[i]
+        a       = atr_vals[i]
+        rsi     = rsi_vals[i]
+        vol     = ohlcv[i][4]
+        trend   = ma_vals[i]
+        macd_h  = histogram[i]
+        sig_h   = histogram[i - 1] if i > 0 else 0
+        bb_up   = bb_upper[i]
+        bb_lo   = bb_lower[i]
+
+        volume_confirmed = vol > avg_vol * vol_mult
+        bull_market  = price > trend
+        bear_market  = price < trend
+        macd_bullish = macd_h > 0 and macd_h > sig_h
+        macd_bearish = macd_h < 0 and macd_h < sig_h
+        bb_near_middle = bb_lo < price < bb_up  # v8: avoid extended positions
+
+        if (price > v + a * atr_mult and rsi < rsi_oversold and macd_bullish
+                and volume_confirmed and bull_market and bb_near_middle):
             signals[i] = "BUY"
-        elif price < v - a * atr_mult and rsi > rsi_oversold:
+        elif (price < v - a * atr_mult and rsi > rsi_overbought and macd_bearish
+                and volume_confirmed and bear_market and bb_near_middle):
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
-    current_price  = ohlcv[-1]["close"]
+    current_price  = ohlcv[-1][3]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
     current_rsi    = rsi_vals[-1] if rsi_vals else 50.0
     return current_signal, current_price, current_atr, current_rsi
@@ -311,7 +395,7 @@ def main():
     try:
         # Try strategy functions in priority order
         if 'vwap_signal' in dir():
-            sig_result = vwap_signal(ohlcv_list, {})
+            sig_result = vwap_signal(ohlcv_list, PARAMS)
             if isinstance(sig_result, tuple) and len(sig_result) >= 2:
                 signal, price = sig_result[0], float(sig_result[1])
             elif isinstance(sig_result, str):
