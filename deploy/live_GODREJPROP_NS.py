@@ -15,7 +15,7 @@ import logging
 import groww_api
 import json
 import requests
-from datetime import datetime, date
+from datetime import datetime, date, time as dtime
 from typing import Optional, List, Dict
 from pathlib import Path
 
@@ -46,6 +46,8 @@ VWAP_PERIOD = 14
 ATR_PERIOD = 14
 ATR_MULTIPLIER = 1.5
 RSI_PERIOD = 14
+VOLUME_MA_PERIOD = 20
+VOLUME_MULT = 1.2
 RSI_OVERSOLD = 45
 RSI_OVERBOUGHT = 55
 
@@ -210,6 +212,20 @@ def calculate_stop_loss(entry_price: float, atr: float) -> float:
 def calculate_target(entry_price: float, atr: float) -> float:
     return entry_price + (atr * TARGET_ATR_MULT)
 
+def ist_now() -> datetime:
+    return datetime.utcnow() + __import__("datetime").timedelta(hours=5.5)
+
+def can_new_entry() -> bool:
+    """Only allow entries during best entry window 9:30 AM - 2:30 PM IST."""
+    now = ist_now().time()
+    if now < BEST_ENTRY_START:
+        logger.info("⏰ Too early — waiting for 9:30 AM IST entry window")
+        return False
+    if now >= NO_ENTRY_AFTER:
+        logger.info("⏰ After 2:30 PM IST — no new entries today")
+        return False
+    return True
+
 def check_daily_loss_limit(state: Dict, capital: float) -> bool:
     daily_loss_cap_amount = capital * DAILY_LOSS_CAP
     if abs(state.get("daily_loss", 0)) >= daily_loss_cap_amount:
@@ -285,6 +301,8 @@ def main():
     state = reset_daily_state(state)
     CAPITAL = 100000
     if check_daily_loss_limit(state, CAPITAL):
+        sys.exit(0)
+    if not can_new_entry():
         sys.exit(0)
     ohlcv = fetch_recent_data(SYMBOL, 90)
     if not ohlcv:

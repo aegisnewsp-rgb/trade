@@ -412,10 +412,17 @@ def main():
         if trs:
             atr = sum(trs) / len(trs)
     
+    # Entry window check
+    if signal != "HOLD" and not in_entry_window():
+        print(f"\n⏰ Outside entry window (9:30-14:30 IST) — no new entries")
+        signal = "HOLD"
+    
     # Output
     print(f"\nSignal: {signal}")
     print(f"Price:  Rs{price:.2f}")
     print(f"ATR:    Rs{atr:.2f}")
+    print(f"RSI:    {rsi:.1f}")
+    print(f"Vol:    {vol_ratio:.2f}x avg (need {VOLUME_MULTIPLIER}x)")
     
     if signal == "BUY":
         sl = round(price - atr * 1.0, 2)
@@ -424,6 +431,7 @@ def main():
         print(f"Qty:    {qty}")
         print(f"Stop:   Rs{sl:.2f} (Rs{price-sl:.2f} risk)")
         print(f"Target: Rs{tgt:.2f} (Rs{tgt-price:.2f} reward)")
+        print(f"Trail:  {TRAIL_ATR_MULT}x ATR")
         
         # Place order
         try:
@@ -451,6 +459,7 @@ def main():
         print(f"Qty:    {qty}")
         print(f"Stop:   Rs{sl:.2f} (Rs{sl-price:.2f} risk)")
         print(f"Target: Rs{tgt:.2f} (Rs{price-tgt:.2f} reward)")
+        print(f"Trail:  {TRAIL_ATR_MULT}x ATR")
         
         try:
             from signals.schema import emit_signal
