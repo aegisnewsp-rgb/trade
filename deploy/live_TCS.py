@@ -56,9 +56,9 @@ SL_ATR_MULT      = 1.0     # Stop loss: 1.0× ATR (tighter)
 MAX_SL_PCT       = 0.02    # Hard cap: 2% max stop
 TRAIL_TRIGGER_PCT = 0.01   # Trail after 1% profit
 
-TARGET_1_MULT     = 1.5    # T1: 1.5× risk → 1.5× ATR profit
-TARGET_2_MULT     = 3.0    # T2: 3.0× risk → 3.0× ATR profit
-TARGET_3_MULT     = 4.0    # T3: 4.0× risk → 4.0× ATR profit (primary target)
+TARGET_1_MULT     = 1.5    # T1: 1.5× risk → exit 1/3
+TARGET_2_MULT     = 3.0    # T2: 3.0× risk → exit 1/3
+TARGET_3_MULT     = 5.0    # T3: 5.0× risk → exit remaining (stretch target)
 
 # IT Sector filters
 USD_INR_STRENGTH_THRESHOLD = 0.005  # USD/INR must be rising >0.5% (weaker INR = good for TCS)
@@ -86,12 +86,12 @@ def can_new_entry() -> bool:
         log.info("⏰ Too early — waiting for 10:00 AM IST (best entry window)")
         return False
     if now >= NO_ENTRY_AFTER:
-        log.info("⏰ After 2:30 PM — no new entries today")
+        log.info("⏰ After 2:30 PM IST — no new entries today")
         return False
     return True
 
 def in_best_entry_window() -> bool:
-    """True when we're in the prime entry window (10 AM – 1 PM)."""
+    """True when we're in the prime entry window (9:30 AM – 2:30 PM IST)."""
     now = ist_now().time()
     return BEST_ENTRY_START <= now <= BEST_ENTRY_END
 
@@ -406,7 +406,7 @@ def calculate_targets(entry_price: float, stop_loss: float) -> list:
     targets = [
         {"level": 1, "price": t1, "risk_mult": TARGET_1_MULT, "exit_pct": 0.33, "desc": "Secure 1.5×"},
         {"level": 2, "price": t2, "risk_mult": TARGET_2_MULT, "exit_pct": 0.33, "desc": "Main 3×"},
-        {"level": 3, "price": t3, "risk_mult": TARGET_3_MULT, "exit_pct": 0.34, "desc": "Stretch 4×"},
+        {"level": 3, "price": t3, "risk_mult": TARGET_3_MULT, "exit_pct": 0.34, "desc": "Stretch 5×"},
     ]
     return targets
 
