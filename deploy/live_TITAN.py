@@ -635,7 +635,7 @@ def main():
         price = ohlcv_list[-1][3]
     
     # Calculate ATR
-    atr = price * 0.008
+    # Use real ATR from calculate_atr()
     if len(ohlcv_list) >= 14:
         trs = []
         for i in range(1, min(15, len(ohlcv_list))):

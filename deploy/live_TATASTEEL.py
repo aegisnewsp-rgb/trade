@@ -548,7 +548,7 @@ def main():
             signal = sig_result
         
         # Calculate ATR for risk management (v7: 0.8% ATR)
-        atr = price * 0.008  # fallback
+        # Use real ATR from calculate_atr()  # fallback
         if len(ohlcv_list) >= 14:
             trs = []
             for i in range(1, min(15, len(ohlcv_list))):
@@ -564,7 +564,7 @@ def main():
         print(f"Signal generation error: {e}")
         signal = "HOLD"
         price = ohlcv_list[-1][4]
-        atr = price * 0.008
+        # Use real ATR from calculate_atr()
     
     # Output
     print(f"\nSignal: {signal}")
