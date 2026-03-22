@@ -88,6 +88,9 @@ TARGET_1_MULT = 1.5
 TARGET_2_MULT = 3.0
 TARGET_3_MULT = 5.0
 
+# Trailing stop: 0.3× ATR (activates after TRAIL_TRIGGER_PCT profit)
+TRAIL_ATR_MULT = 0.3
+
 GROWW_API_KEY = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE = "https://api.groww.in/v1"
