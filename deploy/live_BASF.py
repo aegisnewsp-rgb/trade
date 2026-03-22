@@ -35,6 +35,11 @@ log = logging.getLogger("live_BASF")
 SYMBOL         = "BASF.NS"  # Verify correct symbol on exchange
 STRATEGY       = "VWAP_Optimized"
 POSITION       = 7000
+
+# 3-TIER EXIT SYSTEM
+TARGET_1_MULT = 1.5
+TARGET_2_MULT = 3.0
+TARGET_3_MULT = 5.0
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
