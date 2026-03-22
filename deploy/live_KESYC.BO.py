@@ -12,7 +12,12 @@ LOG_DIR.mkdir(exist_ok=True)
 logging.basicConfig(level=logging.INFO,format="%%(asctime)s [%%(levelname)s] %%(message)s",
     handlers=[logging.FileHandler(LOG_DIR/"live_KESYC.BO.log"),logging.StreamHandler(sys.stdout)])
 log=logging.getLogger("live_KESYC.BO")
-SYMBOL="KESYC.BO"; STRATEGY="VWAP"; POSITION=7000; STOP_LOSS_PCT=0.008; TARGET_MULT=4.0; DAILY_LOSS_CAP=0.003
+SYMBOL="KESYC.BO"; STRATEGY="VWAP"; POSITION=7000; 
+# 3-TIER EXIT SYSTEM
+TARGET_1_MULT = 1.5
+TARGET_2_MULT = 3.0
+TARGET_3_MULT = 5.0
+STOP_LOSS_PCT=0.008; TARGET_MULT=4.0; DAILY_LOSS_CAP=0.003
 PARAMS={"vwap_period":14,"atr_multiplier":1.5}
 GROWW_API_KEY=os.getenv("GROWW_API_KEY"); GROWW_API_SECRET=os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE="https://api.groww.in/v1"; IST_TZ_OFFSET=5.5
