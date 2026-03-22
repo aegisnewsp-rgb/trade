@@ -33,16 +33,16 @@ TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS = {
     "vwap_period": 20,
-    "atr_multiplier": 2.5,       # v5: tightened from 2.0 for stronger signals
+    "atr_multiplier": 2.0,       # v7: loosened from 2.5 for more signals
     "rsi_period": 14,
     "rsi_oversold": 40,
     "rsi_overbought": 60,
-    "rsi_confirm_oversold": 30,  # v5: deep oversold confirmation (was 35)
-    "rsi_confirm_overbought": 70,  # v5: deep overbought confirmation (was 65)
+    "rsi_confirm_oversold": 35,  # v7: loosened from 30 for more buy signals
+    "rsi_confirm_overbought": 65,  # v7: loosened from 70 for more sell signals
     "macd_fast": 12,
     "macd_slow": 26,
-    "macd_signal": 12,          # v5: slower signal for fewer false positives
-    "volume_multiplier": 2.0,   # v5: tightened from 1.5 for volume confirmation
+    "macd_signal": 9,           # v7: faster signal (was 12) for earlier entry
+    "volume_multiplier": 1.5,    # v7: loosened from 2.0 for more confirmations
     "trend_ma_period": 50,
     "atr_period": 14,
 }
