@@ -1,0 +1,40 @@
+# Tomorrow's 10-Stock Portfolio — Deep Focus
+# 9:15 AM - 3 PM IST, March 23, 2026 | Total Capital: ₹1,00,000
+
+PORTFOLIO = {
+    "ADANIPOWER": {"allocation": 10000, "priority": 1,  "strategy": "VWAP",        "win_rate": 0.9167},
+    "RELIANCE":   {"allocation": 10000, "priority": 2,  "strategy": "TSI+VWAP",     "win_rate": 0.6364},
+    "HDFCBANK":   {"allocation": 10000, "priority": 3,  "strategy": "ADX_TREND",   "win_rate": 0.6061},
+    "TCS":        {"allocation": 10000, "priority": 4,  "strategy": "VWAP+Smart",  "win_rate": 0.6364},
+    "SBIN":       {"allocation": 10000, "priority": 5,  "strategy": "VWAP",        "win_rate": 0.6364},
+    "TITAN":      {"allocation": 10000, "priority": 6,  "strategy": "VWAP+Smart",  "win_rate": 0.6111},
+    "COALINDIA":  {"allocation": 10000, "priority": 7,  "strategy": "VWAP",        "win_rate": 0.6000},
+    "TATASTEEL":  {"allocation": 10000, "priority": 8,  "strategy": "VWAP",        "win_rate": 0.6154},
+    "ADANIPORTS": {"allocation": 10000, "priority": 9,  "strategy": "VWAP",        "win_rate": 0.6667},
+    "MARUTI":     {"allocation": 10000, "priority": 10, "strategy": "VWAP",        "win_rate": 0.5882},
+}
+
+RULES = """
+ENTRY (all must be true):
+  1. Time: 9:30 AM - 2:30 PM IST only
+  2. Price > VWAP + 0.5%
+  3. RSI(14) > 55 (BUY) or RSI(14) < 45 (SELL)
+  4. Volume > 1.2× 20-day average volume
+  5. NIFTY > 20-day SMA (UPTREND regime)
+
+EXIT RULES:
+  Target 1 (1.5× risk): Exit 1/3 position — lock in safe profit
+  Target 2 (3.0× risk): Exit 1/3 position — main target
+  Target 3 (5.0× risk): Exit remaining 1/3 — maximum gain
+  Stop loss: 0.8% ATR from entry — immediate exit
+
+RISK MANAGEMENT:
+  Max loss per stock: ₹500 (5% of ₹10K)
+  Max total daily loss: ₹3,000 — STOP TRADING if hit
+  Position size: fixed ₹10K per stock (no compounding)
+
+TIME FILTERS:
+  No entries before 9:30 AM (volatile open)
+  No entries after 2:30 PM (insufficient time for target)
+  Best entry window: 9:30 AM - 12:00 PM IST
+"""

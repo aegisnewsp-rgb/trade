@@ -2,7 +2,7 @@
 """
 Live Trading Script - WIPRO.NS
 Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter (Enhanced v5)
-Win Rate: 52.17% -> Target 60%+ (v5: ATR×2.5, vol×2.0, RSI 30/70, MACD sig×12)
+Win Rate: 52.17% -> Target 60%+ (v6: CRITICAL - vwap_signal_v5 renamed to vwap_signal so main() actually calls the enhanced strategy)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -26,7 +26,7 @@ logging.basicConfig(
 log = logging.getLogger("live_WIPRO")
 
 SYMBOL         = "WIPRO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_v5"
+STRATEGY       = "VWAP_RSI_MACD_VOL_v6"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
@@ -160,7 +160,7 @@ def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
         return 0
     return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
 
-def vwap_signal_v5(ohlcv: list, params: dict) -> tuple[str, float, float]:
+def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     vwap_period  = params["vwap_period"]
     atr_mult     = params["atr_multiplier"]
     rsi_period   = params["rsi_period"]

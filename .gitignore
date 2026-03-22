@@ -1,11 +1,29 @@
+# Keep only 99 strategy files in GitHub
+# All 470 live_*.py scripts are local-only
+
+# Exclude all live_*.py — they're too many for GitHub
+live_*.py
+
+# Keep the top 99 strategy files
+!strategies/groww_*.py
+
+# Exclude pycache and temp files
 __pycache__/
 *.pyc
 *.pyo
-*.egg-info/
-.eggs/
-*.egg
-dist/
-build/
 *.log
-state_*.json
-tomorrow_portfolio.json
+logs/*.jsonl
+logs/compacted/
+deploy/.patch_backup/
+
+# Environment
+.env
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local testing
+research/backtest_results/
+tomorrow_trade/
