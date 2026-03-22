@@ -1,0 +1,142 @@
+{
+  "ADANIPOWER": {
+    "buys": 24,
+    "sells": 64,
+    "wins": 4,
+    "losses": 20,
+    "win_rate": 16.7
+  },
+  "ADANIGREEN": {
+    "buys": 33,
+    "sells": 53,
+    "wins": 7,
+    "losses": 26,
+    "win_rate": 21.2
+  },
+  "ADANIPORTS": {
+    "buys": 44,
+    "sells": 38,
+    "wins": 15,
+    "losses": 29,
+    "win_rate": 34.1
+  },
+  "RELIANCE": {
+    "buys": 49,
+    "sells": 32,
+    "wins": 26,
+    "losses": 23,
+    "win_rate": 53.1
+  },
+  "SBIN": {
+    "buys": 74,
+    "sells": 15,
+    "wins": 50,
+    "losses": 24,
+    "win_rate": 67.6
+  },
+  "HDFCBANK": {
+    "buys": 20,
+    "sells": 50,
+    "wins": 3,
+    "losses": 17,
+    "win_rate": 15.0
+  },
+  "TITAN": {
+    "buys": 71,
+    "sells": 20,
+    "wins": 41,
+    "losses": 30,
+    "win_rate": 57.7
+  },
+  "TATASTEEL": {
+    "buys": 68,
+    "sells": 29,
+    "wins": 39,
+    "losses": 29,
+    "win_rate": 57.4
+  },
+  "COALINDIA": {
+    "buys": 61,
+    "sells": 17,
+    "wins": 36,
+    "losses": 25,
+    "win_rate": 59.0
+  },
+  "CIPLA": {
+    "buys": 15,
+    "sells": 62,
+    "wins": 1,
+    "losses": 14,
+    "win_rate": 6.7
+  },
+  "MARUTI": {
+    "buys": 36,
+    "sells": 46,
+    "wins": 19,
+    "losses": 17,
+    "win_rate": 52.8
+  },
+  "HINDALCO": {
+    "buys": 66,
+    "sells": 28,
+    "wins": 38,
+    "losses": 28,
+    "win_rate": 57.6
+  },
+  "HCLTECH": {
+    "buys": 56,
+    "sells": 34,
+    "wins": 33,
+    "losses": 23,
+    "win_rate": 58.9
+  },
+  "HEROMOTOCO": {
+    "buys": 39,
+    "sells": 48,
+    "wins": 13,
+    "losses": 26,
+    "win_rate": 33.3
+  },
+  "M&M": {
+    "buys": 35,
+    "sells": 51,
+    "wins": 11,
+    "losses": 24,
+    "win_rate": 31.4
+  },
+  "KOTAKBANK": {
+    "buys": 40,
+    "sells": 51,
+    "wins": 12,
+    "losses": 28,
+    "win_rate": 30.0
+  },
+  "AXISBANK": {
+    "buys": 72,
+    "sells": 19,
+    "wins": 39,
+    "losses": 33,
+    "win_rate": 54.2
+  },
+  "ICICIBANK": {
+    "buys": 36,
+    "sells": 46,
+    "wins": 11,
+    "losses": 25,
+    "win_rate": 30.6
+  },
+  "BAJFINANCE": {
+    "buys": 31,
+    "sells": 58,
+    "wins": 13,
+    "losses": 18,
+    "win_rate": 41.9
+  },
+  "NTPC": {
+    "buys": 54,
+    "sells": 32,
+    "wins": 33,
+    "losses": 21,
+    "win_rate": 61.1
+  }
+}
