@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - GLENMARK.NS
-Strategy: VWAP + RSI Confirmation
-Win Rate: 56.00% (estimated based on pharma sector)
+Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8)
+Win Rate: 56.00% -> Target 60%+ (v8: Added MACD, volume, trend, BB filters to tighten quality)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
-Enhanced: 2026-03-22 - Added RSI confirmation filter
+Enhanced: 2026-03-22 - Full multi-filter enhancement
 """
 
 import os
@@ -34,7 +34,7 @@ log = logging.getLogger("live_GLENMARK.NS")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "GLENMARK.NS"
-STRATEGY       = "VWAP_RSI"
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8"
 POSITION       = 7000
 
 # 3-TIER EXIT SYSTEM
@@ -48,8 +48,18 @@ PARAMS         = {
     "vwap_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "rsi_overbought": 65,
-    "rsi_oversold": 35,
+    "rsi_overbought": 68,       # v8: tightened from 65
+    "rsi_oversold": 32,         # v8: tightened from 35
+    "rsi_confirm_overbought": 68,  # v8: new - strict overbought
+    "rsi_confirm_oversold": 32,    # v8: new - strict oversold
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "volume_multiplier": 2.0,   # v8: require above-2x avg volume
+    "trend_ma_period": 50,      # v8: trend filter
+    "atr_period": 14,
+    "bb_period": 20,            # v8: Bollinger Band period
+    "bb_std": 2.0,             # v8: Bollinger Band std dev
 }
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")

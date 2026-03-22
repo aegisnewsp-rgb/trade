@@ -1,0 +1,167 @@
+[
+  {
+    "sym": "TATASTEEL",
+    "wr": 66.7,
+    "trades": 3,
+    "rsi": 50,
+    "vol": 1.5,
+    "sl": 1.5,
+    "tgt": 2.0,
+    "regime": true,
+    "trades_detail": [
+      -415.2501678466797,
+      679.640380859375,
+      758.8794708251953
+    ]
+  },
+  {
+    "sym": "BANKINDIA",
+    "wr": 62.5,
+    "trades": 8,
+    "rsi": 50,
+    "vol": 1.1,
+    "sl": 1.5,
+    "tgt": 2.0,
+    "regime": false,
+    "trades_detail": [
+      -504.8828125,
+      765.3801879882812,
+      525.0,
+      504.7004699707031,
+      491.6997985839844,
+      -694.1802978515625,
+      916.0205383300781,
+      -678.1600341796875
+    ]
+  },
+  {
+    "sym": "SBIN",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "BPCL",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "HINDALCO",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "VEDL",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "NTPC",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "POWERGRID",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "TECHM",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "INFY",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "TCS",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "COALINDIA",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "MARUTI",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "NESTLEIND",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  },
+  {
+    "sym": "LT",
+    "wr": 0,
+    "trades": 0,
+    "rsi": 55,
+    "vol": 1.2,
+    "sl": 0.8,
+    "tgt": 4.0,
+    "regime": true
+  }
+]
