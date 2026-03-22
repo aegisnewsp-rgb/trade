@@ -22,7 +22,8 @@ from datetime import datetime, time as dtime
 from pathlib import Path
 
 # ── yfinance ──────────────────────────────────────────────────────────────────
-import yfinance as yf
+import yfinance
+YFINANCE_AVAILABLE = True as yf
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOG_DIR = Path(__file__).parent / "logs"
@@ -347,7 +348,8 @@ def place_groww_order(symbol, signal, quantity, price):
 
 def main():
     """Main trading loop for ADANIENT"""
-    import yfinance as yf
+    import yfinance
+YFINANCE_AVAILABLE = True as yf
     try:
         t = yf.Ticker("ADANIENT.NS")
         d = t.history(period="3mo")

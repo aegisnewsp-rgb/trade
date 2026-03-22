@@ -199,7 +199,7 @@ def calculate_volume_ma(ohlcv: List[Dict], period: int = 20) -> List[float]:
 
 # RSI filter: BUY>RSI55, SELL<RSI45
 # Regime filter: skip DOWNTREND
-def get_signal(ohlcv: List[Dict], vwap: List[float], atr: List[float], rsi: List[float]) -> tuple[str, float, float, float]:
+def get_signal(ohlcv: List[Dict], vwap: List[float], atr: List[float], rsi: List[float], vol_ma: List[float]) -> tuple[str, float, float, float]:
     """VWAP + RSI signal generation."""
     if len(ohlcv) < VWAP_PERIOD or len(vwap) < VWAP_PERIOD or len(atr) < VWAP_PERIOD:
         return "HOLD", ohlcv[-1]["close"], 0.0, 50.0
@@ -324,10 +324,11 @@ def main():
     atr = calculate_atr(ohlcv, ATR_PERIOD)
     vwap = calculate_vwap(ohlcv, VWAP_PERIOD)
     rsi = calculate_rsi(ohlcv, RSI_PERIOD)
+    vol_ma = calculate_volume_ma(ohlcv, VOLUME_MA_PERIOD)
     current_price = ohlcv[-1]["close"]
     current_atr = atr[-1] if atr[-1] else (current_price * 0.02)
     current_rsi = rsi[-1] if rsi else 50.0
-    signal, price, atr_val, rsi_val = generate_signal(ohlcv, vwap, atr, rsi)
+    signal, price, atr_val, rsi_val = get_signal(ohlcv, vwap, atr, rsi, vol_ma)
     logger.info(f"Price: ₹{price:.2f} | ATR: ₹{atr_val:.2f} | VWAP: ₹{vwap[-1]:.2f} | RSI: {rsi_val:.1f} | Signal: {signal}")
     if signal != "HOLD":
         result = execute_trade(signal, price, atr_val, rsi_val, state, CAPITAL)

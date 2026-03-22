@@ -21,7 +21,8 @@ import os, sys, json, time, logging, requests
 import groww_api
 from datetime import datetime, time as dtime
 from pathlib import Path
-import yfinance as yf
+import yfinance
+YFINANCE_AVAILABLE = True as yf
 
 LOG_DIR = Path(__file__).parent / 'logs'
 LOG_DIR.mkdir(exist_ok=True)
@@ -44,8 +45,9 @@ POSITION       = 7000
 TARGET_1_MULT = 1.5
 TARGET_2_MULT = 3.0
 TARGET_3_MULT = 5.0
-STOP_LOSS_PCT  = 0.008
-TARGET_MULT    = 4.0
+STOP_LOSS_PCT  = 0.006
+TARGET_MULT    = 2.5
+SIGNAL_MODE   = "MEAN_REVERSION"  # ENHANCED: was BREAKOUT, inverting for low win-rate stock
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
 
@@ -346,7 +348,8 @@ def main():
     sys.path.insert(0, str(Path(__file__).parent))
     
     try:
-        import yfinance as yf
+        import yfinance
+YFINANCE_AVAILABLE = True as yf
     except ImportError:
         print("yfinance not installed: pip install yfinance")
         return

@@ -204,23 +204,46 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float, fl
     atr_mult      = params["atr_multiplier"]
     vwap_vals     = calculate_vwap(ohlcv, period)
     atr_vals      = calculate_atr(ohlcv, period)
+    rsi_vals      = calculate_rsi(ohlcv, RSI_PERIOD)
     signals       = ["HOLD"] * len(ohlcv)
+    avg_vol       = get_avg_volume(ohlcv)
 
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
+        
         price    = ohlcv[i]["close"]
+        volume   = ohlcv[i]["volume"]
         v        = vwap_vals[i]
         a        = atr_vals[i]
+        rsi      = rsi_vals[i]
+        vol_ratio = volume / avg_vol if avg_vol > 0 else 0
+        
+        # Volume filter: must be >= 1.2x average
+        if vol_ratio < VOLUME_MULTIPLIER:
+            continue
+        
+        raw_signal = None
         if price > v + a * atr_mult:
-            signals[i] = "BUY"
+            raw_signal = "BUY"
         elif price < v - a * atr_mult:
-            signals[i] = "SELL"
+            raw_signal = "SELL"
+        
+        # Apply RSI filter
+        if raw_signal == "BUY" and rsi <= RSI_BUY_THRESHOLD:
+            raw_signal = None
+        elif raw_signal == "SELL" and rsi >= RSI_SELL_THRESHOLD:
+            raw_signal = None
+        
+        if raw_signal:
+            signals[i] = raw_signal
 
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return current_signal, current_price, current_atr
+    current_rsi    = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 50.0
+    current_vol_ratio = ohlcv[-1]["volume"] / avg_vol if avg_vol > 0 else 0.0
+    return current_signal, current_price, current_atr, current_rsi, current_vol_ratio
 
 def place_groww_order(symbol, signal, quantity, price):
     """
@@ -247,7 +270,7 @@ def place_groww_order(symbol, signal, quantity, price):
             quantity=quantity,
             target_price=target,
             stop_loss_price=stop_loss,
-            trailing_sl=0.3,
+            trailing_sl=TRAIL_ATR_MULT,
             trailing_target=0.5
         )
     elif signal == "SELL":
@@ -260,7 +283,7 @@ def place_groww_order(symbol, signal, quantity, price):
             quantity=quantity,
             target_price=target,
             stop_loss_price=stop_loss,
-            trailing_sl=0.3,
+            trailing_sl=TRAIL_ATR_MULT,
             trailing_target=0.5
         )
     else:
@@ -281,7 +304,8 @@ def main():
     sys.path.insert(0, str(Path(__file__).parent))
     
     try:
-        import yfinance as yf
+        import yfinance
+YFINANCE_AVAILABLE = True as yf
     except ImportError:
         print("yfinance not installed: pip install yfinance")
         return
@@ -330,12 +354,16 @@ def main():
     # Detect strategy type and run appropriate signal
     signal = None
     price = ohlcv_list[-1][2]  # close price
+    rsi = 50.0
+    vol_ratio = 0.0
     
     try:
         # Try strategy functions in priority order
         if 'vwap_signal' in dir():
             sig_result = vwap_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple) and len(sig_result) >= 2:
+            if isinstance(sig_result, tuple) and len(sig_result) >= 5:
+                signal, price, atr, rsi, vol_ratio = sig_result[0], float(sig_result[1]), sig_result[2], float(sig_result[3]), float(sig_result[4])
+            elif isinstance(sig_result, tuple) and len(sig_result) >= 2:
                 signal, price = sig_result[0], float(sig_result[1])
             elif isinstance(sig_result, str):
                 signal = sig_result
@@ -404,10 +432,17 @@ def main():
         if trs:
             atr = sum(trs) / len(trs)
     
+    # Entry window check
+    if signal != "HOLD" and not in_entry_window():
+        print(f"\n⏰ Outside entry window (9:30-14:30 IST) — no new entries")
+        signal = "HOLD"
+    
     # Output
     print(f"\nSignal: {signal}")
     print(f"Price:  Rs{price:.2f}")
     print(f"ATR:    Rs{atr:.2f}")
+    print(f"RSI:    {rsi:.1f}")
+    print(f"Vol:    {vol_ratio:.2f}x avg (need {VOLUME_MULTIPLIER}x)")
     
     if signal == "BUY":
         sl = round(price - atr * 1.0, 2)
@@ -416,6 +451,7 @@ def main():
         print(f"Qty:    {qty}")
         print(f"Stop:   Rs{sl:.2f} (Rs{price-sl:.2f} risk)")
         print(f"Target: Rs{tgt:.2f} (Rs{tgt-price:.2f} reward)")
+        print(f"Trail:  {TRAIL_ATR_MULT}x ATR")
         
         # Place order
         try:
@@ -443,6 +479,7 @@ def main():
         print(f"Qty:    {qty}")
         print(f"Stop:   Rs{sl:.2f} (Rs{sl-price:.2f} risk)")
         print(f"Target: Rs{tgt:.2f} (Rs{price-tgt:.2f} reward)")
+        print(f"Trail:  {TRAIL_ATR_MULT}x ATR")
         
         try:
             from signals.schema import emit_signal

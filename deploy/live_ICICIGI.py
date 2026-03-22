@@ -16,7 +16,8 @@ import requests
 from datetime import datetime, time as dtime
 from pathlib import Path
 
-import yfinance as yf
+import yfinance
+YFINANCE_AVAILABLE = True as yf
 
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -232,7 +233,8 @@ def main():
     sys.path.insert(0, str(Path(__file__).parent))
     
     try:
-        import yfinance as yf
+        import yfinance
+YFINANCE_AVAILABLE = True as yf
     except ImportError:
         print("yfinance not installed: pip install yfinance")
         return

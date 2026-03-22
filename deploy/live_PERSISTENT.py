@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - TCS.NS
-Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: N/A
+Live Trading Script - PERSISTENT.NS
+Strategy: VWAP (Volume Weighted Average Price) + RSI 55/45 Filter + Volume 1.2x
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Entry Window: 9:30–14:30 IST | TRAIL_ATR_MULT=0.3
 """
 
 import os
@@ -16,7 +16,8 @@ import requests
 from datetime import datetime, time as dtime
 from pathlib import Path
 
-import yfinance as yf
+import yfinance
+YFINANCE_AVAILABLE = True as yf
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOG_DIR = Path(__file__).parent / "logs"
@@ -29,7 +30,7 @@ logging.basicConfig(
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_TCS")
+log = logging.getLogger("live_PERSISTENT")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "PERSISTENT.NS"
@@ -40,24 +41,27 @@ TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
 
-# 3-TIER EXIT SYSTEM (enhancement)
+# ── NEW FILTERS ───────────────────────────────────────────────────────────────
+TRAIL_ATR_MULT = 0.3      # Trailing stop ATR multiplier
+RSI_OB_LEVEL   = 55       # RSI above this → BUY allowed
+RSI_OS_LEVEL   = 45       # RSI below this → SELL allowed
+VOL_MULTIPLIER = 1.2      # Volume must be this x average
+ENTRY_START    = dtime(9, 30)   # 9:30 AM IST
+ENTRY_END      = dtime(14, 30)  # 2:30 PM IST
+NO_ENTRY_AFTER = dtime(14, 30) # No new entries after 2:30 PM
+
+# 3-TIER EXIT SYSTEM
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
 MAX_SL_PCT       = 0.015   # Hard cap: 1.5% max stop
 TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
-
 TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
 TARGET_2_MULT    = 3.0     # T2: 3.0x risk → exit 1/3
 TARGET_3_MULT    = 5.0     # T3: 5.0x risk → exit remaining
 
-# Entry window
-BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
-BEST_ENTRY_END   = dtime(14, 30) # 2:30 PM IST
-NO_ENTRY_AFTER   = dtime(14, 30) # No new entries after 2:30 PM
-
 def can_new_entry() -> bool:
     """Only allow entries during best entry window."""
     now = ist_now().time()
-    if now < BEST_ENTRY_START:
+    if now < ENTRY_START:
         log.info("⏰ Too early — waiting for 9:30 AM IST entry window")
         return False
     if now >= NO_ENTRY_AFTER:
@@ -65,9 +69,9 @@ def can_new_entry() -> bool:
         return False
     return True
 
-def in_best_entry_window() -> bool:
+def in_entry_window() -> bool:
     now = ist_now().time()
-    return BEST_ENTRY_START <= now <= BEST_ENTRY_END
+    return ENTRY_START <= now <= ENTRY_END
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -136,6 +140,32 @@ def calculate_atr(ohlcv: list, period: int = 14) -> list:
         prev_close = bar["close"]
     return atr
 
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    """Calculate RSI values for the OHLCV data."""
+    rsi = [None] * len(ohlcv)
+    if len(ohlcv) < period + 1:
+        return rsi
+    gains = []
+    losses = []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i-1]["close"]
+        gains.append(max(change, 0))
+        losses.append(max(-change, 0))
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        rs = avg_gain / avg_loss if avg_loss != 0 else 100
+        rsi[i + 1] = 100 - (100 / (1 + rs))
+    return rsi
+
+def calculate_avg_volume(ohlcv: list, lookback: int = 20) -> float:
+    """Calculate average volume over lookback period."""
+    if len(ohlcv) < lookback:
+        return float(sum(b["volume"] for b in ohlcv)) / max(len(ohlcv), 1)
+    return float(sum(b["volume"] for b in ohlcv[-lookback:])) / lookback
+
 def calculate_vwap(ohlcv: list, period: int = 14) -> list:
     vwap = []
     for i in range(len(ohlcv)):
@@ -153,17 +183,29 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     atr_mult      = params["atr_multiplier"]
     vwap_vals     = calculate_vwap(ohlcv, period)
     atr_vals      = calculate_atr(ohlcv, period)
+    rsi_vals      = calculate_rsi(ohlcv, period)
     signals       = ["HOLD"] * len(ohlcv)
 
+    avg_vol = calculate_avg_volume(ohlcv)
+
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
         price    = ohlcv[i]["close"]
         v        = vwap_vals[i]
         a        = atr_vals[i]
-        if price > v + a * atr_mult:
+        r        = rsi_vals[i]
+        bar_vol  = ohlcv[i]["volume"]
+        vol_ok_i = bar_vol >= avg_vol * VOL_MULTIPLIER
+
+        # Volume filter: skip if volume < 1.2x average
+        if not vol_ok_i:
+            continue
+
+        # RSI 55/45 filter: BUY only if RSI > 55, SELL only if RSI < 45
+        if price > v + a * atr_mult and r > RSI_OB_LEVEL:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult:
+        elif price < v - a * atr_mult and r < RSI_OS_LEVEL:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
@@ -171,24 +213,24 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
     return current_signal, current_price, current_atr
 
-def place_groww_order(symbol, signal, quantity, price):
+def place_groww_order(symbol, signal, quantity, price, atr=None):
     """
     Place order via Groww API or paper trade.
     Uses Bracket Orders (BO) when GROWW_API_KEY is set.
     Falls back to paper trading otherwise.
     """
     import groww_api
-    
+    if atr is None:
+        atr = 0.0
+
     if not groww_api.is_configured():
         return groww_api.paper_trade(signal, symbol, price, quantity)
-    
+
     exchange = "NSE"
-    
+
     if signal == "BUY":
-        # Calculate target and stop loss  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
+        stop_loss = price - (atr * SL_ATR_MULT)
+        target    = price + (atr * TARGET_MULT)
         result = groww_api.place_bo(
             exchange=exchange,
             symbol=symbol,
@@ -196,12 +238,12 @@ def place_groww_order(symbol, signal, quantity, price):
             quantity=quantity,
             target_price=target,
             stop_loss_price=stop_loss,
-            trailing_sl=0.3,
+            trailing_sl=TRAIL_ATR_MULT,
             trailing_target=0.5
         )
     elif signal == "SELL":
-        stop_loss = price + (atr * 1.0)
-        target = price - (atr * 4.0)
+        stop_loss = price + (atr * SL_ATR_MULT)
+        target    = price - (atr * TARGET_MULT)
         result = groww_api.place_bo(
             exchange=exchange,
             symbol=symbol,
@@ -209,12 +251,12 @@ def place_groww_order(symbol, signal, quantity, price):
             quantity=quantity,
             target_price=target,
             stop_loss_price=stop_loss,
-            trailing_sl=0.3,
+            trailing_sl=TRAIL_ATR_MULT,
             trailing_target=0.5
         )
     else:
         return None
-    
+
     if result:
         print("Order placed: {} {} {} @ Rs{:.2f}".format(
             signal, quantity, symbol, price))
@@ -223,32 +265,36 @@ def place_groww_order(symbol, signal, quantity, price):
 def main():
     """
     Universal main() — detects strategy type and runs appropriate signal.
-    Works with: VWAP, ADX_TREND, TSI, RSI, MACD, Bollinger, MA_ENVELOPE, etc.
     """
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).parent))
-    
+
     try:
-        import yfinance as yf
+        import yfinance
+YFINANCE_AVAILABLE = True as yf
     except ImportError:
         print("yfinance not installed: pip install yfinance")
         return
-    
-    # Detect symbol from filename
-    fname = Path(__file__).stem  # e.g. "live_RELIANCE"
+
+    fname = Path(__file__).stem
     sym = fname.replace("live_", "").replace("_NS", ".NS").replace("_BO", ".BO")
     ticker_sym = sym.replace(".NS", "").replace(".BO", "")
-    
-    # Determine exchange suffix for yfinance
+
     exchange_suffix = ".NS" if ".NS" in sym else ".BO"
     yahoo_sym = ticker_sym + exchange_suffix
-    
+
     print(f"\n{'='*60}")
     print(f"Running: {ticker_sym} ({yahoo_sym})")
     print(f"{'='*60}")
-    
-    # Fetch data
+
+    # Check entry window
+    if not in_entry_window():
+        now = ist_now().time()
+        print(f"Outside entry window (9:30–14:30 IST). Current: {now.strftime('%H:%M:%S')}")
+        print("No new entries — HOLD")
+        return
+
     try:
         ticker = yf.Ticker(yahoo_sym)
         data = ticker.history(period="3mo")
@@ -260,8 +306,7 @@ def main():
     except Exception as e:
         print(f"Data fetch error: {e}")
         return
-    
-    # Prepare OHLCV list for strategy functions
+
     ohlcv_list = []
     for idx, row in data.iterrows():
         ohlcv_list.append([
@@ -271,17 +316,15 @@ def main():
             float(row['Close']),
             float(row['Volume'])
         ])
-    
+
     if not ohlcv_list:
         print("No OHLCV data")
         return
-    
-    # Detect strategy type and run appropriate signal
+
     signal = None
-    price = ohlcv_list[-1][2]  # close price
-    
+    price  = ohlcv_list[-1][2]
+
     try:
-        # Try strategy functions in priority order
         if 'vwap_signal' in dir():
             sig_result = vwap_signal(ohlcv_list, {})
             if isinstance(sig_result, tuple) and len(sig_result) >= 2:
@@ -307,7 +350,6 @@ def main():
             elif isinstance(sig_result, str):
                 signal = sig_result
         else:
-            # Generic: look for any function returning signal
             for func_name in ['signal', 'get_signal', 'generate_signal']:
                 if func_name in dir():
                     func = eval(func_name)
@@ -318,8 +360,7 @@ def main():
                         elif isinstance(result, str):
                             signal = result
                         break
-        
-        # Default fallback: calculate basic signals
+
         if not signal:
             closes = [o[4] for o in ohlcv_list]
             if len(closes) >= 20:
@@ -334,14 +375,12 @@ def main():
                 else:
                     signal = "HOLD"
                     price = current
-    
+
     except Exception as e:
         print(f"Signal generation error: {e}")
         signal = "HOLD"
         price = ohlcv_list[-1][4]
-    
-    # Calculate ATR for risk management
-    # Use real ATR from calculate_atr()  # fallback
+
     if len(ohlcv_list) >= 14:
         trs = []
         for i in range(1, min(15, len(ohlcv_list))):
@@ -352,21 +391,19 @@ def main():
             trs.append(tr)
         if trs:
             atr = sum(trs) / len(trs)
-    
-    # Output
+
     print(f"\nSignal: {signal}")
     print(f"Price:  Rs{price:.2f}")
     print(f"ATR:    Rs{atr:.2f}")
-    
+
     if signal == "BUY":
-        sl = round(price - atr * 1.0, 2)
-        tgt = round(price + atr * 4.0, 2)
+        sl = round(price - atr * SL_ATR_MULT, 2)
+        tgt = round(price + atr * TARGET_MULT, 2)
         qty = max(1, int(10000 / price))
         print(f"Qty:    {qty}")
         print(f"Stop:   Rs{sl:.2f} (Rs{price-sl:.2f} risk)")
         print(f"Target: Rs{tgt:.2f} (Rs{tgt-price:.2f} reward)")
-        
-        # Place order
+
         try:
             from signals.schema import emit_signal
             emit_signal(
@@ -384,15 +421,15 @@ def main():
                 paper_trade("BUY", ticker_sym, price, qty)
             except:
                 pass
-    
+
     elif signal == "SELL":
-        sl = round(price + atr * 1.0, 2)
-        tgt = round(price - atr * 4.0, 2)
+        sl = round(price + atr * SL_ATR_MULT, 2)
+        tgt = round(price - atr * TARGET_MULT, 2)
         qty = max(1, int(10000 / price))
         print(f"Qty:    {qty}")
         print(f"Stop:   Rs{sl:.2f} (Rs{sl-price:.2f} risk)")
         print(f"Target: Rs{tgt:.2f} (Rs{price-tgt:.2f} reward)")
-        
+
         try:
             from signals.schema import emit_signal
             emit_signal(
@@ -409,11 +446,10 @@ def main():
                 paper_trade("SELL", ticker_sym, price, qty)
             except:
                 pass
-    
+
     else:
         print("No trade — HOLD signal")
 
 
 if __name__ == "__main__":
     main()
-

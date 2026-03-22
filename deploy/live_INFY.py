@@ -27,7 +27,8 @@ import groww_api
 from datetime import datetime, time as dtime
 from pathlib import Path
 
-import yfinance as yf
+import yfinance
+YFINANCE_AVAILABLE = True as yf
 
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -45,7 +46,8 @@ SYMBOL         = "INFY.NS"
 STRATEGY       = "VWAP_MOMENTUM"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.005
-TARGET_MULT    = 4.0
+TARGET_MULT    = 2.5
+SIGNAL_MODE   = "MEAN_REVERSION"  # ENHANCED: was BREAKOUT, inverting for low win-rate stock
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {"vwap_period": 14, "atr_period": 14, "atr_multiplier": 1.5, "rsi_period": 14, "rsi_overbought": 65, "rsi_oversold": 35}
 
@@ -409,7 +411,8 @@ def main():
     sys.path.insert(0, str(Path(__file__).parent))
     
     try:
-        import yfinance as yf
+        import yfinance
+YFINANCE_AVAILABLE = True as yf
     except ImportError:
         print("yfinance not installed: pip install yfinance")
         return

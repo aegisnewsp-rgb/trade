@@ -18,7 +18,8 @@ from datetime import datetime, time as dtime
 from pathlib import Path
 from typing import Optional, List
 
-import yfinance as yf
+import yfinance
+YFINANCE_AVAILABLE = True as yf
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOG_DIR = Path(__file__).parent / "logs"
@@ -259,7 +260,8 @@ def main():
     sys.path.insert(0, str(Path(__file__).parent))
     
     try:
-        import yfinance as yf
+        import yfinance
+YFINANCE_AVAILABLE = True as yf
     except ImportError:
         print("yfinance not installed: pip install yfinance")
         return

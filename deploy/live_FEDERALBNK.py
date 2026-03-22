@@ -18,7 +18,8 @@ import requests
 from datetime import datetime, time as dtime
 from pathlib import Path
 
-import yfinance as yf
+import yfinance
+YFINANCE_AVAILABLE = True as yf
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOG_DIR = Path(__file__).parent / "logs"
