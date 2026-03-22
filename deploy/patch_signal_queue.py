@@ -1,55 +1,44 @@
 #!/usr/bin/env python3
-"""
-Patch all live_*.py scripts to write signals to the queue
-instead of calling Groww API directly.
-This enables coalesced order placement (1 API connection = no rate limits).
-"""
+"""Patch all live_*.py to emit signals to queue instead of direct Groww API calls"""
 import os, re
 
 DEPLOY = "/home/node/workspace/trade-project/deploy"
 os.chdir(DEPLOY)
 
-
 NEW_FUNC = '''
 def place_groww_order(symbol, signal, quantity, price):
     """
-    Write signal to queue — Master Orchestrator places the actual order.
-    This avoids 468 scripts each hitting Groww API independently.
+    Emit trading signal to queue for Master Orchestrator.
+    Orchestrator coalesces all signals and places orders via Groww API
+    (single connection = no rate limiting across 468 scripts).
+    Paper mode: orchestrator prints signals instead of placing.
     """
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).parent))
-    
     try:
         from signals.schema import emit_signal
-        # Try to get ATR from script context
-        atr = price * 0.008  # fallback
-        if 'atr' in globals():
-            try:
-                atr = float(atr) if isinstance(atr, (int, float)) else price * 0.008
-            except:
-                atr = price * 0.008
-        
+        # Get ATR from script's atr variable if available
+        _atr = price * 0.008
+        try:
+            if 'atr' in globals() and isinstance(globals().get('atr'), (int, float)):
+                _atr = float(globals()['atr'])
+        except:
+            _atr = price * 0.008
+        _strategy = str(globals().get('STRATEGY_NAME', 'VWAP'))
         emit_signal(
-            symbol=symbol,
-            signal=signal,
-            price=price,
-            quantity=quantity,
-            strategy=str(globals().get('STRATEGY_NAME', 'VWAP')),
-            atr=atr,
+            symbol=symbol, signal=signal, price=price,
+            quantity=quantity, strategy=_strategy, atr=_atr,
             metadata={"source": Path(__file__).name}
         )
         return {"status": "queued", "symbol": symbol, "signal": signal}
     except ImportError:
-        # Fallback: print signal (paper mode)
         print("[PAPER] {} {}x {} @ Rs{:.2f}".format(signal, quantity, symbol, price))
         return {"status": "paper", "symbol": symbol, "signal": signal}
 
 
 def place_order(symbol, signal, quantity, price):
-    """Alias for compatibility"""
     return place_groww_order(symbol, signal, quantity, price)
-
 '''
 
 
@@ -57,43 +46,48 @@ def patch_file(filepath):
     with open(filepath) as f:
         content = f.read()
     
-    if "SIGNAL QUEUED" in content and "emit_signal" in content:
+    if "emit_signal" in content and "status: queued" in content:
         return "already_patched"
     
     original = content
     
-    # Add emit_signal import if not present
+    # Remove old place_groww_order function (find next top-level def)
+    lines = content.split('\n')
+    new_lines = []
+    skip_until_next_def = False
+    skip_until_name_main = False
+    
+    for i, line in enumerate(lines):
+        # Start skipping at old place_groww_order
+        if line.startswith('def place_groww_order'):
+            skip_until_next_def = True
+            continue
+        # Stop skipping at next top-level def or class or if __name__
+        if skip_until_next_def:
+            if (line.startswith('def ') or line.startswith('class ') or
+                line.startswith('if __name__')):
+                skip_until_next_def = False
+                new_lines.append(line)
+            continue
+        new_lines.append(line)
+    
+    content = '\n'.join(new_lines)
+    
+    # Add emit_signal import if missing
     if "from signals.schema import emit_signal" not in content:
-        # Find insertion point (after other imports)
         lines = content.split('\n')
         insert_at = 0
         for i, line in enumerate(lines):
             if line.startswith('import ') and i > 0:
                 insert_at = i + 1
-        
-        # Or after 'import groww_api'
-        for i, line in enumerate(lines):
-            if 'import groww_api' in line:
-                insert_at = i + 1
                 break
-        
-        lines.insert(insert_at, 'import sys')
-        lines.insert(insert_at + 1, 'from pathlib import Path')
-        
+        # Insert after last import
+        lines.insert(insert_at, '')
+        lines.insert(insert_at + 1, 'import sys')
+        lines.insert(insert_at + 2, 'from pathlib import Path')
         content = '\n'.join(lines)
     
-    # Remove old place_groww_order function
-    # Match from 'def place_groww_order' to next 'def ' at column 0
-    pattern = r'def place_groww_order\([^)]*\):[^\n]*\n(?:.*?\n)*?(?=\n(?:def [a-zA-Z]|if __name__|class |$
-    )'
-    content = re.sub(pattern, '', content, flags=re.MULTILINE)
-    
-    # Also remove place_order alias if exists
-    pattern2 = r'def place_order\([^)]*\):[^\n]*\n(?:.*?\n)*?(?=\n(?:def [a-zA-Z]|if __name__|class |$
-    )'
-    content = re.sub(pattern2, '', content, flags=re.MULTILINE)
-    
-    # Append new function before main block
+    # Append new function before if __name__
     if 'if __name__' in content:
         content = content.replace('if __name__', NEW_FUNC + '\nif __name__')
     else:
@@ -115,11 +109,11 @@ def main():
             result = patch_file(fname)
             stats[result] = stats.get(result, 0) + 1
         except Exception as e:
-            print(f"ERROR {fname}: {e}")
+            print("ERROR {}: {}".format(fname, e))
             stats["errors"] += 1
     
-    print(f"Patch: {stats['patched']} patched, {stats['already_patched']} already, "
-          f"{stats['unchanged']} unchanged, {stats['errors']} errors")
+    print("Patch: {} patched, {} already, {} unchanged, {} errors".format(
+        stats["patched"], stats["already_patched"], stats["unchanged"], stats["errors"]))
     
     # Compile check
     import subprocess
@@ -132,10 +126,10 @@ def main():
         else:
             fail.append(fname)
     
-    print(f"Compile: {ok} OK, {len(fail)} FAILED")
+    print("Compile: {} OK, {} FAILED".format(ok, len(fail)))
     if fail:
         for f in fail[:5]:
-            print(f"  FAIL: {f}")
+            print("  FAIL:", f)
 
 
 if __name__ == "__main__":
