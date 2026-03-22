@@ -11,13 +11,28 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked:** 2026-03-22 21:23 UTC
-- **All 471 scripts:** ✅ PASS
-- **Iteration:** #8
-- **Fixes applied:** 19 scripts with indentation/try-except syntax errors
-  - 10 "unexpected indent" (CIPLA, EICHERMOT, GODREJPROP_NS, HINDPETRO_NS, MARUTI_NS, NESTLEIND_NS, POWERGRID_NS, SBILIFE_NS, SHREECEM_NS, SRF_NS)
-  - 8 "unindent does not match" (ADANIENT, ALANKIT.BO, ALKEM, CENTRALBK, CHOLAFIN, DABUR, IDEA, SAGILITY, UCOBANK)
-  - 1 "expected 'except' or 'finally'" (ALANKIT.BO)
+- **Last checked:** 2026-03-22 21:15 UTC
+- **All 471 scripts:** ✅ PASS (syntax validation)
+- **Iteration:** #9
+
+## MEAN_REVERSION Enhancements (Iteration #9)
+Bottom 10 scripts with < 15% historical win rate enhanced with **MEAN_REVERSION** signal mode:
+- live_COMPINFO.BO.py: 4.76% win rate → MEAN_REVERSION mode (was BREAKOUT)
+- live_SHIVALIK.BO.py: 5.00% win rate → MEAN_REVERSION mode
+- live_AMTL.BO.py: 5.56% win rate → MEAN_REVERSION mode
+- live_ALANKIT.BO.py: 5.88% win rate → MEAN_REVERSION mode
+- live_COROMANDEL.BO.py: 6.25% win rate → MEAN_REVERSION mode
+- live_PATANJALI.py: 7.69% win rate → MEAN_REVERSION mode
+- live_ATGL.NS.py: 9.09% win rate → MEAN_REVERSION mode
+- live_INFY.py: 9.52% win rate → MEAN_REVERSION mode
+- live_SEL.BO.py: 9.52% win rate → MEAN_REVERSION mode
+- live_SPAL.BO.py: 10.53% win rate → MEAN_REVERSION mode
+
+**Parameter changes:**
+- SIGNAL_MODE: BREAKOUT → MEAN_REVERSION (inverted signals: BUY when oversold, SELL when overbought)
+- STOP_LOSS_PCT: 0.008 → 0.006 (tighter stop loss)
+- TARGET_MULT: 4.0 → 2.5 (lower target, more achievable)
+- atr_multiplier: 1.5 → 1.0 (tighter VWAP bands)
 
 ## Enhancement Notes
 Low win-rate scripts (benchmark, all below 70%):
