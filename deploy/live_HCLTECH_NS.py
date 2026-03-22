@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - HCLTECH.NS
-Strategy: VWAP Momentum (Volume Weighted Average Price with RSI confirmation)
+Strategy: VWAP_RSI_v2 (Enhanced VWAP + RSI Momentum + Volume Confirmation)
+Win Rate: N/A -> Target 65%+ (v2 enhanced: volume filter, tighter RSI bands)
 Position: ₹7000 | Stop Loss: 0.8% ATR | Target: 4.0x ATR | Daily Loss Cap: 0.3%
 Research: deploy/research/2026-03-22_hcltech_research.md
 """
@@ -25,14 +26,15 @@ logging.basicConfig(
 log = logging.getLogger("live_HCLTECH")
 
 SYMBOL         = "HCLTECH.NS"
-STRATEGY       = "VWAP_MOMENTUM"
+STRATEGY       = "VWAP_RSI_v2"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {
     "vwap_period": 14, "atr_period": 14, "atr_multiplier": 1.5,
-    "rsi_period": 14, "rsi_overbought": 65, "rsi_oversold": 35
+    "rsi_period": 14, "rsi_overbought": 60, "rsi_oversold": 40,
+    "volume_multiplier": 1.2, "trend_ma_period": 50,
 }
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
@@ -126,29 +128,61 @@ def calculate_rsi(ohlcv: list, period: int = 14) -> list:
         rsi.append(100 - (100 / (1 + rs)))
     return rsi
 
-def vwap_momentum_signal(ohlcv: list, params: dict) -> tuple:
+def calculate_ma(ohlcv: list, period: int) -> list:
+    ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            ma.append(None)
+        else:
+            ma.append(sum(ohlcv[j]["close"] for j in range(i - period + 1, i + 1)) / period)
+    return ma
+
+def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
+    if len(ohlcv) < period:
+        return 0
+    return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
+
+def vwap_rsi_signal_v2(ohlcv: list, params: dict) -> tuple:
+    """
+    v2 VWAP + RSI: adds volume confirmation + trend MA alignment for IT sector.
+    BUY: price > VWAP + ATR band AND RSI < overbought AND volume spike AND price > MA50
+    SELL: price < VWAP - ATR band AND RSI > oversold AND volume spike AND price < MA50
+    """
     period     = params["vwap_period"]
     atr_period = params["atr_period"]
     atr_mult   = params["atr_multiplier"]
     rsi_period = params["rsi_period"]
     rsi_ob     = params["rsi_overbought"]
     rsi_os     = params["rsi_oversold"]
+    vol_mult   = params["volume_multiplier"]
+    trend_period = params["trend_ma_period"]
 
     vwap_vals = calculate_vwap(ohlcv, period)
     atr_vals  = calculate_atr(ohlcv, atr_period)
     rsi_vals  = calculate_rsi(ohlcv, rsi_period)
+    ma_vals   = calculate_ma(ohlcv, trend_period)
+    avg_vol   = calculate_avg_volume(ohlcv, period)
 
     signals = ["HOLD"] * len(ohlcv)
-    for i in range(period, len(ohlcv)):
+    for i in range(max(period, rsi_period, trend_period), len(ohlcv)):
         if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
+            continue
+        if ma_vals[i] is None:
             continue
         price = ohlcv[i]["close"]
         v, a, r = vwap_vals[i], atr_vals[i], rsi_vals[i]
-        # BUY: price above VWAP + ATR band AND RSI confirming momentum
-        if price > v + a * atr_mult and r < rsi_ob:
+        vol = ohlcv[i]["volume"]
+        trend = ma_vals[i]
+
+        volume_ok   = vol > avg_vol * vol_mult
+        above_trend = price > trend
+        below_trend = price < trend
+
+        # BUY: bullish VWAP breakout + RSI confirm + volume + trend alignment
+        if price > v + a * atr_mult and r < rsi_ob and volume_ok and above_trend:
             signals[i] = "BUY"
-        # SELL: price below VWAP - ATR band AND RSI confirming weakness
-        elif price < v - a * atr_mult and r > rsi_os:
+        # SELL: bearish VWAP breakdown + RSI confirm + volume + trend alignment
+        elif price < v - a * atr_mult and r > rsi_os and volume_ok and below_trend:
             signals[i] = "SELL"
 
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0

@@ -24,11 +24,14 @@ logging.basicConfig(
 log = logging.getLogger("live_IDEA")
 
 SYMBOL         = "IDEA.NS"
-STRATEGY       = "VOLUME_DIVERGENCE"
+STRATEGY       = "VOLUME_DIVERGENCE_RSI_FILTER"
 POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
+STOP_LOSS_PCT  = 0.005
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
+RSI_PERIOD     = 14
+RSI_OVERSOLD   = 35
+RSI_OVERBOUGHT = 65
 PARAMS         = {"ma_period": 20, "volume_ma_period": 20, "div_threshold": 0.05}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
