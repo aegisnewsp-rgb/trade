@@ -336,8 +336,8 @@ def apply_filters(
     
     # Determine if ALL critical filters passed
     # Volume and Trend are critical; Volatility and RSI are advisory
-    critical_volume = vwap_signals  # Can be toggled
-    critical_trend = vwap_signals   # Can be toggled
+    critical_volume = False  # Can be toggled
+    critical_trend = False   # Can be toggled
     critical_volatility = False
     critical_rsi = False
     
@@ -361,7 +361,7 @@ def enhanced_generate_signals(ohlcv: List[dict], params: dict) -> List[str]:
     Applies volume, trend, volatility, and RSI filters to base strategy signals.
     """
     # First get base strategy signals
-    base_signals = vwap_signals(ohlcv, params)
+    base_signals = vwap_signal(ohlcv, params)
     
     # Apply filters to each signal
     enhanced_signals = []
