@@ -428,12 +428,17 @@ def main():
     print(f"\nSignal: {signal}")
     print(f"Price:  Rs{price:.2f}")
     print(f"ATR:    Rs{atr:.2f}")
+    print(f"Regime: {regime} (pos_mult={pos_mult})")
+    
+    if signal == "BUY" and pos_mult <= 0:
+        print("⛔ DOWNTREND — BUY blocked by regime filter")
+        signal = "HOLD"
     
     if signal == "BUY":
         sl = round(price - atr * 1.0, 2)
         tgt = round(price + atr * 4.0, 2)
-        qty = max(1, int(10000 / price))
-        print(f"Qty:    {qty}")
+        qty = max(1, int(10000 * pos_mult / price))
+        print(f"Qty:    {qty} (mult={pos_mult})")
         print(f"Stop:   Rs{sl:.2f} (Rs{price-sl:.2f} risk)")
         print(f"Target: Rs{tgt:.2f} (Rs{tgt-price:.2f} reward)")
         

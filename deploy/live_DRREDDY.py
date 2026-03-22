@@ -77,6 +77,37 @@ SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
 MAX_SL_PCT       = 0.015   # Hard cap: 1.5% max stop
 TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
 
+# REGIME FILTER (QA iteration — fix 0% WR in RANGE)
+NIFTY_SYMBOL = "^NSEI"
+SMA_PERIOD   = 20
+REGIME_RANGE_SIZE = 0.5   # 50% size in RANGE
+
+def get_market_regime() -> str:
+    """Detect NIFTY regime using SMA ratio. Returns UPTREND/DOWNTREND/RANGE."""
+    try:
+        ticker = yf.Ticker(NIFTY_SYMBOL)
+        data = ticker.history(period="3mo")
+        if len(data) < SMA_PERIOD + 5:
+            return "UPTREND"  # safe default
+        closes = data['Close'].tolist()
+        sma = sum(closes[-SMA_PERIOD:]) / SMA_PERIOD
+        current = closes[-1]
+        ratio = current / sma
+        if ratio > 1.02:
+            return "UPTREND"
+        elif ratio < 0.98:
+            return "DOWNTREND"
+        return "RANGE"
+    except Exception:
+        return "UPTREND"  # safe default
+
+def get_position_multiplier(regime: str) -> float:
+    if regime == "DOWNTREND":
+        return 0.0  # skip
+    elif regime == "RANGE":
+        return REGIME_RANGE_SIZE
+    return 1.0
+
 TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
 TARGET_2_MULT    = 3.0     # T2: 3.0x risk → exit 1/3
 TARGET_3_MULT    = 5.0     # T3: 5.0x risk → exit remaining
@@ -191,12 +222,15 @@ def calculate_volume_sma(ohlcv: list, period: int = 20) -> list:
             sma.append(avg_vol)
     return sma
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
+def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float, str, float]:
     """
-    VWAP with volume confirmation.
+    VWAP with volume confirmation + regime filter.
     BUY: price > VWAP + ATR*mult AND volume > vol_sma * multiplier
     SELL: price < VWAP - ATR*mult AND volume > vol_sma * multiplier
     """
+    regime = get_market_regime()
+    pos_mult = get_position_multiplier(regime)
+    
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
     vol_period    = params.get("vol_sma_period", 20)
@@ -217,7 +251,9 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
         vol_confirm = volume > vol_sma * vol_mult
 
         if price > v + a * atr_mult and vol_confirm:
-            signals[i] = "BUY"
+            # In DOWNTREND, block BUY signals
+            if regime != "DOWNTREND":
+                signals[i] = "BUY"
         elif price < v - a * atr_mult and vol_confirm:
             signals[i] = "SELL"
 
@@ -226,7 +262,7 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
     current_vol    = ohlcv[-1]["volume"]
     vol_sma_now    = vol_sma_vals[-1] if vol_sma_vals and vol_sma_vals[-1] is not None else 0.0
-    return current_signal, current_price, current_atr, current_vol, vol_sma_now
+    return current_signal, current_price, current_atr, current_vol, vol_sma_now, regime, pos_mult
 
 def place_groww_order(symbol, signal, quantity, price):
     """
@@ -339,10 +375,15 @@ def main():
     
     try:
         # Try strategy functions in priority order
+        regime = "UPTREND"
+        pos_mult = 1.0
         if 'vwap_signal' in dir():
             sig_result = vwap_signal(ohlcv_list, {})
             if isinstance(sig_result, tuple) and len(sig_result) >= 2:
                 signal, price = sig_result[0], float(sig_result[1])
+                if len(sig_result) >= 6:
+                    regime = sig_result[5]
+                    pos_mult = sig_result[6]
             elif isinstance(sig_result, str):
                 signal = sig_result
         elif 'adx_signal' in dir():
@@ -414,12 +455,17 @@ def main():
     print(f"\nSignal: {signal}")
     print(f"Price:  Rs{price:.2f}")
     print(f"ATR:    Rs{atr:.2f}")
+    print(f"Regime: {regime} (pos_mult={pos_mult})")
+    
+    if signal == "BUY" and pos_mult <= 0:
+        print("⛔ DOWNTREND — BUY blocked by regime filter")
+        signal = "HOLD"
     
     if signal == "BUY":
         sl = round(price - atr * 1.0, 2)
         tgt = round(price + atr * 4.0, 2)
-        qty = max(1, int(10000 / price))
-        print(f"Qty:    {qty}")
+        qty = max(1, int(10000 * pos_mult / price))
+        print(f"Qty:    {qty} (mult={pos_mult})")
         print(f"Stop:   Rs{sl:.2f} (Rs{price-sl:.2f} risk)")
         print(f"Target: Rs{tgt:.2f} (Rs{tgt-price:.2f} reward)")
         
