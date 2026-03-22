@@ -1,0 +1,16 @@
+{
+  "id": "ADANIPOWER.NS_1774208819573",
+  "symbol": "ADANIPOWER.NS",
+  "exchange": "NSE",
+  "signal": "BUY",
+  "price": 151.75,
+  "quantity": 46,
+  "strategy": "PAPER_MODE",
+  "target": null,
+  "stop_loss": null,
+  "atr": 1.214,
+  "confidence": null,
+  "timestamp": "2026-03-22T19:46:59.573069Z",
+  "status": "pending",
+  "mode": "paper_trade"
+}
