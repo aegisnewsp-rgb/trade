@@ -7,7 +7,7 @@
 - Exchange: NSE (`.NS`) and BSE (`.BO`)
 - Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8)
 
-## Status (2026-03-22 23:01 UTC)
+## Status (2026-03-22 23:31 UTC)
 - ✅ All 471 scripts pass `py_compile`
 - ✅ Strategy v8 enhancements applied (MACD, volume, trend, BB filters)
 - ✅ 3-tier exit system active
