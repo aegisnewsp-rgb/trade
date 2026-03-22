@@ -1,0 +1,11 @@
+{
+  "total_scripts": 470,
+  "successful": 60,
+  "errors": 0,
+  "no_data": 409,
+  "avg_win_rate": 0.1736066666666667,
+  "avg_trades": 16.0,
+  "best_script": "live_OSWALEA.BO.py",
+  "best_win_rate": 0.5,
+  "timestamp": "2026-03-22T20:01:13.172219"
+}
