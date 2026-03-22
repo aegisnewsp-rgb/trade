@@ -167,6 +167,7 @@ def calculate_atr_based_position_size(entry_price: float, atr: float, capital: f
         "max_shares_by_risk": max_shares_by_risk
     }
 
+# RSI filter: BUY>RSI55, SELL<RSI45
 def generate_signal(ohlcv: List[Dict], macd_line: List[float], signal_line: List[float]) -> str:
     if len(ohlcv) < max(MACD_FAST, MACD_SLOW, MACD_SIGNAL) + 1:
         return "HOLD"
