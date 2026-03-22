@@ -254,4 +254,16 @@ def main():
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-    log_signal(s
+    log_signal(signal, price, atr)
+
+    if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
+        result = place_groww_order(SYMBOL, signal, quantity, price)
+        if result:
+            log.info("✓ Order executed via Groww: %s", result)
+        else:
+            log.warning("⚠ Groww order could not be placed – signal still printed/logged.")
+    elif signal != "HOLD":
+        log.info("📋 No Groww credentials found – signal printed only (paper mode).")
+
+if __name__ == "__main__":
+    main()
