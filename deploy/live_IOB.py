@@ -26,11 +26,14 @@ logging.basicConfig(
 log = logging.getLogger("live_IOB")
 
 SYMBOL         = "IOB.NS"
-STRATEGY       = "VWAP"
+STRATEGY       = "VWAP_RSI_FILTER"
 POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
+STOP_LOSS_PCT  = 0.005
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
+RSI_PERIOD     = 14
+RSI_OVERSOLD   = 35
+RSI_OVERBOUGHT = 65
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
@@ -78,6 +81,22 @@ def calculate_atr(ohlcv: list, period: int = 14) -> list:
         prev_close = bar["close"]
     return atr
 
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    gains, losses = [], []
+    for i in range(1, len(ohlcv)):
+        delta = ohlcv[i]["close"] - ohlcv[i-1]["close"]
+        gains.append(max(delta, 0))
+        losses.append(max(-delta, 0))
+    rsi = [None] * (period + 1)
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        rs = avg_gain / avg_loss if avg_loss != 0 else 0
+        rsi.append(100 - (100 / (1 + rs)))
+    return rsi
+
 def calculate_vwap(ohlcv: list, period: int = 14) -> list:
     vwap = []
     for i in range(len(ohlcv)):
@@ -90,24 +109,30 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
     period, atr_mult = params["vwap_period"], params["atr_multiplier"]
     vwap_vals = calculate_vwap(ohlcv, period)
     atr_vals  = calculate_atr(ohlcv, period)
+    rsi_vals  = calculate_rsi(ohlcv, RSI_PERIOD)
     signals   = ["HOLD"] * len(ohlcv)
     for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
         price = ohlcv[i]["close"]
+        r = rsi_vals[i]
         if price > vwap_vals[i] + atr_vals[i] * atr_mult:
-            signals[i] = "BUY"
+            if r < RSI_OVERSOLD:
+                signals[i] = "BUY"
         elif price < vwap_vals[i] - atr_vals[i] * atr_mult:
-            signals[i] = "SELL"
+            if r > RSI_OVERBOUGHT:
+                signals[i] = "SELL"
     last = signals[-1]
     entry = ohlcv[-1]["close"]
-    sl = atr_vals[-1] * STOP_LOSS_PCT / STOP_LOSS_PCT if atr_vals[-1] else entry * STOP_LOSS_PCT
-    tgt = entry + atr_vals[-1] * TARGET_MULT if atr_vals[-1] else entry * 1.03
-    return last, float(sl), float(tgt)
+    current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
+    current_rsi = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 50.0
+    sl = entry - current_atr * STOP_LOSS_PCT
+    tgt = entry + current_atr * TARGET_MULT
+    return last, float(sl), float(tgt), current_rsi
 
 def get_groww_quote() -> dict | None:
     if not GROWW_API_KEY:
@@ -127,19 +152,29 @@ def get_groww_quote() -> dict | None:
     return None
 
 def main():
-    log.info("Starting %s live trading — strategy: %s", SYMBOL, STRATEGY)
+    log.info("Starting %s live trading — strategy: %s | RSI Filter: %d/%d | SL: 0.5%%", SYMBOL, STRATEGY, RSI_OVERSOLD, RSI_OVERBOUGHT)
     data = fetch_recent_data()
     if not data:
         log.error("No data fetched. Exiting.")
         sys.exit(1)
-    signal, sl, tgt = vwap_signal(data, PARAMS)
-    log.info("Signal: %s | Price: %.2f | SL: %.2f | Target: %.2f",
-             signal, data[-1]["close"], sl, tgt)
+    signal, sl, tgt, rsi = vwap_signal(data, PARAMS)
+    price = data[-1]["close"]
+    quantity = max(1, int(POSITION / price))
+    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    log.info("  SYMBOL   : %s", SYMBOL)
+    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  SIGNAL   : ★ %s ★", signal)
+    log.info("  PRICE    : ₹%.2f", price)
+    log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
+    log.info("  RSI      : %.1f", rsi)
+    log.info("  STOP     : ₹%.2f  (0.5%%)", sl)
+    log.info("  TARGET   : ₹%.2f  (4.0× ATR)", tgt)
+    log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     if signal == "BUY":
-        log.info(">>> BUY SIGNAL for %s at ₹%.2f", SYMBOL, data[-1]["close"])
+        log.info(">>> BUY SIGNAL for %s at ₹%.2f", SYMBOL, price)
         log.info("    Stop Loss: ₹%.2f | Target: ₹%.2f", sl, tgt)
     elif signal == "SELL":
-        log.info(">>> SELL SIGNAL for %s at ₹%.2f", SYMBOL, data[-1]["close"])
+        log.info(">>> SELL SIGNAL for %s at ₹%.2f", SYMBOL, price)
 
 if __name__ == "__main__":
     main()

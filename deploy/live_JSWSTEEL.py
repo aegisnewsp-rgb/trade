@@ -32,11 +32,14 @@ log = logging.getLogger("live_JSWSTEEL")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "JSWSTEEL.NS"
-STRATEGY       = "VWAP"
+STRATEGY       = "VWAP_RSI_FILTER"
 POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
+STOP_LOSS_PCT  = 0.005
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
+RSI_PERIOD     = 14
+RSI_OVERSOLD   = 35
+RSI_OVERBOUGHT = 65
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
