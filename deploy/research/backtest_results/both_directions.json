@@ -28,13 +28,6 @@
     "short_hold": 10
   },
   {
-    "sym": "SBILIFE",
-    "long_wr": 80.0,
-    "short_wr": 100.0,
-    "long_hold": 10,
-    "short_hold": 10
-  },
-  {
     "sym": "SUNPHARMA",
     "long_wr": 100.0,
     "short_wr": 100.0,

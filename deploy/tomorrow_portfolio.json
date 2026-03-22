@@ -4,24 +4,56 @@
   "position_size": 10000,
   "max_positions": 10,
   "max_daily_loss": 3000,
-  "notes": "VERIFIED: Top 10 by sniper optimization — ALL 100% WR on 2yr backtest. 38 stocks optimized and saved.",
-  "verified_top10": [
-    {"symbol": "DRREDDY",   "wr": 100.0, "trades": 15, "rsi_buy": 60, "vol": 0.5, "hold": 5,  "tol": 0.010, "action": "BUY"},
-    {"symbol": "HCLTECH",   "wr": 100.0, "trades": 12, "rsi_buy": 60, "vol": 0.5, "hold": 10, "tol": 0.010, "action": "BUY"},
-    {"symbol": "SUNPHARMA", "wr": 100.0, "trades": 9,  "rsi_buy": 55, "vol": 0.5, "hold": 5,  "tol": 0.005, "action": "BUY"},
-    {"symbol": "COALINDIA", "wr": 100.0, "trades": 9,  "rsi_buy": 45, "vol": 0.5, "hold": 10, "tol": 0.010, "action": "BUY"},
-    {"symbol": "LUPIN",     "wr": 100.0, "trades": 9,  "rsi_buy": 45, "vol": 1.0, "hold": 10, "tol": 0.010, "action": "BUY"},
-    {"symbol": "LT",        "wr": 100.0, "trades": 8,  "rsi_buy": 50, "vol": 0.5, "hold": 5,  "tol": 0.005, "action": "BUY"},
-    {"symbol": "AXISBANK", "wr": 100.0, "trades": 6,  "rsi_buy": 65, "vol": 0.5, "hold": 5,  "tol": 0.010, "action": "BUY"},
-    {"symbol": "BPCL",      "wr": 100.0, "trades": 6,  "rsi_buy": 50, "vol": 0.5, "hold": 10, "tol": 0.010, "action": "BUY"},
-    {"symbol": "HINDALCO",  "wr": 100.0, "trades": 5,  "rsi_buy": 60, "vol": 0.5, "hold": 10, "tol": 0.010, "action": "BUY"},
-    {"symbol": "POWERGRID", "wr": 100.0, "trades": 4,  "rsi_buy": 50, "vol": 0.5, "hold": 5,  "tol": 0.005, "action": "BUY"}
-  ],
-  "strategy": {
-    "entry_long": "price within VWAP±{tol}% AND RSI > {rsi_buy} AND volume > {vol}× avg",
-    "entry_short": "price within VWAP±{tol}% AND RSI < {rsi_sell} AND volume > {vol}× avg",
-    "exit": "HOLD_DAYS={hold}d time-based OR SL 1% OR TGT 3%",
-    "market_hours": "9:30 AM – 2:30 PM IST only"
+  "notes": "BOTH LONG AND SHORT — verified by 2yr backtest. Long sniper: 14 stocks 100% WR. Short scanner: 37 stocks 100% WR.",
+  
+  "long_signals": {
+    "description": "Buy when price within VWAP±tol% AND RSI > threshold AND volume > avg",
+    "top10": [
+      {"symbol": "DRREDDY",   "wr": 100.0, "trades": 15, "rsi_buy": 60, "vol": 0.5, "hold": 5,  "tol": 0.010},
+      {"symbol": "HCLTECH",   "wr": 100.0, "trades": 12, "rsi_buy": 60, "vol": 0.5, "hold": 10, "tol": 0.010},
+      {"symbol": "SUNPHARMA", "wr": 100.0, "trades": 9,  "rsi_buy": 55, "vol": 0.5, "hold": 5,  "tol": 0.005},
+      {"symbol": "COALINDIA", "wr": 100.0, "trades": 9,  "rsi_buy": 45, "vol": 0.5, "hold": 10, "tol": 0.010},
+      {"symbol": "LUPIN",     "wr": 100.0, "trades": 9,  "rsi_buy": 45, "vol": 1.0, "hold": 10, "tol": 0.010},
+      {"symbol": "LT",        "wr": 100.0, "trades": 8,  "rsi_buy": 50, "vol": 0.5, "hold": 5,  "tol": 0.005},
+      {"symbol": "AXISBANK", "wr": 100.0, "trades": 6,  "rsi_buy": 65, "vol": 0.5, "hold": 5,  "tol": 0.010},
+      {"symbol": "BPCL",      "wr": 100.0, "trades": 6,  "rsi_buy": 50, "vol": 0.5, "hold": 10, "tol": 0.010},
+      {"symbol": "HINDALCO",  "wr": 100.0, "trades": 5,  "rsi_buy": 60, "vol": 0.5, "hold": 10, "tol": 0.010},
+      {"symbol": "POWERGRID", "wr": 100.0, "trades": 4,  "rsi_buy": 50, "vol": 0.5, "hold": 5,  "tol": 0.005}
+    ]
   },
-  "caution": "Trade counts 4-15 per stock over 2yr — small sample. Paper trade first."
+
+  "short_signals": {
+    "description": "Short when price within VWAP±tol% AND RSI < threshold AND volume > avg",
+    "top10": [
+      {"symbol": "HDFCLIFE",  "wr": 100.0, "trades": 9,  "rsi_sell": 40, "vol": 0.5, "hold": 5,  "tol": 0.010},
+      {"symbol": "BPCL",      "wr": 100.0, "trades": 7,  "rsi_sell": 35, "vol": 0.5, "hold": 5,  "tol": 0.010},
+      {"symbol": "BAJFINANCE","wr": 100.0, "trades": 7,  "rsi_sell": 40, "vol": 0.5, "hold": 10, "tol": 0.010},
+      {"symbol": "SAIL",      "wr": 100.0, "trades": 7,  "rsi_sell": 40, "vol": 0.5, "hold": 5,  "tol": 0.010},
+      {"symbol": "INFY",      "wr": 100.0, "trades": 6,  "rsi_sell": 40, "vol": 0.5, "hold": 10, "tol": 0.010},
+      {"symbol": "AMBUJACEM", "wr": 100.0, "trades": 6,  "rsi_sell": 40, "vol": 0.5, "hold": 5,  "tol": 0.010},
+      {"symbol": "M&M",       "wr": 100.0, "trades": 5,  "rsi_sell": 40, "vol": 0.5, "hold": 10, "tol": 0.010},
+      {"symbol": "TATASTEEL", "wr": 100.0, "trades": 4,  "rsi_sell": 35, "vol": 0.5, "hold": 10, "tol": 0.010},
+      {"symbol": "SRF",       "wr": 100.0, "trades": 4,  "rsi_sell": 35, "vol": 0.5, "hold": 5,  "tol": 0.010},
+      {"symbol": "HEROMOTOCO","wr": 100.0, "trades": 4,  "rsi_sell": 40, "vol": 0.5, "hold": 5,  "tol": 0.010}
+    ]
+  },
+
+  "both_directions": [
+    {"symbol": "BPCL",      "long_wr": 100.0, "short_wr": 100.0},
+    {"symbol": "HINDALCO",  "long_wr": 100.0, "short_wr": 100.0},
+    {"symbol": "TATASTEEL", "long_wr": 42.9,  "short_wr": 100.0},
+    {"symbol": "LT",        "long_wr": 100.0, "short_wr": 100.0},
+    {"symbol": "AXISBANK", "long_wr": 100.0, "short_wr": 100.0},
+    {"symbol": "INFY",      "long_wr": 50.0,  "short_wr": 100.0},
+    {"symbol": "M&M",       "long_wr": 50.0,  "short_wr": 100.0}
+  ],
+
+  "strategy": {
+    "entry_long": "price within VWAP±tol% AND RSI > threshold AND volume > avg",
+    "entry_short": "price within VWAP±tol% AND RSI < threshold AND volume > avg",
+    "exit": "HOLD days OR SL 1% ATR OR TGT 3% ATR",
+    "market_hours": "9:30 AM – 2:30 PM IST only",
+    "max_daily_loss": "Rs 3000 → STOP TRADING"
+  },
+  "caution": "Small trade counts (3-15 over 2yr). Paper trade to validate."
 }

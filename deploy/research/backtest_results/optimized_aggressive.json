@@ -132,6 +132,18 @@
     "regime": false
   },
   {
+    "sym": "MARUTI",
+    "wr": 42.1,
+    "trades": 76,
+    "rsi_buy": 45,
+    "rsi_sell": 55,
+    "vol": 1.0,
+    "sl": 0.5,
+    "tgt": 1.0,
+    "exit_days": 3,
+    "regime": false
+  },
+  {
     "sym": "COALINDIA",
     "wr": 41.7,
     "trades": 72,

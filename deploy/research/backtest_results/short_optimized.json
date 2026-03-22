@@ -77,17 +77,6 @@
     "tolerance": 0.01
   },
   {
-    "sym": "SBILIFE",
-    "wr": 100.0,
-    "trades": 5,
-    "wins": 5,
-    "pnl": 2206.0,
-    "rsi": 35,
-    "vol": 0.5,
-    "hold": 10,
-    "tolerance": 0.01
-  },
-  {
     "sym": "TATASTEEL",
     "wr": 100.0,
     "trades": 4,
@@ -185,28 +174,6 @@
     "vol": 0.75,
     "hold": 5,
     "tolerance": 0.01
-  },
-  {
-    "sym": "AUROPHARMA",
-    "wr": 100.0,
-    "trades": 3,
-    "wins": 3,
-    "pnl": 582.0,
-    "rsi": 50,
-    "vol": 0.5,
-    "hold": 5,
-    "tolerance": 0.01
-  },
-  {
-    "sym": "ONGC",
-    "wr": 83.3,
-    "trades": 6,
-    "wins": 5,
-    "pnl": 946.0,
-    "rsi": 50,
-    "vol": 0.5,
-    "hold": 5,
-    "tolerance": 0.005
   },
   {
     "sym": "KOTAKBANK",
@@ -330,26 +297,15 @@
     "tolerance": 0.005
   },
   {
-    "sym": "IOC",
+    "sym": "ONGC",
     "wr": 66.7,
     "trades": 3,
     "wins": 2,
-    "pnl": 1145.0,
-    "rsi": 45,
-    "vol": 0.75,
-    "hold": 10,
-    "tolerance": 0.01
-  },
-  {
-    "sym": "LUPIN",
-    "wr": 63.6,
-    "trades": 11,
-    "wins": 7,
-    "pnl": -421.0,
-    "rsi": 45,
-    "vol": 1.0,
-    "hold": 10,
-    "tolerance": 0.01
+    "pnl": 371.0,
+    "rsi": 35,
+    "vol": 0.5,
+    "hold": 5,
+    "tolerance": 0.005
   },
   {
     "sym": "TCS",
