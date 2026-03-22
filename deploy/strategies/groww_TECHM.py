@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Groww Strategy - RELIANCE
+Groww Strategy - TECHM
 Generated from live trading script
 Win rates based on 6mo backtest
 """
@@ -13,10 +13,10 @@ sys.path.insert(0, WORKSPACE)
 YFINANCE_AVAILABLE = True
 
 def get_signal():
-    """Generate trading signal for RELIANCE. Returns (signal, price, atr)"""
+    """Generate trading signal for TECHM. Returns (signal, price, atr)"""
     try:
         import yfinance as yf
-        ticker = yf.Ticker("RELIANCE.NS")
+        ticker = yf.Ticker("TECHM.NS")
         d = ticker.history(period="3mo")
         if len(d) < 30:
             return None, None, None
@@ -76,9 +76,9 @@ def get_signal():
 def main():
     sig, price, atr = get_signal()
     if sig:
-        print(f"SIGNAL: {sig} RELIANCE @ Rs{price:.2f} ATR:{atr:.2f}")
+        print(f"SIGNAL: {sig} TECHM @ Rs{price:.2f} ATR:{atr:.2f}")
     else:
-        print(f"RELIANCE: No signal")
+        print(f"TECHM: No signal")
 
 if __name__ == "__main__":
     main()
