@@ -12,6 +12,7 @@ log=logging.getLogger("live_PETPR")
 SYMBOL="PETPR.BO"; STRATEGY="VWAP"; POSITION=7000; STOP_LOSS_PCT=0.008; TARGET_MULT=4.0; DAILY_LOSS_CAP=0.003; PARAMS={{"vwap_period":14,"atr_multiplier":1.5}}
 GROWW_API_KEY=os.getenv("GROWW_API_KEY"); GROWW_API_SECRET=os.getenv("GROWW_API_SECRET"); GROWW_API_BASE="https://api.groww.in/v1"; IST_TZ_OFFSET=5.5
 def ist_now(): return datetime.utcnow()+__import__("datetime").timedelta(hours=IST_TZ_OFFSET)
+# Smart entry: 9:30-14:30 IST
 def is_market_open(): now=ist_now(); return now.weekday()<5 and dtime(9,15)<=now.time()<=dtime(15,30)
 def is_pre_market(): now=ist_now(); return now.weekday()<5 and dtime(9,0)<=now.time()<dtime(9,15)
 def fetch_recent_data(days=60,retries=3):
@@ -221,7 +222,7 @@ def main():
         price = ohlcv_list[-1][4]
     
     # Calculate ATR for risk management
-    atr = price * 0.008  # fallback
+    # Use real ATR from calculate_atr()  # fallback
     if len(ohlcv_list) >= 14:
         trs = []
         for i in range(1, min(15, len(ohlcv_list))):
