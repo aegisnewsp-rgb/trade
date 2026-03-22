@@ -2,7 +2,8 @@
 """
 Live Trading Script - HEROMOTOCO.NS
 Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter (Enhanced v7)
-Win Rate: 55.00% -> Target 60%+ (v7: Fixed atr bug, loosened RSI thresholds for more signals)
+Enhanced with: Fuel Price Correlation, Rural Demand Indicator
+Win Rate: 55.00% -> Target 60%+
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -10,6 +11,7 @@ import os, sys, json, time, logging, requests
 import groww_api
 from datetime import datetime, time as dtime
 from pathlib import Path
+from typing import Optional
 
 import yfinance as yf
 
@@ -26,25 +28,32 @@ logging.basicConfig(
 log = logging.getLogger("live_HEROMOTOCO")
 
 SYMBOL         = "HEROMOTOCO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_v7"
+STRATEGY       = "VWAP_RSI_MACD_VOL_v7_AUTOMOBILE"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
+
+# Fuel/Monetary indicators
+CRUDE_SYMBOL = "CL=F"  # Crude oil futures
+MONETARY_INDEX_SYMBOL = "^IRX"  # 13-week Treasury bill rate (proxy for rural credit)
+
 PARAMS = {
     "vwap_period": 20,
-    "atr_multiplier": 2.0,       # v7: loosened from 2.5 for more signals
+    "atr_multiplier": 2.0,
     "rsi_period": 14,
     "rsi_oversold": 40,
     "rsi_overbought": 60,
-    "rsi_confirm_oversold": 35,  # v7: loosened from 30 for more buy signals
-    "rsi_confirm_overbought": 65,  # v7: loosened from 70 for more sell signals
+    "rsi_confirm_oversold": 35,
+    "rsi_confirm_overbought": 65,
     "macd_fast": 12,
     "macd_slow": 26,
-    "macd_signal": 9,           # v7: faster signal (was 12) for earlier entry
-    "volume_multiplier": 1.5,    # v7: loosened from 2.0 for more confirmations
+    "macd_signal": 9,
+    "volume_multiplier": 1.5,
     "trend_ma_period": 50,
     "atr_period": 14,
+    "fuel_price_threshold": 80.0,  # Block BUY if crude > $80
+    "fuel_discount_threshold": 70.0,  # Strong BUY if crude < $70
 }
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
@@ -79,6 +88,36 @@ def fetch_recent_data(days: int = 120, retries: int = 3) -> list | None:
             log.warning("Attempt %d/%d failed: %s", attempt + 1, retries, e)
             time.sleep(2 ** attempt)
     log.error("All fetch attempts failed for %s", SYMBOL)
+    return None
+
+def get_fuel_price() -> Optional[float]:
+    """Fetch crude oil price for fuel cost analysis"""
+    try:
+        crude = yf.Ticker(CRUDE_SYMBOL).history(period="5d")
+        if not crude.empty:
+            return float(crude["Close"].iloc[-1])
+    except Exception as e:
+        log.warning(f"Failed to fetch crude oil: {e}")
+    return None
+
+def get_rural_demand_indicator() -> Optional[str]:
+    """
+    Get rural demand indicator using proxy indicators.
+    Uses Nifty India Consumption index or monsoon proxy via crude correlation.
+    """
+    try:
+        # Use Nifty Consumption ETF as proxy for rural demand
+        consumption = yf.Ticker("INCONSUM.NS").history(period="10d")
+        if len(consumption) >= 2:
+            current = float(consumption["Close"].iloc[-1])
+            previous = float(consumption["Close"].iloc[-2])
+            if current > previous * 1.005:
+                return "STRONG"
+            elif current < previous * 0.995:
+                return "WEAK"
+            return "MODERATE"
+    except Exception as e:
+        log.warning(f"Failed to fetch rural demand indicator: {e}")
     return None
 
 def calculate_atr(ohlcv: list, period: int = 14) -> list:
@@ -193,12 +232,9 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         macd_bullish = macd_h > 0 and macd_h > sig_h
         macd_bearish = macd_h < 0 and macd_h < sig_h
 
-        # v5: require deep RSI confirmation + stricter ATR + volume
-        # BUY: price above VWAP, RSI < 30 (oversold), bullish MACD, volume confirmed, bull market
         if (price > v + a * atr_mult and r < rsi_confirm_oversold and macd_bullish
                 and volume_confirmed and bull_market):
             signals[i] = "BUY"
-        # SELL: price below VWAP, RSI > 70 (overbought), bearish MACD, volume confirmed, bear market
         elif (price < v - a * atr_mult and r > rsi_confirm_overbought and macd_bearish
                 and volume_confirmed and bear_market):
             signals[i] = "SELL"
@@ -206,60 +242,73 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
     return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], current_atr
 
+def apply_automobile_filters(signal: str, fuel_price: Optional[float],
+                             rural_demand: Optional[str], params: dict) -> str:
+    """Apply Hero MotoCorp specific filters: fuel price and rural demand"""
+    if signal == "HOLD":
+        return "HOLD"
+    
+    # Fuel price filter
+    if fuel_price is not None:
+        high_threshold = params.get("fuel_price_threshold", 80.0)
+        low_threshold = params.get("fuel_discount_threshold", 70.0)
+        
+        if fuel_price > high_threshold:
+            log.info(f"High fuel price (${fuel_price:.2f}) - reduces motorcycle demand")
+            if signal == "BUY":
+                log.info("BUY blocked due to high fuel prices")
+                return "HOLD"
+        elif fuel_price < low_threshold:
+            log.info(f"Low fuel price (${fuel_price:.2f}) - supports motorcycle demand")
+            # No blocking for SELL, just log
+    
+    # Rural demand filter
+    if rural_demand is not None:
+        if rural_demand == "WEAK" and signal == "BUY":
+            log.info(f"Weak rural demand indicator - blocking BUY")
+            return "HOLD"
+        elif rural_demand == "STRONG" and signal == "SELL":
+            log.info(f"Strong rural demand indicator - blocking SELL")
+            return "HOLD"
+    
+    return signal
+
 def place_groww_order(symbol, signal, quantity, price, atr=0.0):
-    """
-    Place order via Groww API or paper trade.
-    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
-    Falls back to paper trading otherwise.
-    """
+    """Place order via Groww API or paper trade."""
     import groww_api
     
     if not groww_api.is_configured():
         return groww_api.paper_trade(signal, symbol, price, quantity)
     
     exchange = "NSE"
+    if atr <= 0:
+        atr = price * 0.008
     
     if signal == "BUY":
         stop_loss = price - (atr * 1.0) if atr > 0 else price * 0.992
         target = price + (atr * 4.0) if atr > 0 else price * 1.032
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="BUY",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
+            exchange=exchange, symbol=symbol, transaction="BUY",
+            quantity=quantity, target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
         )
     elif signal == "SELL":
         stop_loss = price + (atr * 1.0) if atr > 0 else price * 1.008
         target = price - (atr * 4.0) if atr > 0 else price * 0.968
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="SELL",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
+            exchange=exchange, symbol=symbol, transaction="SELL",
+            quantity=quantity, target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5
         )
     else:
         return None
     
     if result:
-        print("Order placed: {} {} {} @ Rs{:.2f}".format(
-            signal, quantity, symbol, price))
+        print("Order placed: {} {} {} @ Rs{:.2f}".format(signal, quantity, symbol, price))
     return result
 
 def main():
-    """
-    Universal main() — detects strategy type and runs appropriate signal.
-    Works with: VWAP, ADX_TREND, TSI, RSI, MACD, Bollinger, MA_ENVELOPE, etc.
-    """
-    import sys
-    from pathlib import Path
+    """Main execution for HEROMOTOCO with fuel price and rural demand filters"""
     sys.path.insert(0, str(Path(__file__).parent))
     
     try:
@@ -268,130 +317,62 @@ def main():
         print("yfinance not installed: pip install yfinance")
         return
     
-    # Detect symbol from filename
-    fname = Path(__file__).stem  # e.g. "live_RELIANCE"
+    fname = Path(__file__).stem
     sym = fname.replace("live_", "").replace("_NS", ".NS").replace("_BO", ".BO")
     ticker_sym = sym.replace(".NS", "").replace(".BO", "")
-    
-    # Determine exchange suffix for yfinance
     exchange_suffix = ".NS" if ".NS" in sym else ".BO"
     yahoo_sym = ticker_sym + exchange_suffix
     
     print(f"\n{'='*60}")
-    print(f"Running: {ticker_sym} ({yahoo_sym})")
+    print(f"Running: {ticker_sym} ({yahoo_sym}) - Enhanced with Fuel + Rural Demand")
     print(f"{'='*60}")
     
-    # Fetch data
+    # Fetch automobile sector indicators
+    fuel_price = get_fuel_price()
+    rural_demand = get_rural_demand_indicator()
+    
+    log.info(f"Auto Sector Check | Fuel: ${fuel_price:.2f if fuel_price else 'N/A'} | Rural Demand: {rural_demand}")
+    
+    # Fetch stock data
     try:
         ticker = yf.Ticker(yahoo_sym)
         data = ticker.history(period="3mo")
         if data.empty:
             print(f"No data for {yahoo_sym}")
             return
-        ohlcv = [[r[0], r[1], r[2], r[3], r[4]] for r in data.itertuples()]
-        print(f"Loaded {len(ohlcv)} candles")
+        
+        ohlcv_list = []
+        for idx, row in data.iterrows():
+            ohlcv_list.append([
+                float(row['Open']),
+                float(row['High']),
+                float(row['Low']),
+                float(row['Close']),
+                float(row['Volume'])
+            ])
+        print(f"Loaded {len(ohlcv_list)} candles")
     except Exception as e:
         print(f"Data fetch error: {e}")
         return
-    
-    # Prepare OHLCV list for strategy functions
-    ohlcv_list = []
-    for idx, row in data.iterrows():
-        ohlcv_list.append([
-            float(row['Open']),
-            float(row['High']),
-            float(row['Low']),
-            float(row['Close']),
-            float(row['Volume'])
-        ])
     
     if not ohlcv_list:
         print("No OHLCV data")
         return
     
-    # Detect strategy type and run appropriate signal
-    signal = None
-    price = ohlcv_list[-1][2]  # close price
+    # Build ohlcv dict list
+    ohlcv_dict = [{"open": o[0], "high": o[1], "low": o[2], "close": o[3], "volume": o[4]} for o in ohlcv_list]
     
-    try:
-        # Try strategy functions in priority order
-        if 'vwap_signal' in dir():
-            sig_result = vwap_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple) and len(sig_result) >= 2:
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        elif 'adx_signal' in dir():
-            sig_result = adx_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple):
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        elif 'rsi_signal' in dir():
-            sig_result = rsi_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple):
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        elif 'macd_signal' in dir():
-            sig_result = macd_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple):
-                signal, price = sig_result[0], float(sig_result[1])
-            elif isinstance(sig_result, str):
-                signal = sig_result
-        else:
-            # Generic: look for any function returning signal
-            for func_name in ['signal', 'get_signal', 'generate_signal']:
-                if func_name in dir():
-                    func = eval(func_name)
-                    if callable(func):
-                        result = func(ohlcv_list)
-                        if isinstance(result, tuple):
-                            signal, price = result[0], float(result[1])
-                        elif isinstance(result, str):
-                            signal = result
-                        break
-        
-        # Default fallback: calculate basic signals
-        if not signal:
-            closes = [o[4] for o in ohlcv_list]
-            if len(closes) >= 20:
-                sma20 = sum(closes[-20:]) / 20
-                current = closes[-1]
-                if current > sma20 * 1.005:
-                    signal = "BUY"
-                    price = current
-                elif current < sma20 * 0.995:
-                    signal = "SELL"
-                    price = current
-                else:
-                    signal = "HOLD"
-                    price = current
+    # Get signal
+    signal, price, atr = vwap_signal(ohlcv_dict, PARAMS)
+    filtered_signal = apply_automobile_filters(signal, fuel_price, rural_demand, PARAMS)
     
-    except Exception as e:
-        print(f"Signal generation error: {e}")
-        signal = "HOLD"
-        price = ohlcv_list[-1][4]
-    
-    # Calculate ATR for risk management
-    atr = price * 0.008  # fallback
-    if len(ohlcv_list) >= 14:
-        trs = []
-        for i in range(1, min(15, len(ohlcv_list))):
-            h = ohlcv_list[i][1]
-            l = ohlcv_list[i][2]
-            prev_c = ohlcv_list[i-1][4]
-            tr = max(h-l, abs(h-prev_c), abs(l-prev_c))
-            trs.append(tr)
-        if trs:
-            atr = sum(trs) / len(trs)
-    
-    # Output
-    print(f"\nSignal: {signal}")
+    print(f"\nSignal: {filtered_signal} (raw: {signal})")
     print(f"Price:  Rs{price:.2f}")
     print(f"ATR:    Rs{atr:.2f}")
+    print(f"Fuel Price: ${fuel_price:.2f if fuel_price else 'N/A'}")
+    print(f"Rural Demand: {rural_demand}")
     
-    if signal == "BUY":
+    if filtered_signal == "BUY":
         sl = round(price - atr * 1.0, 2)
         tgt = round(price + atr * 4.0, 2)
         qty = max(1, int(10000 / price))
@@ -399,26 +380,13 @@ def main():
         print(f"Stop:   Rs{sl:.2f} (Rs{price-sl:.2f} risk)")
         print(f"Target: Rs{tgt:.2f} (Rs{tgt-price:.2f} reward)")
         
-        # Place order
         try:
-            from signals.schema import emit_signal
-            emit_signal(
-                symbol=ticker_sym,
-                signal="BUY",
-                price=price,
-                quantity=qty,
-                strategy="AUTO_DETECTED",
-                atr=atr,
-                metadata={"source": Path(__file__).name}
-            )
-        except ImportError:
-            try:
-                from groww_api import paper_trade
-                paper_trade("BUY", ticker_sym, price, qty)
-            except:
-                pass
+            from groww_api import paper_trade
+            paper_trade("BUY", ticker_sym, price, qty)
+        except:
+            pass
     
-    elif signal == "SELL":
+    elif filtered_signal == "SELL":
         sl = round(price + atr * 1.0, 2)
         tgt = round(price - atr * 4.0, 2)
         qty = max(1, int(10000 / price))
@@ -427,21 +395,10 @@ def main():
         print(f"Target: Rs{tgt:.2f} (Rs{price-tgt:.2f} reward)")
         
         try:
-            from signals.schema import emit_signal
-            emit_signal(
-                symbol=ticker_sym,
-                signal="SELL",
-                price=price,
-                quantity=qty,
-                strategy="AUTO_DETECTED",
-                atr=atr
-            )
-        except ImportError:
-            try:
-                from groww_api import paper_trade
-                paper_trade("SELL", ticker_sym, price, qty)
-            except:
-                pass
+            from groww_api import paper_trade
+            paper_trade("SELL", ticker_sym, price, qty)
+        except:
+            pass
     
     else:
         print("No trade — HOLD signal")
@@ -449,4 +406,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
