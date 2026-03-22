@@ -38,21 +38,31 @@ POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5, "volume_ma_period": 20}
+PARAMS         = {
+    "vwap_period": 14,
+    "atr_period": 14,
+    "atr_multiplier": 1.5,
+    "rsi_period": 14,
+    "rsi_overbought": 55,   # BUY only when RSI < 55
+    "rsi_oversold": 45,     # SELL only when RSI > 45
+    "volume_multiplier": 1.2,
+    "volume_ma_period": 20,
+}
 
 # 3-TIER EXIT SYSTEM (enhancement)
-SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
-MAX_SL_PCT       = 0.015   # Hard cap: 1.5% max stop
+SL_ATR_MULT       = 1.0     # Stop loss: 1.0x ATR
+MAX_SL_PCT        = 0.015  # Hard cap: 1.5% max stop
+TRAIL_ATR_MULT    = 0.3    # Trailing stop: 0.3x ATR
 TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
 
-TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
-TARGET_2_MULT    = 3.0     # T2: 3.0x risk → exit 1/3
-TARGET_3_MULT    = 5.0     # T3: 5.0x risk → exit remaining
+TARGET_1_MULT     = 1.5     # T1: 1.5x risk → exit 1/3
+TARGET_2_MULT     = 3.0     # T2: 3.0x risk → exit 1/3
+TARGET_3_MULT     = 5.0     # T3: 5.0x risk → exit remaining
 
 # Entry window
-BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
-BEST_ENTRY_END   = dtime(14, 30) # 2:30 PM IST
-NO_ENTRY_AFTER   = dtime(14, 30) # No new entries after 2:30 PM
+BEST_ENTRY_START  = dtime(9, 30)  # 9:30 AM IST
+BEST_ENTRY_END    = dtime(14, 30) # 2:30 PM IST
+NO_ENTRY_AFTER    = dtime(14, 30) # No new entries after 2:30 PM
 
 def can_new_entry() -> bool:
     """Only allow entries during best entry window."""
