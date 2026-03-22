@@ -44,12 +44,6 @@ STOP_LOSS_PCT  = 0.008  # 0.8% ATR
 TARGET_MULT    = 4.0    # 4× ATR target
 DAILY_LOSS_CAP = 0.003  # 0.3% daily loss cap
 
-# OPTIMIZED v3: Deep reasoning parameters
-# - vwap_period: 10 (faster signals for intraday power sector moves)
-# - atr_multiplier: 1.25 (band width for VWAP deviation)
-# - momentum_confirm: True (price must be on correct side of VWAP)
-# - rsi_threshold: 55 (moderate strength, not overbought)
-# - volume_multiplier: 1.2 (confirms institutional interest)
 PARAMS = {
     "vwap_period": 10,
     "atr_multiplier": 1.25,
@@ -57,6 +51,17 @@ PARAMS = {
     "rsi_threshold": 55,
     "volume_multiplier": 1.2,
 }
+
+# ── Groww Production Enhancements ───────────────────────────────────────────
+# 3-Tier Target System (1.5x / 3x / 5x risk multiples)
+TARGET_1_MULT = 1.5   # Exit 1/3 at 1.5× risk — secure profit
+TARGET_2_MULT = 3.0   # Exit 1/3 at 3× risk — main target
+TARGET_3_MULT = 5.0   # Exit remaining at 5× risk — stretch target
+
+# Smart Entry Window: 9:30 AM – 2:30 PM IST only
+# Avoids low-volume opens (9:15-9:30) and low-volume closes (2:30-3:30)
+SMART_ENTRY_START = dtime(9, 30)
+SMART_ENTRY_END   = dtime(14, 30)
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -92,9 +97,10 @@ def is_optimal_session() -> bool:
     return (morning_start <= now <= morning_end) or (afternoon_start <= now <= afternoon_end)
 
 def can_new_entry() -> bool:
-    """HARD BLOCK: Only allow entries during optimal session (10-11:30am, 2-3pm)."""
-    if not is_optimal_session():
-        log.info("🛑 BLOCKED: Outside optimal session (10-11:30am or 2-3pm IST)")
+    """HARD BLOCK: Only allow entries during smart session (9:30 AM - 2:30 PM IST)."""
+    now = ist_now().time()
+    if not (SMART_ENTRY_START <= now <= SMART_ENTRY_END):
+        log.info("🛑 BLOCKED: Outside smart entry window (9:30 AM - 2:30 PM IST)")
         return False
     return True
 
@@ -376,7 +382,8 @@ def main():
     log.info(f"ATR: ₹{atr:.2f} (Stop: ₹{price * (1-STOP_LOSS_PCT):.2f})")
     log.info(f"Target: ₹{price * (1 + STOP_LOSS_PCT * TARGET_MULT):.2f} ({TARGET_MULT}× ATR)")
     log.info(f"RSI: {rsi:.1f}")
-    log.info(f"Optimal Session: {is_optimal_session()}")
+    in_smart_window = SMART_ENTRY_START <= ist_now().time() <= SMART_ENTRY_END
+    log.info(f"Smart Entry Window: {in_smart_window} (9:30 AM - 2:30 PM IST)")
     
     # Check if in optimal trading window - HARD BLOCK
     if not is_optimal_session():
