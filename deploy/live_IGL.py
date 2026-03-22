@@ -13,6 +13,8 @@ from pathlib import Path
 
 import yfinance as yf
 
+YFINANCE_AVAILABLE = True
+
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 logging.basicConfig(
