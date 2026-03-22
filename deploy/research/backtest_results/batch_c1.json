@@ -1,0 +1,22 @@
+{
+  "strategy": "batch_c1",
+  "description": "VWAP+RSI+Volume entry, SL/TGT/TSL exit",
+  "run_at": "2026-03-22T21:00:35.712318",
+  "stocks": [
+    "CIPLA",
+    "SRF",
+    "IGL"
+  ],
+  "position_rs": 10000,
+  "results": {
+    "CIPLA": {
+      "error": "Too many levels: Index has only 1 level, not 2"
+    },
+    "SRF": {
+      "error": "Too many levels: Index has only 1 level, not 2"
+    },
+    "IGL": {
+      "error": "Too many levels: Index has only 1 level, not 2"
+    }
+  }
+}
