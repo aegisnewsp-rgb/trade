@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
 Live Trading Script for SHREECEM.NS
-Strategy: TSI + Multi-Filter (SMA Trend + RSI + Volume + Volatility)
-Win Rate: 58.06% -> Enhanced target: 62%+
-Position Size: ₹7,000 | Stop Loss: 0.5% ATR | Target: 4.0x ATR
+Strategy: TSI + Multi-Filter (SMA Trend + EMA Confirm + RSI + Volume + Volatility)
+Win Rate: 58.06% -> Enhanced target: 60%+ (v2)
+Position Size: ₹7,000 | Stop Loss: 0.65% ATR | Target: 4.0x ATR
 Daily Loss Cap: 0.3% of capital
 Max 1 trade per day
 
-Enhancements applied:
-- SMA(50) trend filter: BUY only when price > SMA, SELL only when price < SMA
-- RSI(14) filter: Avoid overbought (>65) / oversold (<35) for better entries
-- Volume filter: Require volume > 1.2x 20-day average
-- Tighter stop loss: 0.5% ATR (from 0.8%) for faster loss cutting
-- TSI threshold: Require |TSI - Signal| > 3 for valid crossover
+v2 Enhancements applied:
+- Added EMA(20) dual confirmation alongside SMA(50) for faster trend detection
+- RSI thresholds tightened: oversold 35→42, overbought 65→60
+- Stop loss loosened: 0.5%→0.65% ATR to avoid cutting winners early
+- TSI signal period: 13→9 for faster crossover detection
+- Volume threshold raised: 1.2x→1.3x for higher-quality confirm
 
 ⚠️ FOR EDUCATIONAL/PAPER TRADING USE ⚠️
 Requires GROWW_API_KEY and GROWW_API_SECRET env vars for live orders.
@@ -42,20 +42,20 @@ TARGET_WIN_RATE = 0.60
 POSITION_SIZE = 7000
 DAILY_LOSS_CAP = 0.003
 MAX_TRADES_PER_DAY = 1
-STOP_LOSS_ATR_MULT = 0.5   # Tightened from 0.8 - cut losses faster
+STOP_LOSS_ATR_MULT = 0.65  # v2: was 0.5 - too tight, cutting winners early
 TARGET_ATR_MULT = 4.0
 
 TSI_FAST = 13
 TSI_SLOW = 25
-TSI_SIGNAL = 13
+TSI_SIGNAL = 9   # v2: was 13 - faster response, catch moves earlier
 TSI_THRESHOLD = 3.0        # Require |TSI - Signal| > threshold for valid signal
 ATR_PERIOD = 14
 SMA_PERIOD = 50             # Trend filter period
 RSI_PERIOD = 14
-RSI_OVERSOLD = 35           # Only BUY when RSI > 35
-RSI_OVERBOUGHT = 65         # Only SELL when RSI < 65
+RSI_OVERSOLD = 42           # v2: was 35 - tighter, only buy in oversold
+RSI_OVERBOUGHT = 60        # v2: was 65 - tighter, sell before overbought
 VOLUME_MA_PERIOD = 20
-VOLUME_THRESHOLD = 1.2      # Volume must be > 1.2x 20-day average
+VOLUME_THRESHOLD = 1.3     # v2: was 1.2 - higher quality volume confirm
 MIN_ATR_PCT = 0.015         # Min ATR as % of price (1.5%) - avoid low vol
 
 GROWW_API_KEY = os.getenv("GROWW_API_KEY")
@@ -183,6 +183,21 @@ def calculate_sma(ohlcv: List[Dict], period: int = 50) -> List[float]:
             sma.append(avg)
     return sma
 
+def calculate_ema(ohlcv: List[Dict], period: int = 20) -> List[float]:
+    """Exponential Moving Average - faster reaction than SMA"""
+    ema = []
+    multiplier = 2 / (period + 1)
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            ema.append(None)
+        elif i == period - 1:
+            # Seed with SMA
+            avg = sum(ohlcv[j]["close"] for j in range(i - period + 1, i + 1)) / period
+            ema.append(avg)
+        else:
+            ema.append((ohlcv[i]["close"] - ema[-1]) * multiplier + ema[-1])
+    return ema
+
 def calculate_rsi(ohlcv: List[Dict], period: int = 14) -> List[float]:
     """RSI (Relative Strength Index)"""
     if len(ohlcv) < period + 1:
@@ -219,11 +234,13 @@ def calculate_volume_ma(ohlcv: List[Dict], period: int = 20) -> List[float]:
     return vol_ma
 
 def generate_signal(ohlcv: List[Dict], tsi: List[float], signal_line: List[float],
-                    sma_vals: List[float], rsi_vals: List[float],
+                    sma_vals: List[float], ema_vals: List[float], rsi_vals: List[float],
                     vol_ma: List[float], atr_vals: List[float]) -> Tuple[str, str]:
     """
     Generate signal with multi-filter confirmation.
     Returns (signal, filter_reason) tuple.
+    v2: Added EMA(20) for faster trend detection alongside SMA(50).
+        Both must agree: price > EMA(20) for BUY, price < EMA(20) for SELL.
     """
     if len(ohlcv) < 2 or len(tsi) < 2 or len(signal_line) < 2:
         return "HOLD", "insufficient_data"
@@ -245,9 +262,13 @@ def generate_signal(ohlcv: List[Dict], tsi: List[float], signal_line: List[float
     if avg_vol > 0 and (current_vol / avg_vol) < VOLUME_THRESHOLD:
         return "HOLD", "low_volume"
 
-    # Check SMA trend filter
+    # Check SMA(50) trend filter - primary trend
     current_sma = sma_vals[-1] if sma_vals and sma_vals[-1] is not None else current_price
     above_sma = current_price > current_sma
+
+    # Check EMA(20) trend filter - faster confirmation (v2)
+    current_ema = ema_vals[-1] if ema_vals and ema_vals[-1] is not None else current_price
+    above_ema = current_price > current_ema
 
     # Check RSI filter
     current_rsi = rsi_vals[-1] if rsi_vals and len(rsi_vals) >= 1 else 50.0
@@ -262,6 +283,8 @@ def generate_signal(ohlcv: List[Dict], tsi: List[float], signal_line: List[float
             return "HOLD", f"tsi_weak_crossing"
         if not above_sma:
             return "HOLD", "below_sma_trend"
+        if not above_ema:   # v2: dual trend confirmation with EMA
+            return "HOLD", "below_ema_trend"
         if current_rsi < RSI_OVERSOLD:
             return "HOLD", f"rsi_oversold({current_rsi:.1f})"
         return "BUY", "all_filters_passed"
@@ -272,6 +295,8 @@ def generate_signal(ohlcv: List[Dict], tsi: List[float], signal_line: List[float
             return "HOLD", f"tsi_weak_crossing"
         if above_sma:
             return "HOLD", "above_sma_trend"  # Don't sell in uptrend
+        if above_ema:    # v2: don't sell if still above EMA(20)
+            return "HOLD", "above_ema_trend"
         if current_rsi > RSI_OVERBOUGHT:
             return "HOLD", f"rsi_overbought({current_rsi:.1f})"
         return "SELL", "all_filters_passed"
@@ -354,7 +379,7 @@ def main():
     logger.info("=" * 60)
     logger.info(f"LIVE TRADING - {SYMBOL} | {STRATEGY}")
     logger.info(f"Win Rate: {BENCHMARK_WIN_RATE * 100:.2f}% -> Target: {TARGET_WIN_RATE*100:.0f}% | Pos: ₹{POSITION_SIZE:,} | SL: {STOP_LOSS_ATR_MULT*100:.1f}% ATR | TGT: {TARGET_ATR_MULT}x ATR")
-    logger.info(f"Filters: SMA({SMA_PERIOD}) | RSI({RSI_PERIOD}) ovr:{RSI_OVERBOUGHT}/os:{RSI_OVERSOLD} | Vol:{VOLUME_THRESHOLD}x | TSI_thresh:{TSI_THRESHOLD}")
+    logger.info(f"Filters: SMA({SMA_PERIOD})+EMA(20) | RSI({RSI_PERIOD}) ovr:{RSI_OVERBOUGHT}/os:{RSI_OVERSOLD} | Vol:{VOLUME_THRESHOLD}x | TSI_sig:{TSI_SIGNAL}")
     logger.info("=" * 60)
     state = load_state()
     state = reset_daily_state(state)
@@ -367,17 +392,19 @@ def main():
     atr = calculate_atr(ohlcv, ATR_PERIOD)
     tsi, signal_line = calculate_tsi(ohlcv, TSI_FAST, TSI_SLOW, TSI_SIGNAL)
     sma_vals = calculate_sma(ohlcv, SMA_PERIOD)
+    ema_vals = calculate_ema(ohlcv, 20)     # v2: faster EMA(20) for trend confirm
     rsi_vals = calculate_rsi(ohlcv, RSI_PERIOD)
     vol_ma = calculate_volume_ma(ohlcv, VOLUME_MA_PERIOD)
     current_price = ohlcv[-1]["close"]
     current_atr = atr[-1] if atr[-1] else (current_price * 0.02)
-    signal, filter_reason = generate_signal(ohlcv, tsi, signal_line, sma_vals, rsi_vals, vol_ma, atr)
+    signal, filter_reason = generate_signal(ohlcv, tsi, signal_line, sma_vals, ema_vals, rsi_vals, vol_ma, atr)
     current_sma = sma_vals[-1] if sma_vals and sma_vals[-1] else 0
+    current_ema = ema_vals[-1] if ema_vals and ema_vals[-1] else 0
     current_rsi = rsi_vals[-1] if rsi_vals and rsi_vals[-1] else 50.0
     current_vol = ohlcv[-1]["volume"]
     avg_vol = vol_ma[-1] if vol_ma and vol_ma[-1] else current_vol
     logger.info(f"Price: ₹{current_price:.2f} | ATR: ₹{current_atr:.2f} | TSI: {tsi[-1]:.2f} | Signal: {signal} | Filter: {filter_reason}")
-    logger.info(f"  SMA({SMA_PERIOD}): ₹{current_sma:.2f} | RSI({RSI_PERIOD}): {current_rsi:.1f} | Vol Ratio: {current_vol/avg_vol:.2f}x")
+    logger.info(f"  SMA({SMA_PERIOD}): ₹{current_sma:.2f} | EMA(20): ₹{current_ema:.2f} | RSI({RSI_PERIOD}): {current_rsi:.1f} | Vol Ratio: {current_vol/avg_vol:.2f}x")
     if signal != "HOLD":
         result = execute_trade(signal, current_price, current_atr, state, CAPITAL)
         state["last_signal"] = signal
