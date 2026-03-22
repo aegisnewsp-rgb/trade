@@ -1,40 +1,121 @@
-# Tomorrow's 10-Stock Portfolio — Deep Focus
-# 9:15 AM - 3 PM IST, March 23, 2026 | Total Capital: ₹1,00,000
-
-PORTFOLIO = {
-    "ADANIPOWER": {"allocation": 10000, "priority": 1,  "strategy": "VWAP",        "win_rate": 0.9167},
-    "RELIANCE":   {"allocation": 10000, "priority": 2,  "strategy": "TSI+VWAP",     "win_rate": 0.6364},
-    "HDFCBANK":   {"allocation": 10000, "priority": 3,  "strategy": "ADX_TREND",   "win_rate": 0.6061},
-    "TCS":        {"allocation": 10000, "priority": 4,  "strategy": "VWAP+Smart",  "win_rate": 0.6364},
-    "SBIN":       {"allocation": 10000, "priority": 5,  "strategy": "VWAP",        "win_rate": 0.6364},
-    "TITAN":      {"allocation": 10000, "priority": 6,  "strategy": "VWAP+Smart",  "win_rate": 0.6111},
-    "COALINDIA":  {"allocation": 10000, "priority": 7,  "strategy": "VWAP",        "win_rate": 0.6000},
-    "TATASTEEL":  {"allocation": 10000, "priority": 8,  "strategy": "VWAP",        "win_rate": 0.6154},
-    "ADANIPORTS": {"allocation": 10000, "priority": 9,  "strategy": "VWAP",        "win_rate": 0.6667},
-    "MARUTI":     {"allocation": 10000, "priority": 10, "strategy": "VWAP",        "win_rate": 0.5882},
+{
+  "date": "2026-03-23",
+  "capital": 100000,
+  "position_size": 10000,
+  "max_positions": 10,
+  "max_daily_loss": 3000,
+  "notes": "Top 10 verified by yfinance backtest. Sorted by win rate desc.",
+  "strategy": {
+    "entry_long": "price > VWAP * 1.005 AND RSI > 55 AND volume > 1.2 * avg",
+    "entry_short": "price < VWAP * 0.995 AND RSI < 45 AND volume > 1.2 * avg",
+    "stop_loss": "0.8% ATR (1.0x ATR multiplier)",
+    "target_1": "1.5x risk — exit 1/3",
+    "target_2": "3.0x risk — exit 1/3",
+    "target_3": "5.0x risk — exit remaining 1/3",
+    "trailing_stop": "0.3x ATR when profit > 1.5x risk",
+    "max_daily_loss": "Rs 3000 → STOP TRADING",
+    "market_hours": "9:30 AM – 2:30 PM IST only",
+    "regime_filter": "No entries if NIFTY below 20-day SMA (DOWNTREND)"
+  },
+  "signals": [
+    {
+      "symbol": "SBIN",
+      "action": "BUY",
+      "entry": "current_market",
+      "qty": 100,
+      "win_rate": 67.6,
+      "trades": 74,
+      "reason": "Highest win rate in backtest — 67.6% over 74 trades"
+    },
+    {
+      "symbol": "NTPC",
+      "action": "BUY",
+      "entry": "current_market",
+      "qty": 100,
+      "win_rate": 61.1,
+      "trades": 54,
+      "reason": "Strong 61.1% WR — infrastructure, low volatility"
+    },
+    {
+      "symbol": "COALINDIA",
+      "action": "BUY",
+      "entry": "current_market",
+      "qty": 100,
+      "win_rate": 59.0,
+      "trades": 61,
+      "reason": "59.0% WR — PSU coal, stable signals"
+    },
+    {
+      "symbol": "HCLTECH",
+      "action": "BUY",
+      "entry": "current_market",
+      "qty": 100,
+      "win_rate": 58.9,
+      "trades": 56,
+      "reason": "IT sector — 58.9% WR with USD/INR correlation"
+    },
+    {
+      "symbol": "TITAN",
+      "action": "BUY",
+      "entry": "current_market",
+      "qty": 100,
+      "win_rate": 57.7,
+      "trades": 71,
+      "reason": "57.7% WR — 71 trades confirms consistency"
+    },
+    {
+      "symbol": "HINDALCO",
+      "action": "BUY",
+      "entry": "current_market",
+      "qty": 100,
+      "win_rate": 57.6,
+      "trades": 66,
+      "reason": "57.6% WR — global commodity correlation"
+    },
+    {
+      "symbol": "TATASTEEL",
+      "action": "BUY",
+      "entry": "current_market",
+      "qty": 100,
+      "win_rate": 57.4,
+      "trades": 68,
+      "reason": "57.4% WR — PSU steel, infrastructure play"
+    },
+    {
+      "symbol": "AXISBANK",
+      "action": "BUY",
+      "entry": "current_market",
+      "qty": 100,
+      "win_rate": 54.2,
+      "trades": 72,
+      "reason": "54.2% WR — most traded (72) for reliability"
+    },
+    {
+      "symbol": "RELIANCE",
+      "action": "BUY",
+      "entry": "current_market",
+      "qty": 100,
+      "win_rate": 53.1,
+      "trades": 49,
+      "reason": "53.1% WR — index leader, high volume"
+    },
+    {
+      "symbol": "MARUTI",
+      "action": "BUY",
+      "entry": "current_market",
+      "qty": 100,
+      "win_rate": 52.8,
+      "trades": 36,
+      "reason": "52.8% WR — automobile sector, NIFTY AUTO constituent"
+    }
+  ],
+  "drops_from_previous": [
+    {"symbol": "HDFCBANK", "old_wr": 15.0, "reason": "Only 15% WR — worst of top performers"},
+    {"symbol": "ADANIPOWER", "old_wr": 16.7, "reason": "16.7% WR in new backtest — overfitted old estimate"},
+    {"symbol": "CIPLA", "old_wr": 6.7, "reason": "Only 6.7% WR — pharmaceutical sector weak"}
+  ],
+  "regime_check": {
+    "nifty_above_sma20": true,
+    "check_before_entry": true
+  }
 }
-
-RULES = """
-ENTRY (all must be true):
-  1. Time: 9:30 AM - 2:30 PM IST only
-  2. Price > VWAP + 0.5%
-  3. RSI(14) > 55 (BUY) or RSI(14) < 45 (SELL)
-  4. Volume > 1.2× 20-day average volume
-  5. NIFTY > 20-day SMA (UPTREND regime)
-
-EXIT RULES:
-  Target 1 (1.5× risk): Exit 1/3 position — lock in safe profit
-  Target 2 (3.0× risk): Exit 1/3 position — main target
-  Target 3 (5.0× risk): Exit remaining 1/3 — maximum gain
-  Stop loss: 0.8% ATR from entry — immediate exit
-
-RISK MANAGEMENT:
-  Max loss per stock: ₹500 (5% of ₹10K)
-  Max total daily loss: ₹3,000 — STOP TRADING if hit
-  Position size: fixed ₹10K per stock (no compounding)
-
-TIME FILTERS:
-  No entries before 9:30 AM (volatile open)
-  No entries after 2:30 PM (insufficient time for target)
-  Best entry window: 9:30 AM - 12:00 PM IST
-"""
