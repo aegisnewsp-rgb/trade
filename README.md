@@ -12,6 +12,7 @@
 - ✅ Strategy v8 enhancements applied (MACD, volume, trend, BB filters)
 - ✅ 3-tier exit system active
 - ✅ Telegram status reporting enabled
+- ✅ 10 worst scripts upgraded to v8 LOWWR (COMPINFO, SHIVALIK, AMTL, ALANKIT, COROMANDEL, PFL, SFL, PARACABLES, TBZ, ARISE)
 
 ## Quick Check
 ```bash
@@ -24,6 +25,10 @@ cd deploy && for f in live_*.py; do python3 -m py_compile "$f" || echo "FAIL: $f
 | GLENMARK.NS | 56% | v8 enhanced |
 | HEROMOTOCO | 55% | v8 enhanced |
 | WIPRO | 52% | v8 enhanced |
+| COMPINFO.BO | ~5% base | v8 LOWWR upgraded |
+| SHIVALIK.BO | ~5% base | v8 LOWWR upgraded |
+| AMTL.BO | ~6% base | v8 LOWWR upgraded |
 
 ## Enhancement Log
 - 2026-03-22: All scripts v8 (tightened ATR/RSI, added BB, MACD, volume filters)
+- 2026-03-22: 10 worst scripts (COMPINFO, SHIVALIK, AMTL, ALANKIT, COROMANDEL, PFL, SFL, PARACABLES, TBZ, ARISE) upgraded to v8 LOWWR standard
