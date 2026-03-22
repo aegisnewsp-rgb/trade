@@ -206,7 +206,7 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
     return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], current_atr
 
-def place_groww_order(symbol, signal, quantity, price):
+def place_groww_order(symbol, signal, quantity, price, atr=0.0):
     """
     Place order via Groww API or paper trade.
     Uses Bracket Orders (BO) when GROWW_API_KEY is set.
@@ -220,10 +220,8 @@ def place_groww_order(symbol, signal, quantity, price):
     exchange = "NSE"
     
     if signal == "BUY":
-        # Calculate target and stop loss  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
+        stop_loss = price - (atr * 1.0) if atr > 0 else price * 0.992
+        target = price + (atr * 4.0) if atr > 0 else price * 1.032
         result = groww_api.place_bo(
             exchange=exchange,
             symbol=symbol,
@@ -235,8 +233,8 @@ def place_groww_order(symbol, signal, quantity, price):
             trailing_target=0.5
         )
     elif signal == "SELL":
-        stop_loss = price + (atr * 1.0)
-        target = price - (atr * 4.0)
+        stop_loss = price + (atr * 1.0) if atr > 0 else price * 1.008
+        target = price - (atr * 4.0) if atr > 0 else price * 0.968
         result = groww_api.place_bo(
             exchange=exchange,
             symbol=symbol,
