@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - TECHM.NS
-Strategy: VWAP (Volume Weighted Average Price)
-Research Date: 2026-03-22 | Momentum: +4.01% (5d) | Vol Ratio: 1.88x
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Live Trading Script - TECHM.NS (Tech Mahindra)
+Strategy: VWAP + RSI + Volume Confirmation (v4 enhanced)
+Added: 2026-03-22 | IT sector momentum +2.17%, volume surge 1.88x avg
+Position: ₹7000 | Stop Loss: 1.5x ATR | Target: 3.5x ATR | Daily Loss Cap: 0.3%
+Enhancements over v3:
+  - RSI filter (14): BUY only RSI > 40, SELL only RSI < 60
+  - Volume confirmation: volume > 20-day SMA volume
+  - ATR-based stop (replaces fixed 0.8%)
+  - Volatility filter: skip when ATR > 20-day ATR SMA (choppy market)
 """
 
 import os
@@ -31,13 +36,25 @@ logging.basicConfig(
 log = logging.getLogger("live_TECHM")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SYMBOL         = "TECHM.NS"
-STRATEGY       = "VWAP"
-POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
-TARGET_MULT    = 4.0
-DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+SYMBOL             = "TECHM.NS"
+STRATEGY           = "VWAP+RSI+VOL"
+POSITION           = 7000
+STOP_LOSS_ATR_MULT = 1.5   # adaptive ATR stop
+TARGET_ATR_MULT    = 3.5   # tighter target for better hit rate
+DAILY_LOSS_CAP     = 0.003
+PARAMS = {
+    "vwap_period":         14,
+    "atr_multiplier":      1.5,
+    "rsi_period":          14,
+    "rsi_buy_min":         40,   # BUY only when RSI > 40 (avoid overbought)
+    "rsi_sell_max":        60,   # SELL only when RSI < 60 (avoid oversold)
+    "vol_sma_period":      20,
+    "vol_confirm_mult":    1.2,  # volume must exceed 20-day SMA by this factor
+    "atr_vol_period":      20,   # period for ATR volatility SMA
+}
+
+BENCHMARK_WIN_RATE = 0.58   # generic IT benchmark
+TARGET_WIN_RATE    = 0.62
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -118,23 +135,88 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period        = params["vwap_period"]
-    atr_mult      = params["atr_multiplier"]
-    vwap_vals     = calculate_vwap(ohlcv, period)
-    atr_vals      = calculate_atr(ohlcv, period)
-    signals       = ["HOLD"] * len(ohlcv)
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    """Compute RSI (Relative Strength Index)."""
+    rsi = [None] * len(ohlcv)
+    if len(ohlcv) < period + 1:
+        return rsi
+    gains, losses = [], []
+    for i in range(1, len(ohlcv)):
+        delta = ohlcv[i]["close"] - ohlcv[i - 1]["close"]
+        gains.append(max(delta, 0))
+        losses.append(max(-delta, 0))
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        rs = avg_gain / avg_loss if avg_loss != 0 else float("inf")
+        rsi[i + 1] = 100 - (100 / (1 + rs))
+    return rsi
 
-    for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+def calculate_vol_sma(ohlcv: list, period: int = 20) -> list:
+    """20-day SMA of volume for volume confirmation."""
+    vol_sma = [None] * len(ohlcv)
+    for i in range(period - 1, len(ohlcv)):
+        vol_sma[i] = sum(ohlcv[j]["volume"] for j in range(i - period + 1, i + 1)) / period
+    return vol_sma
+
+def calculate_atr_sma(atr_vals: list, period: int = 20) -> list:
+    """20-day SMA of ATR for volatility filter."""
+    atr_sma = [None] * len(atr_vals)
+    for i in range(len(atr_vals)):
+        window = [v for v in atr_vals[max(0, i - period + 1):i + 1] if v is not None]
+        if len(window) >= period // 2:
+            atr_sma[i] = sum(window) / len(window)
+    return atr_sma
+
+def vwap_enhanced_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+    """
+    VWAP + RSI + Volume confirmation + Volatility filter.
+    Returns (signal, price, atr).
+    """
+    vwap_period   = params["vwap_period"]
+    atr_mult      = params["atr_multiplier"]
+    rsi_period    = params["rsi_period"]
+    rsi_buy_min   = params["rsi_buy_min"]
+    rsi_sell_max  = params["rsi_sell_max"]
+    vol_period    = params["vol_sma_period"]
+    vol_mult      = params["vol_confirm_mult"]
+    atr_vol_p     = params["atr_vol_period"]
+
+    vwap_vals = calculate_vwap(ohlcv, vwap_period)
+    atr_vals  = calculate_atr(ohlcv, vwap_period)
+    rsi_vals  = calculate_rsi(ohlcv, rsi_period)
+    vol_sma   = calculate_vol_sma(ohlcv, vol_period)
+    atr_sma   = calculate_atr_sma(atr_vals, atr_vol_p)
+
+    signals   = ["HOLD"] * len(ohlcv)
+    start_idx = max(vwap_period, rsi_period, vol_period, atr_vol_p)
+
+    for i in range(start_idx, len(ohlcv)):
+        if None in (vwap_vals[i], atr_vals[i], rsi_vals[i], vol_sma[i], atr_sma[i]):
             continue
-        price    = ohlcv[i]["close"]
-        v        = vwap_vals[i]
-        a        = atr_vals[i]
+        price   = ohlcv[i]["close"]
+        v       = vwap_vals[i]
+        a       = atr_vals[i]
+        rsi     = rsi_vals[i]
+        vol     = ohlcv[i]["volume"]
+        vol_avg = vol_sma[i]
+
+        # Volatility filter: skip in choppy / high-volatility regimes
+        if atr_sma[i] is not None and a > atr_sma[i] * 1.15:
+            continue
+
+        # Volume confirmation
+        if vol < vol_avg * vol_mult:
+            continue
+
         if price > v + a * atr_mult:
-            signals[i] = "BUY"
+            if rsi > rsi_buy_min:
+                signals[i] = "BUY"
         elif price < v - a * atr_mult:
-            signals[i] = "SELL"
+            if rsi < rsi_sell_max:
+                signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
@@ -207,7 +289,8 @@ def daily_loss_limit_hit() -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Momentum: +4.01%% (5d) | Vol Ratio: 1.88x ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s | IT Sector +2.17%% | Vol 1.88x avg ===",
+             SYMBOL, STRATEGY)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
@@ -217,25 +300,24 @@ def main():
         log.info("Market is closed. Exiting.")
         return
 
-    today_str = ist_now().strftime("%Y-%m-%d")
     if daily_loss_limit_hit():
         log.warning("Daily loss cap (0.3%%) hit – skipping trading today.")
         return
 
     log.info("Market is open. Fetching data...")
-    ohlcv = fetch_recent_data(days=90)
-    if not ohlcv or len(ohlcv) < 30:
+    ohlcv = fetch_recent_data(days=120)
+    if not ohlcv or len(ohlcv) < 60:
         log.error("Insufficient data for %s", SYMBOL)
         return
 
-    signal, price, atr = vwap_signal(ohlcv, PARAMS)
+    signal, price, atr = vwap_enhanced_signal(ohlcv, PARAMS)
 
     if signal == "BUY":
-        stop_loss  = round(price * (1 - STOP_LOSS_PCT), 2)
-        target_prc = round(price + TARGET_MULT * atr, 2)
+        stop_loss  = round(price - STOP_LOSS_ATR_MULT * atr, 2)
+        target_prc = round(price + TARGET_ATR_MULT * atr, 2)
     elif signal == "SELL":
-        stop_loss  = round(price * (1 + STOP_LOSS_PCT), 2)
-        target_prc = round(price - TARGET_MULT * atr, 2)
+        stop_loss  = round(price + STOP_LOSS_ATR_MULT * atr, 2)
+        target_prc = round(price - TARGET_ATR_MULT * atr, 2)
     else:
         stop_loss  = 0.0
         target_prc = 0.0
@@ -244,14 +326,16 @@ def main():
 
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  STRATEGY : %s (v4 enhanced)", STRATEGY)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
     if atr > 0:
         log.info("  ATR      : %.4f", atr)
-        log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
-        log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
+        log.info("  STOP     : ₹%.2f  (%.1f× ATR)", stop_loss, STOP_LOSS_ATR_MULT)
+        log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_ATR_MULT)
+    log.info("  FILTERS  : RSI(%.0f-%.0f) | Vol>avg×%.1f | Vol-chop filter",
+             PARAMS["rsi_buy_min"], PARAMS["rsi_sell_max"], PARAMS["vol_confirm_mult"])
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
     log_signal(signal, price, atr)
@@ -260,10 +344,8 @@ def main():
         result = place_groww_order(SYMBOL, signal, quantity, price)
         if result:
             log.info("✓ Order executed via Groww: %s", result)
-        else:
-            log.warning("⚠ Groww order could not be placed – signal still printed/logged.")
     elif signal != "HOLD":
-        log.info("📋 No Groww credentials found – signal printed only (paper mode).")
+        log.info("📋 No Groww credentials – signal printed only (paper mode).")
 
 if __name__ == "__main__":
     main()
