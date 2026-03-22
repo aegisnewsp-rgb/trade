@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 """
 Live Trading Script for SHREECEM.NS
-Strategy: TSI (True Strength Index)
-Win Rate: 58.06%
-Position Size: ₹7,000 | Stop Loss: 0.8% ATR | Target: 4.0x ATR
+Strategy: TSI + Multi-Filter (SMA Trend + RSI + Volume + Volatility)
+Win Rate: 58.06% -> Enhanced target: 62%+
+Position Size: ₹7,000 | Stop Loss: 0.5% ATR | Target: 4.0x ATR
 Daily Loss Cap: 0.3% of capital
 Max 1 trade per day
+
+Enhancements applied:
+- SMA(50) trend filter: BUY only when price > SMA, SELL only when price < SMA
+- RSI(14) filter: Avoid overbought (>65) / oversold (<35) for better entries
+- Volume filter: Require volume > 1.2x 20-day average
+- Tighter stop loss: 0.5% ATR (from 0.8%) for faster loss cutting
+- TSI threshold: Require |TSI - Signal| > 3 for valid crossover
 
 ⚠️ FOR EDUCATIONAL/PAPER TRADING USE ⚠️
 Requires GROWW_API_KEY and GROWW_API_SECRET env vars for live orders.
@@ -28,19 +35,28 @@ except ImportError:
 
 # ============== CONFIGURATION ==============
 SYMBOL = "SHREECEM.NS"
-STRATEGY = "TSI"
+STRATEGY = "TSI_MULTI_FILTER"
 BENCHMARK_WIN_RATE = 0.5806
+TARGET_WIN_RATE = 0.62
 
 POSITION_SIZE = 7000
 DAILY_LOSS_CAP = 0.003
 MAX_TRADES_PER_DAY = 1
-STOP_LOSS_ATR_MULT = 0.8
+STOP_LOSS_ATR_MULT = 0.5   # Tightened from 0.8 - cut losses faster
 TARGET_ATR_MULT = 4.0
 
 TSI_FAST = 13
 TSI_SLOW = 25
 TSI_SIGNAL = 13
+TSI_THRESHOLD = 3.0        # Require |TSI - Signal| > threshold for valid signal
 ATR_PERIOD = 14
+SMA_PERIOD = 50             # Trend filter period
+RSI_PERIOD = 14
+RSI_OVERSOLD = 35           # Only BUY when RSI > 35
+RSI_OVERBOUGHT = 65         # Only SELL when RSI < 65
+VOLUME_MA_PERIOD = 20
+VOLUME_THRESHOLD = 1.2      # Volume must be > 1.2x 20-day average
+MIN_ATR_PCT = 0.015         # Min ATR as % of price (1.5%) - avoid low vol
 
 GROWW_API_KEY = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -156,18 +172,111 @@ def calculate_tsi(ohlcv: List[Dict], fast: int = 13, slow: int = 25, signal: int
         signal_values.insert(0, 50.0)
     return tsi_values, signal_values
 
-def generate_signal(ohlcv: List[Dict], tsi: List[float], signal_line: List[float]) -> str:
+def calculate_sma(ohlcv: List[Dict], period: int = 50) -> List[float]:
+    """Simple Moving Average"""
+    sma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            sma.append(None)
+        else:
+            avg = sum(ohlcv[j]["close"] for j in range(i - period + 1, i + 1)) / period
+            sma.append(avg)
+    return sma
+
+def calculate_rsi(ohlcv: List[Dict], period: int = 14) -> List[float]:
+    """RSI (Relative Strength Index)"""
+    if len(ohlcv) < period + 1:
+        return [50.0] * len(ohlcv)
+    gains = []
+    losses = []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i-1]["close"]
+        gains.append(max(change, 0))
+        losses.append(max(-change, 0))
+    rsi = [50.0] * period
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        if avg_loss == 0:
+            rsi.append(100)
+        else:
+            rs = avg_gain / avg_loss
+            rsi.append(100 - (100 / (1 + rs)))
+    rsi = [50.0] * (period) + rsi[period:]
+    return rsi
+
+def calculate_volume_ma(ohlcv: List[Dict], period: int = 20) -> List[float]:
+    """Volume Moving Average"""
+    vol_ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            vol_ma.append(None)
+        else:
+            avg = sum(ohlcv[j]["volume"] for j in range(i - period + 1, i + 1)) / period
+            vol_ma.append(avg)
+    return vol_ma
+
+def generate_signal(ohlcv: List[Dict], tsi: List[float], signal_line: List[float],
+                    sma_vals: List[float], rsi_vals: List[float],
+                    vol_ma: List[float], atr_vals: List[float]) -> Tuple[str, str]:
+    """
+    Generate signal with multi-filter confirmation.
+    Returns (signal, filter_reason) tuple.
+    """
     if len(ohlcv) < 2 or len(tsi) < 2 or len(signal_line) < 2:
-        return "HOLD"
-    current_tsi = tsi[-1]
+        return "HOLD", "insufficient_data"
+
+    current_price = ohlcv[-1]["close"]
     prev_tsi = tsi[-2]
-    current_signal = signal_line[-1]
+    current_tsi = tsi[-1]
     prev_signal = signal_line[-2]
+    current_signal = signal_line[-1]
+
+    # Check volatility filter
+    current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0
+    if current_atr > 0 and (current_atr / current_price) < MIN_ATR_PCT:
+        return "HOLD", "low_volatility"
+
+    # Check volume filter
+    current_vol = ohlcv[-1]["volume"]
+    avg_vol = vol_ma[-1] if vol_ma and vol_ma[-1] is not None else current_vol
+    if avg_vol > 0 and (current_vol / avg_vol) < VOLUME_THRESHOLD:
+        return "HOLD", "low_volume"
+
+    # Check SMA trend filter
+    current_sma = sma_vals[-1] if sma_vals and sma_vals[-1] is not None else current_price
+    above_sma = current_price > current_sma
+
+    # Check RSI filter
+    current_rsi = rsi_vals[-1] if rsi_vals and len(rsi_vals) >= 1 else 50.0
+
+    # Check TSI threshold (require meaningful crossover)
+    tsi_diff = abs(current_tsi - current_signal)
+    strong_cross = tsi_diff >= TSI_THRESHOLD
+
+    # BUY signal: TSI crosses above signal + trend + RSI + volume filters
     if prev_tsi <= prev_signal and current_tsi > current_signal:
-        return "BUY"
+        if not strong_cross:
+            return "HOLD", f"tsi_weak_crossing"
+        if not above_sma:
+            return "HOLD", "below_sma_trend"
+        if current_rsi < RSI_OVERSOLD:
+            return "HOLD", f"rsi_oversold({current_rsi:.1f})"
+        return "BUY", "all_filters_passed"
+
+    # SELL signal: TSI crosses below signal + trend + RSI + volume filters
     elif prev_tsi >= prev_signal and current_tsi < current_signal:
-        return "SELL"
-    return "HOLD"
+        if not strong_cross:
+            return "HOLD", f"tsi_weak_crossing"
+        if above_sma:
+            return "HOLD", "above_sma_trend"  # Don't sell in uptrend
+        if current_rsi > RSI_OVERBOUGHT:
+            return "HOLD", f"rsi_overbought({current_rsi:.1f})"
+        return "SELL", "all_filters_passed"
+
+    return "HOLD", "no_crossover"
 
 def calculate_stop_loss(entry_price: float, atr: float) -> float:
     return entry_price - (atr * STOP_LOSS_ATR_MULT)
@@ -244,7 +353,8 @@ def execute_trade(signal: str, current_price: float, atr: float, state: Dict, ca
 def main():
     logger.info("=" * 60)
     logger.info(f"LIVE TRADING - {SYMBOL} | {STRATEGY}")
-    logger.info(f"Win Rate: {BENCHMARK_WIN_RATE * 100:.2f}% | Pos: ₹{POSITION_SIZE:,} | SL: {STOP_LOSS_ATR_MULT*100:.1f}% ATR | TGT: {TARGET_ATR_MULT}x ATR")
+    logger.info(f"Win Rate: {BENCHMARK_WIN_RATE * 100:.2f}% -> Target: {TARGET_WIN_RATE*100:.0f}% | Pos: ₹{POSITION_SIZE:,} | SL: {STOP_LOSS_ATR_MULT*100:.1f}% ATR | TGT: {TARGET_ATR_MULT}x ATR")
+    logger.info(f"Filters: SMA({SMA_PERIOD}) | RSI({RSI_PERIOD}) ovr:{RSI_OVERBOUGHT}/os:{RSI_OVERSOLD} | Vol:{VOLUME_THRESHOLD}x | TSI_thresh:{TSI_THRESHOLD}")
     logger.info("=" * 60)
     state = load_state()
     state = reset_daily_state(state)
@@ -256,10 +366,18 @@ def main():
         sys.exit(1)
     atr = calculate_atr(ohlcv, ATR_PERIOD)
     tsi, signal_line = calculate_tsi(ohlcv, TSI_FAST, TSI_SLOW, TSI_SIGNAL)
+    sma_vals = calculate_sma(ohlcv, SMA_PERIOD)
+    rsi_vals = calculate_rsi(ohlcv, RSI_PERIOD)
+    vol_ma = calculate_volume_ma(ohlcv, VOLUME_MA_PERIOD)
     current_price = ohlcv[-1]["close"]
     current_atr = atr[-1] if atr[-1] else (current_price * 0.02)
-    signal = generate_signal(ohlcv, tsi, signal_line)
-    logger.info(f"Price: ₹{current_price:.2f} | ATR: ₹{current_atr:.2f} | TSI: {tsi[-1]:.2f} | Signal: {signal}")
+    signal, filter_reason = generate_signal(ohlcv, tsi, signal_line, sma_vals, rsi_vals, vol_ma, atr)
+    current_sma = sma_vals[-1] if sma_vals and sma_vals[-1] else 0
+    current_rsi = rsi_vals[-1] if rsi_vals and rsi_vals[-1] else 50.0
+    current_vol = ohlcv[-1]["volume"]
+    avg_vol = vol_ma[-1] if vol_ma and vol_ma[-1] else current_vol
+    logger.info(f"Price: ₹{current_price:.2f} | ATR: ₹{current_atr:.2f} | TSI: {tsi[-1]:.2f} | Signal: {signal} | Filter: {filter_reason}")
+    logger.info(f"  SMA({SMA_PERIOD}): ₹{current_sma:.2f} | RSI({RSI_PERIOD}): {current_rsi:.1f} | Vol Ratio: {current_vol/avg_vol:.2f}x")
     if signal != "HOLD":
         result = execute_trade(signal, current_price, current_atr, state, CAPITAL)
         state["last_signal"] = signal
