@@ -195,8 +195,8 @@ def main():
     while True:
         try:
             run_cycle()
-            log("Sleeping 7 min...")
-            time.sleep(420)
+            log("Sleeping 30 min...")
+            time.sleep(1800)
         except KeyboardInterrupt:
             log("⏹ Stopped")
             send_telegram("⏹ QA Loop stopped")
