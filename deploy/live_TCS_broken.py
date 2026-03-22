@@ -24,14 +24,14 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_Llive_Llive_TCS.TS.logTS.log"),
+        logging.FileHandler(LOG_DIR / "live_L&TS.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_TCS")
+log = logging.getLogger("live_L&TS")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SYMBOL         = "L"TCS.NS"TS.NS"
+SYMBOL         = "L&TS.NS"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
