@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Live Trading Script - CONFIPET.BO
+"""Live Trading Script - CENTUMTECH.NS
 Strategy: VWAP | Win Rate: 63.64% | Position: ₹7000 | Stop: 0.8% ATR | Target: 4.0× ATR"""
 
 import os, sys, json, time, logging, requests
@@ -13,14 +13,14 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "CONFIPET.log"),
+        logging.FileHandler(LOG_DIR / "CENTUMTECH.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("CONFIPET")
+log = logging.getLogger("CENTUMTECH")
 
-SYMBOL         = "CONFIPET.BO"
-EXCHANGE       = "BSE"
+SYMBOL         = "CENTUMTECH.NS"
+EXCHANGE       = "NSE"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
@@ -114,7 +114,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     log.error("Groww order failed after 3 retries for %s", symbol); return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_CONFIPET.json"
+    log_file = LOG_DIR / "signals_CENTUMTECH.json"
     entries = json.loads(log_file.read_text()) if log_file.exists() else []
     entries.append({"timestamp": ist_now().isoformat(), "symbol": SYMBOL, "strategy": STRATEGY, "signal": signal,
                      "price": round(price, 4), "atr": round(atr, 4)})
@@ -122,7 +122,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ Rs.%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_CONFIPET.json"
+    cap_file = LOG_DIR / "daily_pnl_CENTUMTECH.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
