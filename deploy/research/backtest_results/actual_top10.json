@@ -1,0 +1,62 @@
+[
+  {
+    "symbol": "ADANIGREEN",
+    "win_rate": 1.0,
+    "trades": 1,
+    "avg_return": 0.02397815385312509
+  },
+  {
+    "symbol": "GODREJPROP",
+    "win_rate": 1.0,
+    "trades": 1,
+    "avg_return": 0.028144748798016733
+  },
+  {
+    "symbol": "SBIN",
+    "win_rate": 0.5714285714285714,
+    "trades": 7,
+    "avg_return": 0.01142689981047181
+  },
+  {
+    "symbol": "ADANIPORTS",
+    "win_rate": 0.3333333333333333,
+    "trades": 3,
+    "avg_return": -0.003582274599559158
+  },
+  {
+    "symbol": "COLPAL",
+    "win_rate": 0.3333333333333333,
+    "trades": 3,
+    "avg_return": -0.000991097673299209
+  },
+  {
+    "symbol": "ADANIPOWER",
+    "win_rate": 0.25,
+    "trades": 4,
+    "avg_return": 0.007717326435330692
+  },
+  {
+    "symbol": "RELIANCE",
+    "win_rate": 0,
+    "trades": 0,
+    "avg_return": 0
+  },
+  {
+    "symbol": "TCS",
+    "win_rate": 0.0,
+    "trades": 1,
+    "avg_return": -0.07013299468186289
+  },
+  {
+    "symbol": "UCOBANK",
+    "win_rate": 0.0,
+    "trades": 2,
+    "avg_return": -0.028618022782610664
+  },
+  {
+    "symbol": "HAVELLS",
+    "win_rate": 0.0,
+    "trades": 1,
+    "avg_return": -0.014461061197131244
+  }
+]

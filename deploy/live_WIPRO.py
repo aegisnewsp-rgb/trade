@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - WIPRO.NS
-Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter (Enhanced v5)
-Win Rate: 52.17% -> Target 60%+ (v6: CRITICAL - vwap_signal_v5 renamed to vwap_signal so main() actually calls the enhanced strategy)
+Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter (Enhanced v7)
+Win Rate: 52.17% -> Target 60%+ (v7: Fixed atr bug in place_groww_order, loosened RSI thresholds for more signals)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -26,23 +26,23 @@ logging.basicConfig(
 log = logging.getLogger("live_WIPRO")
 
 SYMBOL         = "WIPRO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_v6"
+STRATEGY       = "VWAP_RSI_MACD_VOL_v7"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS = {
     "vwap_period": 20,
-    "atr_multiplier": 2.5,       # v5: tightened from 2.0 for stronger signals
+    "atr_multiplier": 2.0,       # v7: loosened from 2.5 for more signals
     "rsi_period": 14,
     "rsi_oversold": 40,
     "rsi_overbought": 60,
-    "rsi_confirm_oversold": 30,   # v5: deep oversold for stronger buy (was 35)
-    "rsi_confirm_overbought": 70,  # v5: deep overbought for stronger sell (was 65)
+    "rsi_confirm_oversold": 35,   # v7: loosened from 30 for more buy signals
+    "rsi_confirm_overbought": 65,  # v7: loosened from 70 for more sell signals
     "macd_fast": 12,
     "macd_slow": 26,
-    "macd_signal": 12,           # v5: slower signal for fewer false positives
-    "volume_multiplier": 2.0,     # v5: tightened from 1.5 for volume confirmation
+    "macd_signal": 9,            # v7: faster signal (was 12) for earlier entry
+    "volume_multiplier": 1.5,     # v7: loosened from 2.0 for more confirmations
     "trend_ma_period": 50,
     "atr_period": 14,
 }
@@ -218,7 +218,7 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
     return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], current_atr
 
-def place_groww_order(symbol, signal, quantity, price):
+def place_groww_order(symbol, signal, quantity, price, atr=0.0):
     """
     Place order via Groww API or paper trade.
     Uses Bracket Orders (BO) when GROWW_API_KEY is set.
@@ -232,10 +232,8 @@ def place_groww_order(symbol, signal, quantity, price):
     exchange = "NSE"
     
     if signal == "BUY":
-        # Calculate target and stop loss  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
+        stop_loss = price - (atr * 1.0) if atr > 0 else price * 0.992
+        target = price + (atr * 4.0) if atr > 0 else price * 1.032
         result = groww_api.place_bo(
             exchange=exchange,
             symbol=symbol,
@@ -247,8 +245,8 @@ def place_groww_order(symbol, signal, quantity, price):
             trailing_target=0.5
         )
     elif signal == "SELL":
-        stop_loss = price + (atr * 1.0)
-        target = price - (atr * 4.0)
+        stop_loss = price + (atr * 1.0) if atr > 0 else price * 1.008
+        target = price - (atr * 4.0) if atr > 0 else price * 0.968
         result = groww_api.place_bo(
             exchange=exchange,
             symbol=symbol,

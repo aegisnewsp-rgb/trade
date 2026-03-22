@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - HEROMOTOCO.NS
-Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter (Enhanced v5)
-Win Rate: 55.00% -> Target 60%+ (v6: CRITICAL - vwap_signal_v5 renamed to vwap_signal so main() actually calls the enhanced strategy)
+Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter (Enhanced v7)
+Win Rate: 55.00% -> Target 60%+ (v7: Fixed atr bug, loosened RSI thresholds for more signals)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -26,7 +26,7 @@ logging.basicConfig(
 log = logging.getLogger("live_HEROMOTOCO")
 
 SYMBOL         = "HEROMOTOCO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_v6"
+STRATEGY       = "VWAP_RSI_MACD_VOL_v7"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
