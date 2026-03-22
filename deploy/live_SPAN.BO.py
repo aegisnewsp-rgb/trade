@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - ZEN.BO
+Live Trading Script - SPAN.BO
 Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: 63.64%
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Win Rate: N/A (new stock)
+Position: ₹7000 | Stop Loss: 0.8% ATR | Target: 4.0× ATR | Daily Loss Cap: 0.3%
 """
 
 import os
@@ -24,14 +24,14 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_ZEN.BO.log"),
+        logging.FileHandler(LOG_DIR / "live_SPAN.BO.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_ZEN.BO")
+log = logging.getLogger("live_SPAN.BO")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SYMBOL         = "ZEN.BO"
+SYMBOL         = "SPAN.BO"
 STRATEGY       = "VWAP"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
@@ -41,7 +41,6 @@ PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
-GROWW_API_BASE   = "https://api.groww.in/v1"
 
 IST_TZ_OFFSET = 5.5
 
@@ -144,10 +143,10 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
 def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
     if not GROWW_API_KEY or not GROWW_API_SECRET:
         return None
-    url = f"{GROWW_API_BASE}/orders"
+    url = f"https://api.groww.in/v1/orders"
     payload = {
         "symbol":      symbol,
-        "exchange":    "NSE",
+        "exchange":    "BSE",
         "transaction": "BUY" if signal == "BUY" else "SELL",
         "quantity":    quantity,
         "price":       round(price, 2),
@@ -173,7 +172,7 @@ def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> 
     return None
 
 def log_signal(signal: str, price: float, atr: float):
-    log_file = LOG_DIR / "signals_ZEN.BO.json"
+    log_file = LOG_DIR / "signals_SPAN.BO.json"
     entries = []
     if log_file.exists():
         try:
@@ -193,7 +192,7 @@ def log_signal(signal: str, price: float, atr: float):
     log.info("Signal logged: %s @ ₹%.2f (ATR=%.4f)", signal, price, atr)
 
 def daily_loss_limit_hit() -> bool:
-    cap_file = LOG_DIR / "daily_pnl_ZEN.BO.json"
+    cap_file = LOG_DIR / "daily_pnl_SPAN.BO.json"
     today_str = ist_now().strftime("%Y-%m-%d")
     if cap_file.exists():
         try:
@@ -207,7 +206,7 @@ def daily_loss_limit_hit() -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: 63.64%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s ===", SYMBOL, STRATEGY)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
