@@ -216,11 +216,13 @@ def ma_envelope_signal(ohlcv: list, params: dict) -> tuple[str, float, float, fl
     current_rsi    = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 50.0
     return current_signal, current_price, current_atr, current_rsi
 
-def place_groww_order(symbol, signal, quantity, price):
+def place_groww_order(symbol, signal, quantity, price, atr):
     """
     Place order via Groww API or paper trade.
-    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
-    Falls back to paper trading otherwise.
+    Uses 3-TIER EXIT SYSTEM:
+    - T1: 1.5x risk → exit 1/3
+    - T2: 3.0x risk → exit 1/3
+    - T3: 5.0x risk → exit remaining
     """
     import groww_api
     
@@ -228,42 +230,89 @@ def place_groww_order(symbol, signal, quantity, price):
         return groww_api.paper_trade(signal, symbol, price, quantity)
     
     exchange = "NSE"
+    risk = atr * SL_ATR_MULT
+    stop_loss = price - risk if signal == "BUY" else price + risk
     
-    if signal == "BUY":
-        # Calculate target and stop loss  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
-        result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="BUY",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
-        )
-    elif signal == "SELL":
-        stop_loss = price + (atr * 1.0)
-        target = price - (atr * 4.0)
-        result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="SELL",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
-        )
-    else:
-        return None
+    # 3-tier targets
+    t1 = price + (risk * TARGET_1_MULT) if signal == "BUY" else price - (risk * TARGET_1_MULT)
+    t2 = price + (risk * TARGET_2_MULT) if signal == "BUY" else price - (risk * TARGET_2_MULT)
+    t3 = price + (risk * TARGET_3_MULT) if signal == "BUY" else price - (risk * TARGET_3_MULT)
+    
+    # Use bracket order with T1 as primary target
+    result = groww_api.place_bo(
+        exchange=exchange,
+        symbol=symbol,
+        transaction=signal,
+        quantity=quantity,
+        target_price=t1,
+        stop_loss_price=stop_loss,
+        trailing_sl=0.3,
+        trailing_target=0.5
+    )
     
     if result:
-        print("Order placed: {} {} {} @ Rs{:.2f}".format(
-            signal, quantity, symbol, price))
+        log.info("3-TIER ORDER: {} {} @ Rs{:.2f} | SL: {:.2f} | T1: {:.2f} T2: {:.2f} T3: {:.2f}".format(
+            signal, quantity, price, stop_loss, t1, t2, t3))
     return result
+
+
+def main():
+    log.info("Starting ACC.NS live trader - Strategy: %s", STRATEGY)
+    
+    while True:
+        try:
+            now = ist_now()
+            
+            # Check if market is open
+            if not is_market_open():
+                if is_pre_market():
+                    log.info("Pre-market hours - waiting for open at 9:15 AM IST")
+                else:
+                    log.info("Market closed - sleeping 60s")
+                time.sleep(60)
+                continue
+            
+            # Check entry window
+            if not can_new_entry():
+                time.sleep(60)
+                continue
+            
+            # Fetch data
+            ohlcv = fetch_recent_data(days=60)
+            if not ohlcv:
+                log.warning("No data - retrying in 30s")
+                time.sleep(30)
+                continue
+            
+            # Get signal with RSI
+            signal, price, atr, rsi = ma_envelope_signal(ohlcv, PARAMS)
+            log.info("Signal: %s | Price: %.2f | ATR: %.2f | RSI: %.2f", signal, price, atr, rsi)
+            
+            if signal == "HOLD":
+                time.sleep(60)
+                continue
+            
+            # Calculate position size
+            risk = atr * SL_ATR_MULT
+            if risk <= 0:
+                risk = price * 0.01
+            max_risk = POSITION * 0.02  # 2% max risk
+            risk = min(risk, max_risk)
+            quantity = int(POSITION / price)
+            
+            # Place order
+            result = place_groww_order(SYMBOL, signal, quantity, price, atr)
+            if result:
+                log.info("Order result: %s", result)
+            
+            time.sleep(300)  # Wait 5 min between signals
+            
+        except KeyboardInterrupt:
+            log.info("Shutdown requested")
+            break
+        except Exception as e:
+            log.error("Error: %s", e)
+            time.sleep(30)
 
 
 if __name__ == "__main__": main()
