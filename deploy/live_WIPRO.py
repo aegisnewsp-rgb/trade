@@ -2,8 +2,9 @@
 """
 Live Trading Script - WIPRO.NS
 Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter + Bollinger Band (Enhanced v8)
-Win Rate: 52.17% -> Target 60%+ (v8: Tightened filters for quality over quantity - tighter ATR, RSI, volume; added BB filter and MACD slope)
+Win Rate: 52.17% -> Target 60%+ (v8b: Further tightened ATR/RSI/volume to GLENMARK standard; added BB; MACD slope filter)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Enhanced: 2026-03-22 - v8b: Tightened to 1.5 ATR, 32/68 RSI, 2.0x vol, added BB
 """
 
 import os, sys, json, time, logging, requests
@@ -26,25 +27,27 @@ logging.basicConfig(
 log = logging.getLogger("live_WIPRO")
 
 SYMBOL         = "WIPRO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_v7"
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8b"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS = {
     "vwap_period": 20,
-    "atr_multiplier": 2.0,       # v7: loosened from 2.5 for more signals
+    "atr_multiplier": 1.5,       # v8b: tightened from 2.0 to GLENMARK standard
     "rsi_period": 14,
     "rsi_oversold": 40,
     "rsi_overbought": 60,
-    "rsi_confirm_oversold": 35,   # v7: loosened from 30 for more buy signals
-    "rsi_confirm_overbought": 65,  # v7: loosened from 70 for more sell signals
+    "rsi_confirm_oversold": 32,   # v8b: tightened from 35 to GLENMARK standard
+    "rsi_confirm_overbought": 68,  # v8b: tightened from 65 to GLENMARK standard
     "macd_fast": 12,
     "macd_slow": 26,
-    "macd_signal": 9,            # v7: faster signal (was 12) for earlier entry
-    "volume_multiplier": 1.5,     # v7: loosened from 2.0 for more confirmations
+    "macd_signal": 9,            # v8b: faster signal for earlier entry
+    "volume_multiplier": 2.0,     # v8b: tightened from 1.5 to GLENMARK standard
     "trend_ma_period": 50,
     "atr_period": 14,
+    "bb_period": 20,             # v8b: Bollinger Band period
+    "bb_std": 2.0,               # v8b: Bollinger Band std dev
 }
 
 # 3-TIER EXIT SYSTEM (v8 enhancement)
