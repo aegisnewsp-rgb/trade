@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - WIPRO.NS
-Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter (Enhanced v3)
-Win Rate: 52.17% -> Target 60%+ (v4 enhanced: ATR×2.0, vol×1.5)
+Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter (Enhanced v5)
+Win Rate: 52.17% -> Target 60%+ (v5: ATR×2.5, vol×2.0, RSI 30/70, MACD sig×12)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -160,12 +160,14 @@ def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
         return 0
     return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
 
-def vwap_signal_v3(ohlcv: list, params: dict) -> tuple[str, float, float]:
+def vwap_signal_v5(ohlcv: list, params: dict) -> tuple[str, float, float]:
     vwap_period  = params["vwap_period"]
     atr_mult     = params["atr_multiplier"]
     rsi_period   = params["rsi_period"]
     rsi_oversold = params["rsi_oversold"]
     rsi_overbought = params["rsi_overbought"]
+    rsi_confirm_oversold = params.get("rsi_confirm_oversold", 30)
+    rsi_confirm_overbought = params.get("rsi_confirm_overbought", 70)
     vol_mult     = params["volume_multiplier"]
     trend_period = params["trend_ma_period"]
 
@@ -260,7 +262,7 @@ def daily_loss_limit_hit() -> bool:
     return False
 
 def main():
-    log.info("=== Live Trading: %s | %s | Win Rate: 52.17%% -> Target 60%%+ (v3 enhanced) ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading: %s | %s | Win Rate: 52.17%% -> Target 60%%+ (v5 enhanced) ===", SYMBOL, STRATEGY)
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
         time.sleep(30)
@@ -275,7 +277,7 @@ def main():
     if not ohlcv or len(ohlcv) < 60:
         log.error("Insufficient data for %s", SYMBOL)
         return
-    signal, price, atr = vwap_signal_v3(ohlcv, PARAMS)
+    signal, price, atr = vwap_signal_v5(ohlcv, PARAMS)
     if signal == "BUY":
         stop_loss = round(price * (1 - STOP_LOSS_PCT), 2)
         target_prc = round(price + TARGET_MULT * atr, 2)
@@ -295,7 +297,7 @@ def main():
         log.info("  ATR      : %.4f", atr)
         log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
-    log.info("  v4 ENH   : VWAP + RSI(35/65) + MACD hist + Vol(1.5x) + ATR×2.0 + MA50 trend")
+    log.info("  v5 ENH   : VWAP + RSI(30/70) + MACD hist + Vol(2.0x) + ATR×2.5 + MA50 trend + MACD sig×12")
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log_signal(signal, price, atr)
     if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
