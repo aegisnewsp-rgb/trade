@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - NTPC.NS
-Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: N/A
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Strategy: VWAP + RSI + Volume Confirmation (Groww Production Enhanced)
+RSI Filter: BUY above 55, SELL below 45 | Volume: 1.2× avg | Entry: 9:30–14:30 IST
+3-Tier Targets: 1.5x/3x/5x risk | Trailing Stop: 0.3× ATR
+Position: ₹7000 | Stop Loss: 0.8% | Daily Loss Cap: 0.3%
 """
 
 import os
@@ -33,12 +34,50 @@ log = logging.getLogger("live_NTPC")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "NTPC.NS"
-STRATEGY       = "VWAP"
+STRATEGY       = "VWAP+RSI+Volume"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {
+    "vwap_period": 14,
+    "atr_period": 14,
+    "atr_multiplier": 1.5,
+    "rsi_period": 14,
+    "rsi_overbought": 55,   # BUY only when RSI < 55 (not overbought)
+    "rsi_oversold": 45,     # SELL only when RSI > 45 (not oversold)
+    "volume_multiplier": 1.2,
+}
+
+# 3-TIER EXIT SYSTEM
+SL_ATR_MULT       = 1.0     # Stop loss: 1.0x ATR
+MAX_SL_PCT        = 0.015  # Hard cap: 1.5% max stop
+TRAIL_ATR_MULT    = 0.3     # Trailing stop: 0.3x ATR
+TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
+
+TARGET_1_MULT     = 1.5     # T1: 1.5x risk → exit 1/3
+TARGET_2_MULT    = 3.0     # T2: 3.0x risk → exit 1/3
+TARGET_3_MULT    = 5.0     # T3: 5.0x risk → exit remaining
+
+# Entry window: 9:30 AM – 2:30 PM IST
+BEST_ENTRY_START  = dtime(9, 30)
+BEST_ENTRY_END    = dtime(14, 30)
+NO_ENTRY_AFTER    = dtime(14, 30)
+
+def can_new_entry() -> bool:
+    """Only allow entries during best entry window."""
+    now = ist_now().time()
+    if now < BEST_ENTRY_START:
+        log.info("⏰ Too early — waiting for 9:30 AM IST entry window")
+        return False
+    if now >= NO_ENTRY_AFTER:
+        log.info("⏰ After 2:30 PM IST — no new entries today")
+        return False
+    return True
+
+def in_best_entry_window() -> bool:
+    now = ist_now().time()
+    return BEST_ENTRY_START <= now <= BEST_ENTRY_END
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -119,28 +158,70 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period        = params["vwap_period"]
-    atr_mult      = params["atr_multiplier"]
-    vwap_vals     = calculate_vwap(ohlcv, period)
-    atr_vals      = calculate_atr(ohlcv, period)
-    signals       = ["HOLD"] * len(ohlcv)
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    if len(ohlcv) < period + 1:
+        return [None] * len(ohlcv)
+    gains, losses = [], []
+    for i in range(1, len(ohlcv)):
+        delta = ohlcv[i]["close"] - ohlcv[i - 1]["close"]
+        gains.append(max(delta, 0))
+        losses.append(max(-delta, 0))
+    rsi = [None] * (period + 1)
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        rs = avg_gain / avg_loss if avg_loss != 0 else 0
+        rsi.append(100 - (100 / (1 + rs)))
+    return rsi
 
-    for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
+    if len(ohlcv) < period:
+        return 0
+    return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
+
+def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
+    period       = params["vwap_period"]
+    atr_period   = params.get("atr_period", 14)
+    atr_mult     = params["atr_multiplier"]
+    rsi_period   = params["rsi_period"]
+    rsi_ob       = params["rsi_overbought"]   # 55
+    rsi_os       = params["rsi_oversold"]     # 45
+    vol_mult     = params["volume_multiplier"]
+
+    vwap_vals = calculate_vwap(ohlcv, period)
+    atr_vals  = calculate_atr(ohlcv, atr_period)
+    rsi_vals  = calculate_rsi(ohlcv, rsi_period)
+    avg_vol   = calculate_avg_volume(ohlcv, 20)
+    signals   = ["HOLD"] * len(ohlcv)
+
+    for i in range(max(period, rsi_period), len(ohlcv)):
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
         price    = ohlcv[i]["close"]
         v        = vwap_vals[i]
         a        = atr_vals[i]
-        if price > v + a * atr_mult:
+        r        = rsi_vals[i]
+        vol      = ohlcv[i]["volume"]
+
+        # Volume confirmation: must be ≥ 1.2× avg volume
+        vol_ok = vol >= avg_vol * vol_mult
+
+        # RSI filter: BUY when RSI < 55 (not overbought), SELL when RSI > 45 (not oversold)
+        rsi_buy_ok  = r < rsi_ob   # RSI below 55 = still bullish room
+        rsi_sell_ok = r > rsi_os   # RSI above 45 = still bearish room
+
+        if price > v + a * atr_mult and vol_ok and rsi_buy_ok:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult:
+        elif price < v - a * atr_mult and vol_ok and rsi_sell_ok:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
     current_price  = ohlcv[-1]["close"]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return current_signal, current_price, current_atr
+    current_rsi    = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 50.0
+    return current_signal, current_price, current_atr, current_rsi
 
 def place_groww_order(symbol, signal, quantity, price):
     """
@@ -249,14 +330,16 @@ def main():
     
     # Detect strategy type and run appropriate signal
     signal = None
-    price = ohlcv_list[-1][2]  # close price
-    
+    price = ohlcv_list[-1][3]  # close price
+    current_rsi = 50.0
+
     try:
         # Try strategy functions in priority order
         if 'vwap_signal' in dir():
-            sig_result = vwap_signal(ohlcv_list, {})
+            sig_result = vwap_signal(ohlcv_list, PARAMS)
             if isinstance(sig_result, tuple) and len(sig_result) >= 2:
                 signal, price = sig_result[0], float(sig_result[1])
+                current_rsi = float(sig_result[3]) if len(sig_result) >= 4 else 50.0
             elif isinstance(sig_result, str):
                 signal = sig_result
         elif 'adx_signal' in dir():
@@ -328,6 +411,20 @@ def main():
     print(f"\nSignal: {signal}")
     print(f"Price:  Rs{price:.2f}")
     print(f"ATR:    Rs{atr:.2f}")
+    print(f"RSI:    {current_rsi:.2f}")
+    print(f"Entry Window: {'YES' if in_best_entry_window() else 'NO (outside 9:30-14:30 IST)'}")
+
+    # 3-tier target display
+    risk = atr * 1.0
+    t1 = round(price + risk * TARGET_1_MULT, 2)
+    t2 = round(price + risk * TARGET_2_MULT, 2)
+    t3 = round(price + risk * TARGET_3_MULT, 2)
+    sl = round(price - risk * SL_ATR_MULT, 2)
+    print(f"SL:     Rs{sl:.2f}")
+    print(f"T1:     Rs{t1:.2f} (1.5x risk, exit 1/3)")
+    print(f"T2:     Rs{t2:.2f} (3.0x risk, exit 1/3)")
+    print(f"T3:     Rs{t3:.2f} (5.0x risk, exit remaining)")
+    print(f"Trail:  0.3x ATR trailing stop after 0.8% profit")
     
     if signal == "BUY":
         sl = round(price - atr * 1.0, 2)
