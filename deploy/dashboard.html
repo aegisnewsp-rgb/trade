@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Trading Bot Dashboard</title>
+<meta http-equiv="refresh" content="30">
+<style>
+body{font-family:Arial;background:#0a0a0a;color:#00ff88;margin:0;padding:20px}
+h1{color:#fff;border-bottom:1px solid #333;padding-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px;margin-top:20px}
+.card{background:#111;border:1px solid #333;border-radius:8px;padding:15px}
+.card h3{margin:0 0 10px;color:#00ff88}
+.stat{font-size:24px;font-weight:bold;color:#fff}
+.sub{font-size:12px;color:#888;margin-top:5px}
+.bar{background:#333;height:8px;border-radius:4px;margin:8px 0}
+.bar-fill{background:#00ff88;height:8px;border-radius:4px}
+table{width:100%;border-collapse:collapse;margin-top:20px}
+th,td{padding:8px;border:1px solid #333;text-align:left;font-size:13px}
+th{background:#1a1a1a;color:#00ff88}
+tr:nth-child(even){background:#0d0d0d}
+.status{color:#00ff88}
+.failure{color:#ff4444}
+.log{background:#111;padding:10px;border-radius:4px;font-family:monospace;font-size:12px;max-height:200px;overflow-y:scroll}
+.log-entry{margin:2px 0;color:#888}
+.log-entry.error{color:#ff4444}
+.log-entry.success{color:#00ff88}
+</style>
+</head>
+<body>
+<h1>🚀 Trading Bot Dashboard — Live</h1>
+<p>Auto-refreshes every 30 seconds. Last update: <span id="time"></span></p>
+
+<div class="grid">
+<div class="card">
+<h3>📈 Scripts Deployed</h3>
+<div class="stat" id="script-count">—</div>
+<div class="sub">live_*.py files in deploy/</div>
+</div>
+<div class="card">
+<h3>✅ Compilation</h3>
+<div class="stat" id="compile-status">—</div>
+<div class="sub">all scripts verified</div>
+</div>
+<div class="card">
+<h3>📊 Total Commits</h3>
+<div class="stat" id="commit-count">—</div>
+<div class="sub">since session start</div>
+</div>
+<div class="card">
+<h3>⏱️ Pipeline Rate</h3>
+<div class="stat">~1500/hr</div>
+<div class="sub">5 agents × 10 stocks × 30 runs/hr</div>
+</div>
+<div class="card">
+<h3>🧠 Active Subagents</h3>
+<div class="stat" id="subagent-count">5</div>
+<div class="sub">concurrent (max capacity)</div>
+</div>
+<div class="card">
+<h3>📁 Manifest Coverage</h3>
+<div class="stat" id="coverage">—</div>
+<div class="sub">stocks covered in deploy/</div>
+</div>
+</div>
+
+<h2 style="margin-top:30px">📋 Live Scripts</h2>
+<table>
+<thead><tr><th>Stock</th><th>Strategy</th><th>Win Rate</th><th>File</th></tr></thead>
+<tbody id="script-table"></tbody>
+</table>
+
+<h2 style="margin-top:30px">🔧 Top Strategies</h2>
+<table>
+<thead><tr><th>Strategy</th><th>Count</th><th>Avg Win Rate</th></tr></thead>
+<tbody id="strategy-table"></tbody>
+</table>
+
+<h2 style="margin-top:30px">📜 Recent Commits</h2>
+<div class="log" id="commit-log"></div>
+
+<script>
+document.getElementById('time').textContent = new Date().toLocaleTimeString();
+</script>
+</body>
+</html>
