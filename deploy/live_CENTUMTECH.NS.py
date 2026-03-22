@@ -265,4 +265,4 @@ def main():
     elif signal != "HOLD":
         log.info("📋 No Groww credentials found – signal printed only (paper mode).")
 
-if __name__ == "__main
+if __name__ == "__main__":
