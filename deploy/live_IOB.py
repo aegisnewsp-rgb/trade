@@ -44,6 +44,7 @@ GROWW_API_BASE   = "https://api.groww.in/v1"
 def ist_now() -> datetime:
     return datetime.utcnow() + __import__("datetime").timedelta(hours=5.5)
 
+# Smart entry: 9:30-14:30 IST
 def is_market_open() -> bool:
     now = ist_now()
     return now.weekday() < 5 and dtime(9, 15) <= now.time() <= dtime(15, 30)
