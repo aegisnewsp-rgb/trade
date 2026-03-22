@@ -44,9 +44,9 @@ NIFTY_IT_SYMBOL = "^CNXIT"   # NIFTY IT Index — IT sector proxy
 USD_INR_SYMBOL  = "USDINR=X" # USD/INR exchange rate
 
 ENTRY_WAIT_MINUTES   = 15
-NO_ENTRY_AFTER      = dtime(13, 0)    # No new entries after 1:00 PM (tightened for IT sector)
-BEST_ENTRY_START    = dtime(10, 0)    # 10:00 AM IST — tightened from 9:30
-BEST_ENTRY_END      = dtime(13, 0)    # 1:00 PM IST — tightened from 12:00
+NO_ENTRY_AFTER      = dtime(14, 30)  # No new entries after 2:30 PM IST
+BEST_ENTRY_START    = dtime(9, 30)   # 9:30 AM IST — smart entry window
+BEST_ENTRY_END      = dtime(14, 30)   # 2:30 PM IST — smart entry window
 
 ENTRY_VWAP_PCT   = 0.005   # Price must be 0.5% above VWAP (₹19 on ₹3800)
 ENTRY_RSI_MIN    = 55      # Both 15m and 1h RSI must confirm
@@ -368,6 +368,8 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
     atr_mult = params["atr_multiplier"]
     vwap_vals = calculate_vwap(ohlcv)
     atr_vals = calculate_atr(ohlcv, atr_period)
+    closes = [bar["close"] for bar in ohlcv]
+    rsi_vals = calculate_rsi(closes) if len(closes) > 14 else [50.0] * len(ohlcv)
     signals = ["HOLD"] * len(ohlcv)
 
     for i in range(period, len(ohlcv)):
@@ -375,13 +377,16 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
             continue
         price = ohlcv[i]["close"]
         v, a = vwap_vals[i], atr_vals[i]
-        if price > v + a * atr_mult:
+        rsi = rsi_vals[i] if i < len(rsi_vals) else 50.0
+        # BUY: price > VWAP + ATR AND RSI > 55
+        if price > v + a * atr_mult and rsi > ENTRY_RSI_MIN:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult:
+        # SELL: price < VWAP - ATR AND RSI < 45
+        elif price < v - a * atr_mult and rsi < 45:
             signals[i] = "SELL"
 
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    current_rsi = calculate_rsi([bar["close"] for bar in ohlcv])
+    current_rsi = rsi_vals[-1] if rsi_vals else 50.0
     return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], current_atr, current_rsi
 
 def calculate_dynamic_sl(entry_price: float, atr: float) -> float:

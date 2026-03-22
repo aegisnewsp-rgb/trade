@@ -64,6 +64,11 @@ def log(msg):
     os.makedirs(WORKSPACE + "/logs", exist_ok=True)
     with open(WORKSPACE + "/logs/night_shift.log", "a") as f:
         f.write(line + "\n")
+    # Also write to compactible format for subagent results
+    result_file = WORKSPACE + f"/logs/night_results_{ist_now().strftime('%H')}.jsonl"
+    with open(result_file, "a") as f:
+        import json
+        f.write(json.dumps({"ts": ts, "msg": msg[:200]}) + "\n")
 
 
 def make_enhance_prompt(symbols):
