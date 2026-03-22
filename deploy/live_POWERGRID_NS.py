@@ -132,6 +132,7 @@ def find_swing_levels(ohlcv: List[Dict], period: int = 50) -> Tuple[float, float
     swing_low = min(bar["low"] for bar in window)
     return swing_high, swing_low, swing_high - swing_low
 
+# RSI filter: BUY>RSI55, SELL<RSI45
 def generate_signal(ohlcv: List[Dict], atr: List[float]) -> str:
     if len(ohlcv) < FIB_PERIOD:
         return "HOLD"
