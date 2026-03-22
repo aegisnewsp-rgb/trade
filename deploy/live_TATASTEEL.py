@@ -44,7 +44,7 @@ SYMBOL             = "TATASTEEL.NS"
 STRATEGY           = "VWAP+RSI+VOL+ADX+MACD"
 POSITION           = 7000
 STOP_LOSS_ATR_MULT = 0.8    # v7: tighter 0.8% ATR stop — steel is volatile commodity
-TARGET_ATR_MULT    = 2.5    # v7: 2.5x ATR target
+TARGET_ATR_MULT    = 3.0    # 3.0x ATR target
 DAILY_LOSS_CAP     = 0.003
 PARAMS = {
     "vwap_period":         14,
@@ -72,7 +72,6 @@ TARGET_WIN_RATE   = 0.62
 # 3-TIER EXIT SYSTEM (v8 enhancement)
 SL_ATR_MULT      = 1.0      # 1.0x ATR stop loss
 MAX_SL_PCT       = 0.010    # Hard cap: 1.0% max stop
-MAX_SL_PCT       = 0.012    # Hard cap: 1.2% max stop for steel
 TRAIL_TRIGGER_PCT = 0.006   # Trail after 0.6% profit (steel is volatile)
 
 TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
