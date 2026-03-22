@@ -2,9 +2,9 @@
 """
 Live Trading Script - GLENMARK.NS
 Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8)
-Win Rate: 56.00% -> Target 60%+ (v8: Added MACD, volume, trend, BB filters to tighten quality)
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
-Enhanced: 2026-03-22 - Full multi-filter enhancement
+Win Rate: 56.00% -> Target 58%+ (v8 LOWWR: Tighter SL, stricter entry for pharma sector)
+Position: ₹5000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.25%
+Enhanced: 2026-03-22 - v8 LOWWR: Applied tighter parameters for pharma volatility
 """
 
 import os

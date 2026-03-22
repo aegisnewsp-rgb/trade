@@ -2,9 +2,9 @@
 """
 Live Trading Script - WIPRO.NS
 Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter + Bollinger Band (Enhanced v8)
-Win Rate: 52.17% -> Target 60%+ (v8b: Further tightened ATR/RSI/volume to GLENMARK standard; added BB; MACD slope filter)
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
-Enhanced: 2026-03-22 - v8b: Tightened to 1.5 ATR, 32/68 RSI, 2.0x vol, added BB
+Win Rate: 52.17% -> Target 58%+ (v8 LOWWR: Tighter SL at 0.6%, stricter RSI confirmation, reduced position)
+Position: ₹5000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.25%
+Enhanced: 2026-03-22 - v8 LOWWR: Applied tighter parameters for IT sector volatility
 """
 
 import os, sys, json, time, logging, requests
@@ -27,11 +27,11 @@ logging.basicConfig(
 log = logging.getLogger("live_WIPRO")
 
 SYMBOL         = "WIPRO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8b"
-POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
+POSITION       = 5000
+STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 4.0
-DAILY_LOSS_CAP = 0.003
+DAILY_LOSS_CAP = 0.0025
 PARAMS = {
     "vwap_period": 20,
     "atr_multiplier": 1.5,       # v8b: tightened from 2.0 to GLENMARK standard

@@ -3,8 +3,8 @@
 Live Trading Script - HEROMOTOCO.NS
 Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter + Bollinger Band (Enhanced v8)
 Enhanced with: Fuel Price Correlation, Rural Demand Indicator
-Win Rate: 55.00% -> Target 60%+ (v8: Tightened ATR/RSI/volume; added BB filter for quality signals)
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Win Rate: 55.00% -> Target 58%+ (v8 LOWWR: Tighter SL, stricter entry for auto sector)
+Position: ₹5000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.25%
 """
 
 import os, sys, json, time, logging, requests
@@ -28,11 +28,11 @@ logging.basicConfig(
 log = logging.getLogger("live_HEROMOTOCO")
 
 SYMBOL         = "HEROMOTOCO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_AUTOMOBILE"
-POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR_AUTOMOBILE"
+POSITION       = 5000
+STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 4.0
-DAILY_LOSS_CAP = 0.003
+DAILY_LOSS_CAP = 0.0025
 
 # Fuel/Monetary indicators
 CRUDE_SYMBOL = "CL=F"  # Crude oil futures
