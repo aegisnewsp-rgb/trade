@@ -1,0 +1,105 @@
+{
+  "strategy": "vwap_rsi_vol breakout",
+  "generated": "2026-03-22T21:01:05.664778Z",
+  "params": {
+    "entry_vwap_mult": 1.005,
+    "entry_rsi_min": 55,
+    "entry_vol_mult": 1.2,
+    "sl_atr_mult": 0.008,
+    "tgt_atr_mult": 4.0,
+    "tsl_atr_mult": 1.5,
+    "capital_per_trade": 10000,
+    "lookback_months": 6
+  },
+  "results": [
+    {
+      "symbol": "COFORGE",
+      "trades": [
+        {
+          "entry_date": "2025-11-27",
+          "entry_price": 1905.646728515625,
+          "atr": 44.65045807030193,
+          "qty": 5,
+          "reason": "entry",
+          "exit_date": "2025-11-28",
+          "exit_price": 1904.1502685546875,
+          "pnl_rs": -7.48,
+          "pnl_pct": -0.08,
+          "exit_reason": "sl"
+        },
+        {
+          "entry_date": "2025-12-04",
+          "entry_price": 1961.51318359375,
+          "atr": 44.29417332433098,
+          "qty": 5,
+          "reason": "entry",
+          "exit_date": "2025-12-08",
+          "exit_price": 1946.6488037109375,
+          "pnl_rs": -74.32,
+          "pnl_pct": -0.76,
+          "exit_reason": "sl"
+        }
+      ],
+      "total_pnl": -81.8,
+      "win_rate": 0.0,
+      "n_trades": 2,
+      "n_wins": 0,
+      "n_losses": 2
+    },
+    {
+      "symbol": "APOLLOHOSP",
+      "trades": [
+        {
+          "entry_date": "2026-02-11",
+          "entry_price": 7497.046875,
+          "atr": 160.42987149800143,
+          "qty": 1,
+          "reason": "entry",
+          "exit_date": "2026-02-26",
+          "exit_price": 7775.0,
+          "pnl_rs": 277.95,
+          "pnl_pct": 3.71,
+          "exit_reason": "tsl"
+        },
+        {
+          "entry_date": "2026-02-27",
+          "entry_price": 7821.5,
+          "atr": 127.13861845725238,
+          "qty": 1,
+          "reason": "entry",
+          "exit_date": "2026-03-02",
+          "exit_price": 7791.5,
+          "pnl_rs": -30.0,
+          "pnl_pct": -0.38,
+          "exit_reason": "sl"
+        },
+        {
+          "entry_date": "2026-03-04",
+          "entry_price": 7666.0,
+          "atr": 128.29467501596451,
+          "qty": 1,
+          "reason": "entry",
+          "exit_date": "2026-03-12",
+          "exit_price": 7574.5,
+          "pnl_rs": -91.5,
+          "pnl_pct": -1.19,
+          "exit_reason": "sl"
+        }
+      ],
+      "total_pnl": 156.45,
+      "win_rate": 33.33,
+      "n_trades": 3,
+      "n_wins": 1,
+      "n_losses": 2
+    },
+    {
+      "symbol": "BLUEDART",
+      "trades": [],
+      "total_pnl": 0,
+      "win_rate": 0,
+      "n_trades": 0,
+      "n_wins": 0,
+      "n_losses": 0
+    }
+  ]
+}
