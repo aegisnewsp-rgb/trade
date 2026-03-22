@@ -7,14 +7,14 @@
 - Exchange: NSE (`.NS`) and BSE (`.BO`)
 - Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8)
 
-## Status (2026-03-22 23:36 UTC)
+## Status (2026-03-22 23:48 UTC)
 - ✅ All 471 scripts pass `py_compile`
 - ✅ Strategy v8 enhancements applied (MACD, volume, trend, BB filters)
 - ✅ 3-tier exit system active
 - ✅ Telegram status reporting enabled
 - ✅ 13 scripts now on v8 LOWWR (WIPRO, HEROMOTOCO, GLENMARK + 10 original)
 - ✅ 3 lowest win-rate scripts upgraded: WIPRO/HEROMOTOCO/GLENMARK -> v8 LOWWR
-- ✅ QA cycle running — compile check every 5 min
+- ✅ QA cycle running — compile check every 5 min (471 checked, 0 fails)
 
 ## Quick Check
 ```bash
