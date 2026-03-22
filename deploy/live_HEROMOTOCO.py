@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - HEROMOTOCO.NS
-Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter (Enhanced v7)
+Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter + Bollinger Band (Enhanced v8)
 Enhanced with: Fuel Price Correlation, Rural Demand Indicator
-Win Rate: 55.00% -> Target 60%+
+Win Rate: 55.00% -> Target 60%+ (v8: Tightened ATR/RSI/volume; added BB filter for quality signals)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
@@ -28,7 +28,7 @@ logging.basicConfig(
 log = logging.getLogger("live_HEROMOTOCO")
 
 SYMBOL         = "HEROMOTOCO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_v7_AUTOMOBILE"
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_AUTOMOBILE"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
@@ -40,20 +40,22 @@ MONETARY_INDEX_SYMBOL = "^IRX"  # 13-week Treasury bill rate (proxy for rural cr
 
 PARAMS = {
     "vwap_period": 20,
-    "atr_multiplier": 2.0,
+    "atr_multiplier": 1.5,          # v8: tightened from 2.0
     "rsi_period": 14,
     "rsi_oversold": 40,
     "rsi_overbought": 60,
-    "rsi_confirm_oversold": 35,
-    "rsi_confirm_overbought": 65,
+    "rsi_confirm_oversold": 32,      # v8: tightened from 35
+    "rsi_confirm_overbought": 68,     # v8: tightened from 65
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 1.5,
+    "volume_multiplier": 2.0,        # v8: tightened from 1.5
     "trend_ma_period": 50,
     "atr_period": 14,
-    "fuel_price_threshold": 80.0,  # Block BUY if crude > $80
-    "fuel_discount_threshold": 70.0,  # Strong BUY if crude < $70
+    "fuel_price_threshold": 80.0,    # Block BUY if crude > $80
+    "fuel_discount_threshold": 70.0, # Strong BUY if crude < $70
+    "bb_period": 20,                 # v8: Bollinger Band period
+    "bb_std": 2.0,                   # v8: Bollinger Band std dev
 }
 
 # 3-TIER EXIT SYSTEM (v8 enhancement)
@@ -220,16 +222,36 @@ def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
         return 0
     return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
 
+def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.0) -> tuple[list, list, list]:
+    """Returns (upper_band, middle_band, lower_band)."""
+    middle = calculate_ma(ohlcv, period)
+    upper, lower = [], []
+    for i in range(len(ohlcv)):
+        if middle[i] is None:
+            upper.append(None); lower.append(None)
+        else:
+            window = ohlcv[max(0, i - period + 1):i + 1]
+            mean = middle[i]
+            variance = sum((b["close"] - mean) ** 2 for b in window) / len(window)
+            std = variance ** 0.5
+            upper.append(mean + std_dev * std)
+            lower.append(mean - std_dev * std)
+    return upper, middle, lower
+
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     vwap_period         = params["vwap_period"]
     atr_mult            = params["atr_multiplier"]
     rsi_period          = params["rsi_period"]
     rsi_oversold        = params["rsi_oversold"]
     rsi_overbought      = params["rsi_overbought"]
-    rsi_confirm_oversold = params.get("rsi_confirm_oversold", 35)
-    rsi_confirm_overbought = params.get("rsi_confirm_overbought", 65)
+    rsi_confirm_oversold = params.get("rsi_confirm_oversold", 32)
+    rsi_confirm_overbought = params.get("rsi_confirm_overbought", 68)
     vol_mult            = params["volume_multiplier"]
     trend_period        = params["trend_ma_period"]
+
+    bb_period = params.get("bb_period", 20)
+    bb_std    = params.get("bb_std", 2.0)
+    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
 
     vwap_vals = calculate_vwap(ohlcv, vwap_period)
     atr_vals  = calculate_atr(ohlcv, params["atr_period"])
@@ -240,10 +262,12 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     avg_vol   = calculate_avg_volume(ohlcv, vwap_period)
 
     signals = ["HOLD"] * len(ohlcv)
-    for i in range(max(vwap_period, rsi_period, params["macd_slow"]), len(ohlcv)):
+    for i in range(max(vwap_period, rsi_period, params["macd_slow"], bb_period), len(ohlcv)):
         if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
         if ma_vals[i] is None or macd_line[i] is None:
+            continue
+        if bb_upper[i] is None or bb_lower[i] is None:
             continue
 
         price   = ohlcv[i]["close"]
@@ -254,18 +278,21 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         trend   = ma_vals[i]
         macd_h  = histogram[i]
         sig_h   = histogram[i - 1] if i > 0 else 0
+        bb_up   = bb_upper[i]
+        bb_lo   = bb_lower[i]
 
         volume_confirmed = vol > avg_vol * vol_mult
         bull_market  = price > trend
         bear_market  = price < trend
         macd_bullish = macd_h > 0 and macd_h > sig_h
         macd_bearish = macd_h < 0 and macd_h < sig_h
+        bb_near_middle = bb_lo < price < bb_up  # v8: avoid extended positions
 
         if (price > v + a * atr_mult and r < rsi_confirm_oversold and macd_bullish
-                and volume_confirmed and bull_market):
+                and volume_confirmed and bull_market and bb_near_middle):
             signals[i] = "BUY"
         elif (price < v - a * atr_mult and r > rsi_confirm_overbought and macd_bearish
-                and volume_confirmed and bear_market):
+                and volume_confirmed and bear_market and bb_near_middle):
             signals[i] = "SELL"
 
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0

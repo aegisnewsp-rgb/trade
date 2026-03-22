@@ -32,8 +32,11 @@ import requests
 from datetime import datetime, time as dtime
 from pathlib import Path
 
-import yfinance
-YFINANCE_AVAILABLE = True
+try:
+    import yfinance as yf
+    YFINANCE_AVAILABLE = True
+except ImportError:
+    YFINANCE_AVAILABLE = False
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)

@@ -189,6 +189,22 @@ def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
         return 0
     return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
 
+def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.0) -> tuple[list, list, list]:
+    """Returns (upper_band, middle_band, lower_band). Middle band = SMA."""
+    middle = calculate_ma(ohlcv, period)
+    upper, lower = [], []
+    for i in range(len(ohlcv)):
+        if middle[i] is None:
+            upper.append(None); lower.append(None)
+        else:
+            window = ohlcv[max(0, i - period + 1):i + 1]
+            mean = middle[i]
+            variance = sum((b["close"] - mean) ** 2 for b in window) / len(window)
+            std = variance ** 0.5
+            upper.append(mean + std_dev * std)
+            lower.append(mean - std_dev * std)
+    return upper, middle, lower
+
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     vwap_period  = params["vwap_period"]
     atr_mult     = params["atr_multiplier"]
@@ -200,6 +216,10 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     vol_mult     = params["volume_multiplier"]
     trend_period = params["trend_ma_period"]
 
+    bb_period = params.get("bb_period", 20)
+    bb_std    = params.get("bb_std", 2.0)
+    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
+
     vwap_vals = calculate_vwap(ohlcv, vwap_period)
     atr_vals  = calculate_atr(ohlcv, params["atr_period"])
     rsi_vals  = calculate_rsi(ohlcv, rsi_period)
@@ -209,10 +229,12 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     avg_vol   = calculate_avg_volume(ohlcv, vwap_period)
 
     signals   = ["HOLD"] * len(ohlcv)
-    for i in range(max(vwap_period, rsi_period, params["macd_slow"]), len(ohlcv)):
+    for i in range(max(vwap_period, rsi_period, params["macd_slow"], bb_period), len(ohlcv)):
         if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
         if ma_vals[i] is None or macd_line[i] is None or signal_line[i] is None:
+            continue
+        if bb_upper[i] is None or bb_lower[i] is None:
             continue
 
         price  = ohlcv[i]["close"]
@@ -223,6 +245,8 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         trend  = ma_vals[i]
         macd_h = histogram[i]
         sig_h  = histogram[i - 1] if i > 0 else 0
+        bb_up  = bb_upper[i]
+        bb_lo  = bb_lower[i]
 
         # Volume confirmation: require above-average volume
         volume_confirmed = vol > avg_vol * vol_mult
@@ -235,13 +259,17 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         macd_bullish = macd_h > 0 and macd_h > sig_h
         macd_bearish = macd_h < 0 and macd_h < sig_h
 
-        # BUY: price above VWAP by atr_mult ATRs, RSI deep oversold confirm (<30), bullish MACD, volume confirmed, bull market
+        # Bollinger Band filter: price must be within upper/lower bands (not too extended)
+        # v8: Prevent buying at upper BB extension or selling at lower BB extension
+        bb_near_middle = bb_lo < price < bb_up
+
+        # BUY: price above VWAP by atr_mult ATRs, RSI deep oversold confirm, bullish MACD, volume confirmed, bull market, BB filter
         if (price > v + a * atr_mult and r < rsi_confirm_oversold and macd_bullish
-                and volume_confirmed and bull_market):
+                and volume_confirmed and bull_market and bb_near_middle):
             signals[i] = "BUY"
-        # SELL: price below VWAP by atr_mult ATRs, RSI deep overbought confirm (>70), bearish MACD, volume confirmed, bear market
+        # SELL: price below VWAP by atr_mult ATRs, RSI deep overbought confirm, bearish MACD, volume confirmed, bear market, BB filter
         elif (price < v - a * atr_mult and r > rsi_confirm_overbought and macd_bearish
-                and volume_confirmed and bear_market):
+                and volume_confirmed and bear_market and bb_near_middle):
             signals[i] = "SELL"
 
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
