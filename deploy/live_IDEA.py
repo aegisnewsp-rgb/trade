@@ -203,7 +203,7 @@ def daily_loss_limit_hit() -> bool:
     return False
 
 def main():
-    log.info("=== Live Trading: %s | %s | Win Rate: 59.52%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading: %s | %s | Win Rate: 59.52%% | RSI Filter: %d/%d ===", SYMBOL, STRATEGY, RSI_OVERSOLD, RSI_OVERBOUGHT)
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST..."); time.sleep(30)
     if not is_market_open():
@@ -215,7 +215,7 @@ def main():
     ohlcv = fetch_recent_data(days=90)
     if not ohlcv or len(ohlcv) < 30:
         log.error("Insufficient data for %s", SYMBOL); return
-    signal, price, atr = volume_divergence_signal(ohlcv, PARAMS)
+    signal, price, atr, rsi = volume_divergence_signal(ohlcv, PARAMS)
     if signal == "BUY":
         stop_loss  = round(price * (1 - STOP_LOSS_PCT), 2)
         target_prc = round(price + TARGET_MULT * atr, 2)
@@ -232,6 +232,7 @@ def main():
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
     if atr > 0:
+        log.info("  RSI      : %.1f", rsi)
         log.info("  ATR      : %.4f", atr)
         log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
