@@ -7,6 +7,7 @@ Position: ₹7000 | Stop Loss: 0.8% ATR | Target: 4.0x ATR | Daily Loss Cap: 0.3
 """
 
 import os, sys, json, time, logging, requests
+import groww_api
 from datetime import datetime, time as dtime
 from pathlib import Path
 
@@ -239,6 +240,59 @@ def main():
             log.warning("⚠ Groww order could not be placed – signal still printed/logged.")
     elif signal != "HOLD":
         log.info("📋 No Groww credentials found – signal printed only (paper mode).")
+
+
+def place_groww_order(symbol, signal, quantity, price):
+    """
+    Place order via Groww API or paper trade.
+    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
+    Falls back to paper trading otherwise.
+    """
+    import groww_api
+    
+    if not groww_api.is_configured():
+        return groww_api.paper_trade(signal, symbol, price, quantity)
+    
+    exchange = "NSE"
+    
+    if signal == "BUY":
+        # Calculate target and stop loss
+        atr = price * 0.008  # 0.8% ATR approximation
+        stop_loss = price - (atr * 1.0)  # 1x ATR stop
+        target = price + (atr * 4.0)  # 4x ATR target
+        # Use bracket order for BUY with target + stop loss
+        result = groww_api.place_bo(
+            exchange=exchange,
+            symbol=symbol,
+            transaction="BUY",
+            quantity=quantity,
+            target_price=target,
+            stop_loss_price=stop_loss,
+            trailing_sl=0.3,
+            trailing_target=0.5
+        )
+    elif signal == "SELL":
+        atr = price * 0.008
+        stop_loss = price + (atr * 1.0)
+        target = price - (atr * 4.0)
+        result = groww_api.place_bo(
+            exchange=exchange,
+            symbol=symbol,
+            transaction="SELL",
+            quantity=quantity,
+            target_price=target,
+            stop_loss_price=stop_loss,
+            trailing_sl=0.3,
+            trailing_target=0.5
+        )
+    else:
+        return None
+    
+    if result:
+        print("Order placed: {} {} {} @ Rs{:.2f}".format(
+            signal, quantity, symbol, price))
+    return result
+
 
 if __name__ == "__main__":
     main()
