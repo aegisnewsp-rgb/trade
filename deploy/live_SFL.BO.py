@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - GLENMARK.NS
+Live Trading Script - SFL.BO
 Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8)
-Win Rate: SFL.BO (low base) -> Target 55%+ (v8 multi-filter upgrade) 60%+ (v8: Added MACD, volume, trend, BB filters to tighten quality)
+Win Rate: SFL.BO (low base) -> Target 55%+ (v8 multi-filter upgrade)
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 Enhanced: 2026-03-22 - v8 LOWWR: upgraded from low win-rate auto-gen
 """
@@ -34,7 +34,7 @@ log = logging.getLogger("live_SFL_BO")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "SFL.BO"
-STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"  # SFL.BO
 POSITION       = 7000
 
 # 3-TIER EXIT SYSTEM
