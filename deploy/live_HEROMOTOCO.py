@@ -152,13 +152,15 @@ def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
     return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
 
 def vwap_signal_v3(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    vwap_period    = params["vwap_period"]
-    atr_mult       = params["atr_multiplier"]
-    rsi_period     = params["rsi_period"]
-    rsi_oversold   = params["rsi_oversold"]
-    rsi_overbought = params["rsi_overbought"]
-    vol_mult       = params["volume_multiplier"]
-    trend_period   = params["trend_ma_period"]
+    vwap_period         = params["vwap_period"]
+    atr_mult            = params["atr_multiplier"]
+    rsi_period          = params["rsi_period"]
+    rsi_oversold        = params["rsi_oversold"]
+    rsi_overbought      = params["rsi_overbought"]
+    rsi_confirm_oversold = params.get("rsi_confirm_oversold", 35)
+    rsi_confirm_overbought = params.get("rsi_confirm_overbought", 65)
+    vol_mult            = params["volume_multiplier"]
+    trend_period        = params["trend_ma_period"]
 
     vwap_vals = calculate_vwap(ohlcv, vwap_period)
     atr_vals  = calculate_atr(ohlcv, params["atr_period"])
@@ -190,10 +192,11 @@ def vwap_signal_v3(ohlcv: list, params: dict) -> tuple[str, float, float]:
         macd_bullish = macd_h > 0 and macd_h > sig_h
         macd_bearish = macd_h < 0 and macd_h < sig_h
 
-        if (price > v + a * atr_mult and r < rsi_overbought and macd_bullish
+        # v4: require deep RSI confirmation + stricter ATR + volume
+        if (price > v + a * atr_mult and r < rsi_confirm_overbought and macd_bullish
                 and volume_confirmed and bull_market):
             signals[i] = "BUY"
-        elif (price < v - a * atr_mult and r > rsi_oversold and macd_bearish
+        elif (price < v - a * atr_mult and r > rsi_confirm_oversold and macd_bearish
                 and volume_confirmed and bear_market):
             signals[i] = "SELL"
 
@@ -279,7 +282,7 @@ def main():
         log.info("  ATR      : %.4f", atr)
         log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
-    log.info("  v3 ENH   : VWAP + RSI(40/60) + MACD hist + Vol(1.2x) + MA50 trend filter")
+    log.info("  v4 ENH   : VWAP + RSI(35/65) + MACD hist + Vol(1.5x) + ATR×2.0 + MA50 trend")
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log_signal(signal, price, atr)
     if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:

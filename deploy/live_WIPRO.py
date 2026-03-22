@@ -294,7 +294,7 @@ def main():
         log.info("  ATR      : %.4f", atr)
         log.info("  STOP     : ₹%.2f  (%.1f%%)", stop_loss, STOP_LOSS_PCT * 100)
         log.info("  TARGET   : ₹%.2f  (%.1f× ATR)", target_prc, TARGET_MULT)
-    log.info("  v3 ENH   : VWAP + RSI(40/60) + MACD hist + Vol(1.2x) + MA50 trend filter")
+    log.info("  v4 ENH   : VWAP + RSI(35/65) + MACD hist + Vol(1.5x) + ATR×2.0 + MA50 trend")
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log_signal(signal, price, atr)
     if signal != "HOLD" and GROWW_API_KEY and GROWW_API_SECRET:
