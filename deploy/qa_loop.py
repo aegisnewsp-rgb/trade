@@ -3,18 +3,20 @@
 QA Loop — Continuous monitoring for trade-project
 - Compiles all live_*.py scripts
 - Fixes syntax errors automatically
-- Tracks low win-rate scripts for enhancement
+- Analyzes win rates and enhances low-performing scripts (<45%)
 - Sends Telegram status (if configured)
 - Auto-commits changes
 - Runs forever until stopped
 """
-import os, sys, subprocess, time, logging
+import os, sys, subprocess, time, logging, re, json
 from pathlib import Path
 from datetime import datetime
 
 WORKSPACE = Path("/home/node/workspace/trade-project")
 DEPLOY = WORKSPACE / "deploy"
 LOG_FILE = DEPLOY / "qa_loop.log"
+WIN_RATE_THRESHOLD = 0.45   # 45% — enhance scripts below this
+MEMORY_LOG = Path("/home/node/workspace/memory/qa-log.md")
 
 # Clear any existing handlers to avoid duplicates
 logging.root.handlers = []
