@@ -26,8 +26,7 @@ import groww_api
 from datetime import datetime, time as dtime
 from pathlib import Path
 import yfinance
-YFINANCE_AVAILABLE = True as yf
-
+YFINANCE_AVAILABLE = True
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 logging.basicConfig(
@@ -47,7 +46,7 @@ STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 2.5
 SIGNAL_MODE   = "MEAN_REVERSION"  # ENHANCED: was BREAKOUT, inverting for low win-rate stock
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5}
+PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.0}
 
 # 3-TIER EXIT SYSTEM (enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
@@ -144,8 +143,13 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         if vwap_vals[i] is None or atr_vals[i] is None: continue
         price = ohlcv[i]["close"]
         v, a  = vwap_vals[i], atr_vals[i]
-        if price > v + a * atr_mult: signals[i] = "BUY"
-        elif price < v - a * atr_mult: signals[i] = "SELL"
+        signal_mode = globals().get("SIGNAL_MODE", "BREAKOUT")
+        if signal_mode == "MEAN_REVERSION":
+            if price < v - a * atr_mult: signals[i] = "BUY"
+            elif price > v + a * atr_mult: signals[i] = "SELL"
+        else:
+            if price > v + a * atr_mult: signals[i] = "BUY"
+            elif price < v - a * atr_mult: signals[i] = "SELL"
     return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
 
 def place_groww_order(symbol, signal, quantity, price):
@@ -373,8 +377,8 @@ def main():
     
     try:
         import yfinance
-YFINANCE_AVAILABLE = True as yf
-    except ImportError:
+YFINANCE_AVAILABLE = True
+except ImportError:
         print("yfinance not installed: pip install yfinance")
         return
     

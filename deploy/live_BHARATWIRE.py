@@ -11,7 +11,7 @@ import groww_api
 from datetime import datetime, time as dtime
 from pathlib import Path
 import yfinance
-YFINANCE_AVAILABLE = True as yf
+YFINANCE_AVAILABLE = True yf
 
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)

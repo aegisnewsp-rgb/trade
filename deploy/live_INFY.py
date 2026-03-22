@@ -28,7 +28,7 @@ from datetime import datetime, time as dtime
 from pathlib import Path
 
 import yfinance
-YFINANCE_AVAILABLE = True as yf
+YFINANCE_AVAILABLE = True yf
 
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -49,7 +49,7 @@ STOP_LOSS_PCT  = 0.005
 TARGET_MULT    = 2.5
 SIGNAL_MODE   = "MEAN_REVERSION"  # ENHANCED: was BREAKOUT, inverting for low win-rate stock
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_period": 14, "atr_multiplier": 1.5, "rsi_period": 14, "rsi_overbought": 65, "rsi_oversold": 35}
+PARAMS         = {"vwap_period": 14, "atr_period": 14, "atr_multiplier": 1.0, "rsi_period": 14, "rsi_overbought": 65, "rsi_oversold": 35}
 
 # 3-TIER EXIT SYSTEM (enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
@@ -412,7 +412,7 @@ def main():
     
     try:
         import yfinance
-YFINANCE_AVAILABLE = True as yf
+YFINANCE_AVAILABLE = True yf
     except ImportError:
         print("yfinance not installed: pip install yfinance")
         return

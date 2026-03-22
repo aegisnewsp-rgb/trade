@@ -20,8 +20,7 @@ from pathlib import Path
 
 try:
     import yfinance as yf
-    YFINANCE_AVAILABLE = True
-except ImportError:
+    YFINANCE_AVAILABLE = True ImportError:
     YFINANCE_AVAILABLE = False
 
 # ── Config ────────────────────────────────────────────────────────────────────

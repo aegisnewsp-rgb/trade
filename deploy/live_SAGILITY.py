@@ -12,7 +12,7 @@ from datetime import datetime, time as dtime
 from pathlib import Path
 
 import yfinance
-YFINANCE_AVAILABLE = True as yf
+YFINANCE_AVAILABLE = True yf
 
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -219,7 +219,7 @@ def place_groww_order(symbol, signal, quantity, price):
 def main():
     """Main trading loop for SAGILITY"""
     import yfinance
-YFINANCE_AVAILABLE = True as yf
+YFINANCE_AVAILABLE = True yf
     try:
         t = yf.Ticker("SAGILITY.NS")
         d = t.history(period="3mo")

@@ -10,9 +10,8 @@ import groww_api
 from datetime import datetime, time as dtime
 from pathlib import Path
 import yfinance
-YFINANCE_AVAILABLE = True as yf
-
-LOG_DIR = Path(__file__).parent / "logs"
+YFINANCE_AVAILABLE = True
+= Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
@@ -168,8 +167,8 @@ def main():
     
     try:
         import yfinance
-YFINANCE_AVAILABLE = True as yf
-    except ImportError:
+YFINANCE_AVAILABLE = True
+ImportError:
         print("yfinance not installed: pip install yfinance")
         return
     

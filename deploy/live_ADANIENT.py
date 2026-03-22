@@ -23,8 +23,7 @@ from pathlib import Path
 
 # ── yfinance ──────────────────────────────────────────────────────────────────
 import yfinance
-YFINANCE_AVAILABLE = True as yf
-
+YFINANCE_AVAILABLE = True
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -349,8 +348,8 @@ def place_groww_order(symbol, signal, quantity, price):
 def main():
     """Main trading loop for ADANIENT"""
     import yfinance
-YFINANCE_AVAILABLE = True as yf
-    try:
+YFINANCE_AVAILABLE = True
+try:
         t = yf.Ticker("ADANIENT.NS")
         d = t.history(period="3mo")
         if len(d) < 30:

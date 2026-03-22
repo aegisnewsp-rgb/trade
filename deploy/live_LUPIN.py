@@ -305,7 +305,7 @@ def main():
     
     try:
         import yfinance
-YFINANCE_AVAILABLE = True as yf
+YFINANCE_AVAILABLE = True yf
     except ImportError:
         print("yfinance not installed: pip install yfinance")
         return
