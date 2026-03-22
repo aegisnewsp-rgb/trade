@@ -69,6 +69,35 @@ PARAMS = {
 BENCHMARK_WIN_RATE = 0.6154   # v7 live benchmark targeting 62%+
 TARGET_WIN_RATE   = 0.62
 
+# 3-TIER EXIT SYSTEM (v8 enhancement)
+SL_ATR_MULT      = 0.8      # Keep steel-specific 0.8x ATR
+MAX_SL_PCT       = 0.012    # Hard cap: 1.2% max stop for steel
+TRAIL_TRIGGER_PCT = 0.006   # Trail after 0.6% profit (steel is volatile)
+
+TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
+TARGET_2_MULT    = 2.5     # T2: 2.5x risk → exit 1/3 (steel target)
+TARGET_3_MULT    = 4.0     # T3: 4.0x risk → exit remaining
+
+# Entry window (v8 enhancement - steel has different volume patterns)
+BEST_ENTRY_START = dtime(9, 45)  # 9:45 AM IST - avoid open volatility
+BEST_ENTRY_END   = dtime(14, 30) # 2:30 PM IST
+NO_ENTRY_AFTER   = dtime(14, 30) # No new entries after 2:30 PM
+
+def can_new_entry() -> bool:
+    """Only allow entries during best entry window for steel."""
+    now = ist_now().time()
+    if now < BEST_ENTRY_START:
+        log.info("⏰ Too early for steel — waiting for 9:45 AM IST entry window")
+        return False
+    if now >= NO_ENTRY_AFTER:
+        log.info("⏰ After 2:30 PM IST — no new entries today")
+        return False
+    return True
+
+def in_best_entry_window() -> bool:
+    now = ist_now().time()
+    return BEST_ENTRY_START <= now <= BEST_ENTRY_END
+
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE   = "https://api.groww.in/v1"
