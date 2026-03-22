@@ -7,12 +7,13 @@
 - Exchange: NSE (`.NS`) and BSE (`.BO`)
 - Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8)
 
-## Status (2026-03-22)
+## Status (2026-03-22 22:58 UTC)
 - ✅ All 471 scripts pass `py_compile`
 - ✅ Strategy v8 enhancements applied (MACD, volume, trend, BB filters)
 - ✅ 3-tier exit system active
 - ✅ Telegram status reporting enabled
 - ✅ 10 worst scripts upgraded to v8 LOWWR (COMPINFO, SHIVALIK, AMTL, ALANKIT, COROMANDEL, PFL, SFL, PARACABLES, TBZ, ARISE)
+- ✅ QA cycle complete — next cycle in 30min
 
 ## Quick Check
 ```bash
