@@ -242,6 +242,7 @@ def check_consumer_staples_filter() -> dict:
         logger.warning("Consumer staples filter check failed: %s", e)
     return fmcg
 
+# RSI filter: BUY>RSI55, SELL<RSI45
 def generate_signal(ohlcv: List[Dict], rsi: List[float], staples: dict = None) -> str:
     if len(ohlcv) < LOOKBACK + 1 or len(rsi) < LOOKBACK + 1:
         return "HOLD"
