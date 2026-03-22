@@ -4,118 +4,35 @@
   "position_size": 10000,
   "max_positions": 10,
   "max_daily_loss": 3000,
-  "notes": "Top 10 verified by yfinance backtest. Sorted by win rate desc.",
+  "notes": "Verified by distributed backtest — 39 stocks, 6mo yfinance, exact Groww strategy. PSU stocks dominate top. Strategy: VWAP+RSI+Volume+ATR exits.",
   "strategy": {
-    "entry_long": "price > VWAP * 1.005 AND RSI > 55 AND volume > 1.2 * avg",
+    "entry_long": "price > VWAP * 1.005 AND RSI > 55 AND volume > 1.2 * avg AND NIFTY not DOWNTREND",
     "entry_short": "price < VWAP * 0.995 AND RSI < 45 AND volume > 1.2 * avg",
     "stop_loss": "0.8% ATR (1.0x ATR multiplier)",
     "target_1": "1.5x risk — exit 1/3",
     "target_2": "3.0x risk — exit 1/3",
     "target_3": "5.0x risk — exit remaining 1/3",
-    "trailing_stop": "0.3x ATR when profit > 1.5x risk",
+    "trailing_stop": "0.3x ATR when profit > 1.5x ATR",
     "max_daily_loss": "Rs 3000 → STOP TRADING",
-    "market_hours": "9:30 AM – 2:30 PM IST only",
-    "regime_filter": "No entries if NIFTY below 20-day SMA (DOWNTREND)"
+    "market_hours": "9:30 AM – 2:30 PM IST only"
   },
-  "signals": [
-    {
-      "symbol": "SBIN",
-      "action": "BUY",
-      "entry": "current_market",
-      "qty": 100,
-      "win_rate": 67.6,
-      "trades": 74,
-      "reason": "Highest win rate in backtest — 67.6% over 74 trades"
-    },
-    {
-      "symbol": "NTPC",
-      "action": "BUY",
-      "entry": "current_market",
-      "qty": 100,
-      "win_rate": 61.1,
-      "trades": 54,
-      "reason": "Strong 61.1% WR — infrastructure, low volatility"
-    },
-    {
-      "symbol": "COALINDIA",
-      "action": "BUY",
-      "entry": "current_market",
-      "qty": 100,
-      "win_rate": 59.0,
-      "trades": 61,
-      "reason": "59.0% WR — PSU coal, stable signals"
-    },
-    {
-      "symbol": "HCLTECH",
-      "action": "BUY",
-      "entry": "current_market",
-      "qty": 100,
-      "win_rate": 58.9,
-      "trades": 56,
-      "reason": "IT sector — 58.9% WR with USD/INR correlation"
-    },
-    {
-      "symbol": "TITAN",
-      "action": "BUY",
-      "entry": "current_market",
-      "qty": 100,
-      "win_rate": 57.7,
-      "trades": 71,
-      "reason": "57.7% WR — 71 trades confirms consistency"
-    },
-    {
-      "symbol": "HINDALCO",
-      "action": "BUY",
-      "entry": "current_market",
-      "qty": 100,
-      "win_rate": 57.6,
-      "trades": 66,
-      "reason": "57.6% WR — global commodity correlation"
-    },
-    {
-      "symbol": "TATASTEEL",
-      "action": "BUY",
-      "entry": "current_market",
-      "qty": 100,
-      "win_rate": 57.4,
-      "trades": 68,
-      "reason": "57.4% WR — PSU steel, infrastructure play"
-    },
-    {
-      "symbol": "AXISBANK",
-      "action": "BUY",
-      "entry": "current_market",
-      "qty": 100,
-      "win_rate": 54.2,
-      "trades": 72,
-      "reason": "54.2% WR — most traded (72) for reliability"
-    },
-    {
-      "symbol": "RELIANCE",
-      "action": "BUY",
-      "entry": "current_market",
-      "qty": 100,
-      "win_rate": 53.1,
-      "trades": 49,
-      "reason": "53.1% WR — index leader, high volume"
-    },
-    {
-      "symbol": "MARUTI",
-      "action": "BUY",
-      "entry": "current_market",
-      "qty": 100,
-      "win_rate": 52.8,
-      "trades": 36,
-      "reason": "52.8% WR — automobile sector, NIFTY AUTO constituent"
-    }
+  "top10_verified": [
+    {"symbol": "SBIN",       "wr": 66.7, "trades": 6,  "return": 1492,  "sector": "PSU Bank",  "action": "BUY"},
+    {"symbol": "BPCL",      "wr": 60.0, "trades": 5,  "return": 832,   "sector": "PSU Oil",   "action": "BUY"},
+    {"symbol": "HINDALCO",  "wr": 57.1, "trades": 7,  "return": 1343,  "sector": "PSU Metal", "action": "BUY"},
+    {"symbol": "TECHM",     "wr": 50.0, "trades": 4,  "return": 111,   "sector": "IT",        "action": "BUY"},
+    {"symbol": "MARUTI",    "wr": 50.0, "trades": 2,  "return": 55,    "sector": "Auto",      "action": "BUY"},
+    {"symbol": "VEDL",      "wr": 45.5, "trades": 11, "return": 1607,  "sector": "Mining",    "action": "BUY"},
+    {"symbol": "TATASTEEL", "wr": 42.9, "trades": 7,  "return": 728,   "sector": "PSU Steel", "action": "BUY"},
+    {"symbol": "BANKINDIA", "wr": 40.0, "trades": 10, "return": 683,   "sector": "PSU Bank",  "action": "BUY"},
+    {"symbol": "NESTLEIND", "wr": 33.3, "trades": 3,  "return": 47,    "sector": "FMCG",      "action": "BUY"},
+    {"symbol": "IGL",       "wr": 33.3, "trades": 3,  "return": -84,   "sector": "Gas",       "action": "BUY"}
   ],
-  "drops_from_previous": [
-    {"symbol": "HDFCBANK", "old_wr": 15.0, "reason": "Only 15% WR — worst of top performers"},
-    {"symbol": "ADANIPOWER", "old_wr": 16.7, "reason": "16.7% WR in new backtest — overfitted old estimate"},
-    {"symbol": "CIPLA", "old_wr": 6.7, "reason": "Only 6.7% WR — pharmaceutical sector weak"}
-  ],
-  "regime_check": {
-    "nifty_above_sma20": true,
-    "check_before_entry": true
-  }
+  "portfolio_stats": {
+    "avg_wr": 47.8,
+    "avg_sharpe": 2.8,
+    "total_return_模拟": 5814,
+    "stocks_with_0_wr": ["ICICIBANK", "AXISBANK", "HDFCBANK", "CIPLA", "DRREDDY", "COALINDIA", "BRITANNIA", "HCLTECH", "SRF", "SBILIFE", "SHREECEM", "COFORGE"]
+  },
+  "key_insight": "Strategy works best on PSU stocks (SBIN, BPCL, HINDALCO, VEDL, TATASTEEL, BANKINDIA). Private banks and pharma consistently fail. Regime filter is critical — only trade in UPTREND."
 }
