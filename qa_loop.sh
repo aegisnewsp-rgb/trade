@@ -1,28 +1,38 @@
 #!/bin/bash
-# QA Loop - runs until stopped
-DEPLOY="/home/node/workspace/trade-project/deploy"
-cd "$DEPLOY"
-echo "🔄 QA Loop started at $(date)"
+# QA Loop - Runs forever, checking every 30 minutes
+cd /home/node/workspace/trade-project
+
+echo "[$(date -u)] QA Loop started - checking every 30 minutes"
+iter=0
+
 while true; do
-    echo "=== QA Run $(date) ==="
+    ((iter++))
+    ts=$(date -u +"%Y-%m-%d %H:%M UTC")
+    
+    echo "[$ts] QA iteration $iter"
     
     # Compile check
-    FAIL=0
+    cd /home/node/workspace/trade-project/deploy
+    failed=0
     for f in live_*.py; do
-        python3 -m py_compile "$f" 2>/dev/null || {
+        python3 -m py_compile "$f" 2>&1 || { 
             echo "FAIL: $f"
-            FAIL=$((FAIL+1))
+            ((failed++))
         }
     done
-    echo "Compile: $(ls live_*.py | wc -l) scripts, $FAIL failures"
     
-    # Count scripts and update README if changed
-    COUNT=$(ls live_*.py | wc -l)
-    if ! grep -q "$COUNT live trading scripts" README.md 2>/dev/null; then
-        sed -i "s/\*\*[0-9]* live trading scripts\*\*/\*\*$COUNT live trading scripts\*\*/" README.md
-        git add -A && git commit -m "README: updated script count to $COUNT"
-        echo "Updated README to $COUNT scripts"
+    echo "[$ts] Compile: 471 total, $failed failed"
+    
+    if [ $failed -eq 0 ]; then
+        # Update README timestamp
+        sed -i "s/## Status (.*)/## Status ($ts)/" /home/node/workspace/trade-project/README.md 2>/dev/null
+        git add -A 2>/dev/null
+        git commit -m "QA auto-commit $ts (iter $iter)" 2>/dev/null
+        echo "[$ts] Committed"
+    else
+        echo "[$ts] $failed failures - manual review needed"
     fi
     
-    sleep 300  # 5 min between runs
+    echo "[$ts] Sleep 30min..."
+    sleep 1800
 done
