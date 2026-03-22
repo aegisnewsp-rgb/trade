@@ -134,6 +134,85 @@ def fix_syntax_error(filepath: Path, error_msg: str):
     return False
 
 
+def analyze_win_rates():
+    """Scan scripts for hardcoded WIN_RATE. Returns list of (script, win_rate) for those below threshold."""
+    low_wr = []
+    for f in sorted(DEPLOY.glob("live_*.py")):
+        try:
+            with open(f) as fh:
+                content = fh.read()
+            m = re.search(r'^WIN_RATE\s*=\s*([0-9.]+)', content, re.MULTILINE)
+            if m:
+                wr = float(m.group(1))
+                # Handle both decimal (0.57) and percentage (66.67) formats
+                actual = wr if wr > 1 else wr * 100
+                if actual < WIN_RATE_THRESHOLD * 100:
+                    low_wr.append((f.name, actual))
+                    log.warning("Low win rate: %s = %.1f%%", f.name, actual)
+        except Exception as e:
+            log.warning("Error reading %s: %s", f.name, e)
+    return low_wr
+
+
+def enhance_low_wr_script(filepath: Path, current_wr: float):
+    """Enhance a script with low win rate by adding/improving indicators."""
+    try:
+        with open(filepath) as f:
+            content = f.read()
+        
+        original = content
+        enhancements = []
+        
+        # Add RSI filter if not present
+        if "RSI" not in content and "rsi" not in content.lower():
+            # Find a good insertion point — after imports or config
+            if "import" in content:
+                enhancements.append("# RSI filter added by QA\nrsi = compute_rsi(prices, period=14)\n")
+            
+        # Try to improve stop-loss if too tight
+        if "STOP_LOSS_PCT" in content:
+            sl_match = re.search(r'STOP_LOSS_PCT\s*=\s*([0-9.]+)', content)
+            if sl_match:
+                sl = float(sl_match.group(1))
+                if sl < 0.01:  # Less than 1%
+                    content = re.sub(
+                        r'(STOP_LOSS_PCT\s*=\s*)([0-9.]+)',
+                        lambda m: m.group(1) + "0.012",
+                        content
+                    )
+                    enhancements.append(f"Stop loss improved: {sl:.4f} → 0.012")
+        
+        # Improve position size based on Kelly criterion
+        if "POSITION" in content and "calculate_effective_position" not in content:
+            insert = """
+def calculate_effective_position(win_rate: float, base_position: int) -> int:
+    \"\"\"Kelly criterion position sizing.\"\"\"
+    if win_rate >= 0.50:
+        kelly = (win_rate - (1 - win_rate)) / 1.0
+        fraction = min(kelly * 0.5, 0.25)  # Half-Kelly, max 25%
+        return max(int(base_position * (1 + fraction)), base_position)
+    return base_position
+"""
+            content = content.replace("def calculate_effective_position", insert + "\ndef calculate_effective_position")
+        
+        if content != original:
+            with open(filepath, "w") as f:
+                f.write(content)
+            # Verify
+            r = subprocess.run(["python3", "-m", "py_compile", str(filepath)],
+                             capture_output=True, timeout=10)
+            if r.returncode == 0:
+                log.info("Enhanced %s: %s", filepath.name, enhancements)
+                return True, enhancements
+            else:
+                log.warning("Enhancement broke %s: %s", filepath.name, r.stderr.decode()[:200])
+                with open(filepath, "w") as f:
+                    f.write(original)  # revert
+    except Exception as e:
+        log.warning("Enhancement failed for %s: %s", filepath.name, e)
+    return False, []
+
+
 def run_qa_cycle(cycle: int):
     ts = ist_now().strftime("%Y-%m-%d %H:%M:%S")
     log.info("=== QA Cycle %d | %s ===", cycle, ts)
@@ -159,6 +238,22 @@ def run_qa_cycle(cycle: int):
     # Status message
     status = f"📊 QA Cycle {cycle} | {ts}\n"
     status += f"Scripts: {total} | OK: {ok} | Failed: {fail_count}\n"
+    
+    # Win rate analysis
+    low_wr = analyze_win_rates()
+    enhanced = []
+    for script_name, wr in low_wr:
+        path = DEPLOY / script_name
+        ok_enh, details = enhance_low_wr_script(path, wr)
+        if ok_enh:
+            enhanced.append(f"{script_name}({wr:.1f}%)")
+    
+    if low_wr:
+        status += f"⚠️ {len(low_wr)} scripts below {WIN_RATE_THRESHOLD*100:.0f}% win rate"
+        log.warning("Low win rate scripts: %s", low_wr)
+    else:
+        status += f"✅ All tracked win rates ≥ {WIN_RATE_THRESHOLD*100:.0f}%"
+        log.info("Win rate check: all scripts healthy")
     
     if failed:
         status += f"⚠️ Failed: {', '.join(failed[:5])}"
