@@ -45,7 +45,7 @@ NIFTY_BANK_SYMBOL = "^NSEBANK"  # Added: NIFTY BANK index for PSU correlation
 ENTRY_WAIT_MINUTES = 15
 NO_ENTRY_AFTER = dtime(14, 30)
 BEST_ENTRY_START = dtime(9, 30)
-BEST_ENTRY_END = dtime(12, 0)
+BEST_ENTRY_END = dtime(14, 30)
 
 # PSU-OPTIMIZED PARAMETERS
 # Tighter VWAP band (0.3% vs 0.5%) — SBIN mean-reverts closer to VWAP

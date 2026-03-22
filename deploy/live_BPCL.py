@@ -33,7 +33,10 @@ DAILY_LOSS_CAP = 0.003
 RSI_PERIOD     = 14
 RSI_OVERSOLD   = 40      # Buy only when RSI > 40 (not oversold)
 RSI_OVERBOUGHT = 70      # Take profits when RSI > 70
-VOLUME_MULT    = 1.3     # Volume must be 1.3x average
+RSI_BUY       = 55       # BUY only when RSI > 55
+RSI_SELL      = 45       # SELL only when RSI < 45
+VOL_THRESH   = 1.2      # Volume 1.2x avg for entry confirmation
+VOLUME_MULT   = 1.2      # Volume must be 1.2x average
 PARAMS         = {"vwap_period": 14, "atr_multiplier": 1.5, "rsi_period": 14}
 
 # 3-TIER EXIT SYSTEM (enhancement)

@@ -70,7 +70,8 @@ BENCHMARK_WIN_RATE = 0.6154   # v7 live benchmark targeting 62%+
 TARGET_WIN_RATE   = 0.62
 
 # 3-TIER EXIT SYSTEM (v8 enhancement)
-SL_ATR_MULT      = 0.8      # Keep steel-specific 0.8x ATR
+SL_ATR_MULT      = 1.0      # 1.0x ATR stop loss
+MAX_SL_PCT       = 0.010    # Hard cap: 1.0% max stop
 MAX_SL_PCT       = 0.012    # Hard cap: 1.2% max stop for steel
 TRAIL_TRIGGER_PCT = 0.006   # Trail after 0.6% profit (steel is volatile)
 

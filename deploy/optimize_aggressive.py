@@ -71,7 +71,7 @@ def calc_atr_simple(ohlcv, p=14):
 
 def load_data(sym):
     try:
-        d = yf.Ticker(sym+".NS").history(period="2yr")
+        d = yf.Ticker(sym+".NS").history(period="2y")
         if len(d) < 100: return None, None
         ohlcv = [[float(r.Open),float(r.High),float(r.Low),float(r.Close),float(r.Volume)] for _,r in d.iterrows()]
         closes = [row[3] for row in ohlcv]
