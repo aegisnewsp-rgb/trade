@@ -2,16 +2,11 @@
 """
 Live Trading Script - NMDC.NS
 Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: 61.11%
+Win Rate: N/A
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
-import os
-import sys
-import json
-import time
-import logging
-import requests
+import os, sys, json, time, logging, requests
 from datetime import datetime, time as dtime
 from pathlib import Path
 
@@ -153,7 +148,7 @@ def daily_loss_limit_hit() -> bool:
     return False
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: 61.11%% ===", SYMBOL, STRATEGY)
+    log.info("=== Live Trading Script: %s | %s | Win Rate: N/A ===", SYMBOL, STRATEGY)
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
         time.sleep(30)
