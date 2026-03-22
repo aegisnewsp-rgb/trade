@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - BANKINDIA.NS (Bank of India)
-Strategy: VWAP (Volume Weighted Average Price)
-Win Rate: 60.00% (benchmark)
+Strategy: VWAP + Multi-Timeframe Confirmation
 Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
-Added: 2026-03-22 | PSU bank sector momentum, IOB already up +6.54% today
+Enhanced: Multi-timeframe confirmation (daily + 4hr VWAP alignment)
 """
 
 import os, sys, json, time, logging, requests
@@ -26,7 +25,7 @@ logging.basicConfig(
 log = logging.getLogger("live_BANKINDIA")
 
 SYMBOL         = "BANKINDIA.NS"
-STRATEGY       = "VWAP"
+STRATEGY       = "VWAP_MTF"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
@@ -73,6 +72,33 @@ def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     log.error("All fetch attempts failed for %s", SYMBOL)
     return None
 
+def fetch_4hr_data(days: int = 30, retries: int = 3) -> list | None:
+    """Fetch 4-hourly data for multi-timeframe confirmation"""
+    for attempt in range(retries):
+        try:
+            ticker = yf.Ticker(SYMBOL)
+            df = ticker.history(interval="4h", period=f"{days}d")
+            if df.empty:
+                raise ValueError("Empty 4hr dataframe")
+            ohlcv = [
+                {
+                    "date": str(idx.date()),
+                    "open": float(r["Open"]),
+                    "high": float(r["High"]),
+                    "low": float(r["Low"]),
+                    "close": float(r["Close"]),
+                    "volume": int(r["Volume"]),
+                }
+                for idx, r in df.iterrows()
+            ]
+            log.info("Fetched %d 4hr candles for %s", len(ohlcv), SYMBOL)
+            return ohlcv
+        except Exception as e:
+            log.warning("Attempt %d/%d failed fetching 4hr data: %s", attempt + 1, retries, e)
+            time.sleep(2 ** attempt)
+    log.error("All 4hr fetch attempts failed for %s", SYMBOL)
+    return None
+
 def calculate_vwap(ohlcv: list, params: dict) -> list:
     """Compute VWAP using cumulative typical price * volume."""
     period = params.get("vwap_period", 14)
@@ -106,27 +132,45 @@ def calculate_atr(ohlcv: list, period: int = 14) -> list:
         prev_close = bar["close"]
     return atr
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    """VWAP momentum: BUY when price crosses above VWAP, SELL when below."""
-    vwap_vals = calculate_vwap(ohlcv, params)
+def vwap_signal_mtf(ohlcv: list, ohlcv_4hr: list, params: dict) -> tuple[str, float, float]:
+    """
+    VWAP with Multi-Timeframe Confirmation:
+    - Daily VWAP for primary trend
+    - 4hr VWAP for entry confirmation
+    - Both must align for a valid signal
+    """
+    vwap_daily = calculate_vwap(ohlcv, params)
+    vwap_4hr = calculate_vwap(ohlcv_4hr, params) if ohlcv_4hr else vwap_daily
     atr_vals  = calculate_atr(ohlcv, 14)
-    if len(vwap_vals) < 2:
+    
+    if len(vwap_daily) < 2 or len(vwap_4hr) < 2:
         return "HOLD", ohlcv[-1]["close"], 0.0
 
-    price  = ohlcv[-1]["close"]
-    vwap   = vwap_vals[-1]
-    prev_vwap = vwap_vals[-2]
+    price_d = ohlcv[-1]["close"]
+    vwap_d = vwap_daily[-1]
+    prev_vwap_d = vwap_daily[-2]
+    
+    vwap_4 = vwap_4hr[-1]
+    prev_vwap_4 = vwap_4hr[-2]
 
-    # Crossover signal
-    if price > vwap and prev_vwap <= vwap:
+    # Daily crossover
+    daily_cross_up = price_d > vwap_d and prev_vwap_d <= vwap_d
+    daily_cross_dn = price_d < vwap_d and prev_vwap_d >= vwap_d
+    
+    # 4hr confirmation
+    tf4_cross_up = price_d > vwap_4 and prev_vwap_4 <= vwap_4
+    tf4_cross_dn = price_d < vwap_4 and prev_vwap_4 >= vwap_4
+    
+    # Both timeframes must agree
+    if daily_cross_up and tf4_cross_up:
         signal = "BUY"
-    elif price < vwap and prev_vwap >= vwap:
+    elif daily_cross_dn and tf4_cross_dn:
         signal = "SELL"
     else:
         signal = "HOLD"
 
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return signal, price, current_atr
+    return signal, price_d, current_atr
 
 def place_groww_order(symbol: str, signal: str, quantity: int, price: float) -> dict | None:
     if not GROWW_API_KEY or not GROWW_API_SECRET:
@@ -194,7 +238,7 @@ def daily_loss_limit_hit() -> bool:
 
 def main():
     log.info(
-        "=== Live Trading Script: %s | %s | Win Rate: 60.00%% ===",
+        "=== Live Trading Script: %s | %s (Multi-Timeframe Conf.) ===",
         SYMBOL,
         STRATEGY,
     )
@@ -212,7 +256,11 @@ def main():
     if not ohlcv or len(ohlcv) < 30:
         log.error("Insufficient data for %s", SYMBOL)
         return
-    signal, price, atr = vwap_signal(ohlcv, PARAMS)
+    
+    # Fetch 4hr data for multi-timeframe confirmation
+    ohlcv_4hr = fetch_4hr_data(days=30)
+    
+    signal, price, atr = vwap_signal_mtf(ohlcv, ohlcv_4hr, PARAMS)
     if signal == "BUY":
         stop_loss = round(price * (1 - STOP_LOSS_PCT), 2)
         target_prc = round(price + TARGET_MULT * atr, 2)
@@ -224,7 +272,7 @@ def main():
     quantity = max(1, int(POSITION / price))
     log.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     log.info("  SYMBOL   : %s", SYMBOL)
-    log.info("  STRATEGY : %s", STRATEGY)
+    log.info("  STRATEGY : %s (MTF Conf.)", STRATEGY)
     log.info("  SIGNAL   : ★ %s ★", signal)
     log.info("  PRICE    : ₹%.2f", price)
     log.info("  QTY      : %d shares (₹%d position)", quantity, POSITION)
