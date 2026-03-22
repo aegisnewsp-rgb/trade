@@ -341,7 +341,9 @@ def main():
         # Try strategy functions in priority order
         if 'vwap_signal' in dir():
             sig_result = vwap_signal(ohlcv_list, {})
-            if isinstance(sig_result, tuple) and len(sig_result) >= 2:
+            if isinstance(sig_result, tuple) and len(sig_result) >= 5:
+                signal, price, atr, rsi, vol_ratio = sig_result[0], float(sig_result[1]), sig_result[2], float(sig_result[3]), float(sig_result[4])
+            elif isinstance(sig_result, tuple) and len(sig_result) >= 2:
                 signal, price = sig_result[0], float(sig_result[1])
             elif isinstance(sig_result, str):
                 signal = sig_result

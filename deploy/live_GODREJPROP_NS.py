@@ -49,6 +49,11 @@ RSI_PERIOD = 14
 RSI_OVERSOLD = 45
 RSI_OVERBOUGHT = 55
 
+# Entry window
+BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
+BEST_ENTRY_END   = dtime(14, 30) # 2:30 PM IST
+NO_ENTRY_AFTER   = dtime(14, 30) # No new entries after 2:30 PM
+
 GROWW_API_KEY = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE = "https://api.groww.in"
