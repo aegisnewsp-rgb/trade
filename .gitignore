@@ -8,3 +8,4 @@ dist/
 build/
 *.log
 state_*.json
+tomorrow_portfolio.json
