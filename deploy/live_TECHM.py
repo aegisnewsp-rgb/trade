@@ -49,9 +49,10 @@ PARAMS = {
     "rsi_period":          14,
     "RSI_BUY": 55,          # BUY when RSI > 55
     "RSI_SELL": 45,         # SELL when RSI < 45
-    "VOL_THRESH": 1.2,      # volume must exceed 1.2× avg
+    "VOL_THRESH": 0.75,     # volume must exceed 0.75× avg
     "vol_sma_period": 20,
     "atr_vol_period":      20,   # period for ATR volatility SMA
+    "hold_days": 10,         # Sniper-optimized (Round 3, 2026-03-22)
 }
 
 # 3-TIER EXIT SYSTEM (v5 enhancement)

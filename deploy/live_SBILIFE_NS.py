@@ -3,6 +3,12 @@
 import yfinance
 YFINANCE_AVAILABLE = True
 
+# Sniper-optimized params (Round 3, 2026-03-22)
+RSI_BUY   = 45    # BUY when RSI > 45
+RSI_SELL  = 45    # SELL when RSI < 45
+VOL_THRESH = 0.5  # volume must exceed 0.5× avg
+HOLD_DAYS  = 10   # hold for 10 trading days
+
 def get_signal():
     """Generate signal for SBILIFE"""
     try:

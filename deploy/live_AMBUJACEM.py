@@ -38,10 +38,10 @@ STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {
-    # Optimized params (2026-03-22)
+    # Sniper-optimized params (Round 3, 2026-03-22)
     "rsi_buy": 55,
     "rsi_sell": 45,
-    "vol_threshold": 0.8,
+    "vol_threshold": 1.0,
     "sl_pct": 1.0,
     "tgt_pct": 3.0,
     "hold_days": 5,
