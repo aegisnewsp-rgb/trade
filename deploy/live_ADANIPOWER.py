@@ -3,7 +3,7 @@
 Live Trading Script - ADANIPOWER.NS
 Strategy: VWAP (Volume Weighted Average Price)
 Win Rate: 91.67%
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Position: ₹7000 | Stop Loss: 0.8% ATR | Target: 4.0x ATR | Daily Loss Cap: 0.3%
 """
 
 import os
@@ -33,7 +33,6 @@ log = logging.getLogger("live_ADANIPOWER")
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "ADANIPOWER.NS"
 STRATEGY       = "VWAP"
-WIN_RATE       = "91.67%"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.008
 TARGET_MULT    = 4.0
@@ -208,7 +207,7 @@ def daily_loss_limit_hit() -> bool:
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    log.info("=== Live Trading Script: %s | %s | Win Rate: %s ===", SYMBOL, STRATEGY, WIN_RATE)
+    log.info("=== Live Trading Script: %s | %s | Win Rate: 91.67%% ===", SYMBOL, STRATEGY)
 
     while is_pre_market():
         log.info("Pre-market warmup – waiting until 9:15 IST...")
