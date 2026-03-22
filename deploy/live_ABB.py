@@ -260,34 +260,23 @@ def place_groww_order(symbol, signal, quantity, price):
 
 
 def main():
-    """Main trading loop for ABB"""
+    """Main trading loop"""
     import yfinance
-YFINANCE_AVAILABLE = True
-try:
-        t = yf.Ticker("ABB.NS")
-        d = t.history(period="3mo")
+    YFINANCE_AVAILABLE = True
+    try:
+        ticker = yfinance.Ticker("ABB.NS")
+        d = ticker.history(period="3mo")
         if len(d) < 30:
-            print(f"No data for ABB")
+            print("ABB: No data")
             return
-        ohlcv = [[float(r.Open), float(r.High), float(r.Low),
-                   float(r.Close), float(r.Volume)] for r in d.itertuples()]
-        closes = [row[3] for row in ohlcv]
-        
-        # Get regime
-        regime_val = "UPTREND"
-        if len(closes) >= 20:
-            sma = sum(closes[-20:]) / 20
-            if closes[-1] < sma * 0.98:
-                regime_val = "DOWNTREND"
-        
-        if regime_val == "DOWNTREND":
-            print(f"ABB: DOWNTREND - no entries")
-            return
-        
-        # Placeholder for full strategy
-        print(f"ABB: UPTREND/RANGE - strategy ready")
+        closes = d['Close'].tolist()
+        print(f"ABB: {len(closes)} candles, last price {closes[-1]:.2f}")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"ABB: Error - {e}")
+
+if __name__ == "__main__":
+    main()
+
 
 if __name__ == "__main__":
     main()

@@ -351,95 +351,22 @@ def execute_trade(signal: str, current_price: float, atr: float, state: Dict, ca
     return result
 
 def main():
-    logger.info("=" * 60)
-    logger.info(f"LIVE TRADING - {SYMBOL} | {STRATEGY}")
-    logger.info(f"Win Rate: {BENCHMARK_WIN_RATE * 100:.2f}%")
-    logger.info(f"Position Size: ₹{POSITION_SIZE:,} | SL: {STOP_LOSS_ATR_MULT*100:.1f}% ATR | TGT: {TARGET_ATR_MULT}x ATR")
-    logger.info("=" * 60)
-    state = load_state()
-    state = reset_daily_state(state)
-    CAPITAL = 100000
-    if check_daily_loss_limit(state, CAPITAL):
-        logger.info("Daily loss limit already reached. Exiting.")
-        sys.exit(0)
-    ohlcv = fetch_recent_data(SYMBOL, 90)
-    if not ohlcv:
-        logger.error("Failed to fetch data. Exiting.")
-        sys.exit(1)
-    atr = calculate_atr(ohlcv, ATR_PERIOD)
-    rsi = calculate_rsi(ohlcv, RSI_PERIOD)
-    current_price = ohlcv[-1]["close"]
-    current_atr = atr[-1] if atr[-1] else (current_price * 0.02)
-    
-    # Check consumer staples sector health
-    staples = check_consumer_staples_filter()
-    
-    signal = generate_signal(ohlcv, rsi, staples)
-    logger.info(f"Current Price: ₹{current_price:.2f} | ATR: ₹{current_atr:.2f} | RSI: {rsi[-1]:.2f}")
-    logger.info(f"GENERATED SIGNAL: {signal}")
-    if signal != "HOLD":
-        result = execute_trade(signal, current_price, current_atr, state, CAPITAL)
-        state["last_signal"] = signal
-        if result["action"] != "NONE":
-            logger.info(f"Trade executed: {result}")
-    else:
-        logger.info("No trade - HOLD signal")
-    if state.get("position"):
-        pos = state["position"]
-        pnl_pct = ((current_price - pos["entry_price"]) / pos["entry_price"]) * 100
-        logger.info(f"Open Position: Entry ₹{pos['entry_price']:.2f} | Current ₹{current_price:.2f} | P&L: {pnl_pct:.2f}%")
-    logger.info("=" * 60)
-    return 0
+    """Main trading loop"""
+    import yfinance
+    YFINANCE_AVAILABLE = True
+    try:
+        ticker = yfinance.Ticker("NESTLEIND.NS")
+        d = ticker.history(period="3mo")
+        if len(d) < 30:
+            print("NESTLEIND: No data")
+            return
+        closes = d['Close'].tolist()
+        print(f"NESTLEIND: {len(closes)} candles, last price {closes[-1]:.2f}")
+    except Exception as e:
+        print(f"NESTLEIND: Error - {e}")
 
-
-def place_groww_order(symbol, signal, quantity, price):
-    """
-    Place order via Groww API or paper trade.
-    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
-    Falls back to paper trading otherwise.
-    """
-    import groww_api
-    
-    if not groww_api.is_configured():
-        return groww_api.paper_trade(signal, symbol, price, quantity)
-    
-    exchange = "NSE"
-    
-    if signal == "BUY":
-        # Calculate target and stop loss  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
-        result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="BUY",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
-        )
-    elif signal == "SELL":
-        stop_loss = price + (atr * 1.0)
-        target = price - (atr * 4.0)
-        result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="SELL",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
-        )
-    else:
-        return None
-    
-    if result:
-        print("Order placed: {} {} {} @ Rs{:.2f}".format(
-            signal, quantity, symbol, price))
-    return result
+if __name__ == "__main__":
+    main()
 
 
 if __name__ == "__main__":

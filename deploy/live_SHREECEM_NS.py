@@ -500,99 +500,22 @@ def execute_trade(signal: str, current_price: float, atr: float, state: Dict, ca
     return result
 
 def main():
-    logger.info("=" * 60)
-    logger.info(f"LIVE TRADING - {SYMBOL} | {STRATEGY}")
-    logger.info(f"Win Rate: {BENCHMARK_WIN_RATE * 100:.2f}% -> Target: {TARGET_WIN_RATE*100:.0f}% | Pos: ₹{POSITION_SIZE:,} | SL: {STOP_LOSS_ATR_MULT*100:.1f}% ATR | TGT: {TARGET_ATR_MULT}x ATR")
-    logger.info(f"Filters: SMA({SMA_PERIOD})+EMA(20) | ADX>{ADX_THRESHOLD:.0f} | RSI ovr:{RSI_OVERBOUGHT}/os:{RSI_OVERSOLD} | Vol:{VOLUME_THRESHOLD}x | TSI_th:{TSI_THRESHOLD}")
-    logger.info("=" * 60)
-    state = load_state()
-    state = reset_daily_state(state)
-    CAPITAL = 100000
-    if check_daily_loss_limit(state, CAPITAL):
-        sys.exit(0)
-    ohlcv = fetch_recent_data(SYMBOL, 90)
-    if not ohlcv:
-        sys.exit(1)
-    atr = calculate_atr(ohlcv, ATR_PERIOD)
-    tsi, signal_line = calculate_tsi(ohlcv, TSI_FAST, TSI_SLOW, TSI_SIGNAL)
-    sma_vals = calculate_sma(ohlcv, SMA_PERIOD)
-    ema_vals = calculate_ema(ohlcv, 20)
-    rsi_vals = calculate_rsi(ohlcv, RSI_PERIOD)
-    vol_ma = calculate_volume_ma(ohlcv, VOLUME_MA_PERIOD)
-    adx_vals, plus_di, minus_di = calculate_adx(ohlcv, ADX_PERIOD)  # v3: trend strength filter
-    current_price = ohlcv[-1]["close"]
-    current_atr = atr[-1] if atr[-1] else (current_price * 0.02)
-    signal, filter_reason = generate_signal(ohlcv, tsi, signal_line, sma_vals, ema_vals, rsi_vals, vol_ma, atr, adx_vals)
-    current_sma = sma_vals[-1] if sma_vals and sma_vals[-1] else 0
-    current_ema = ema_vals[-1] if ema_vals and ema_vals[-1] else 0
-    current_rsi = rsi_vals[-1] if rsi_vals and rsi_vals[-1] else 50.0
-    current_vol = ohlcv[-1]["volume"]
-    avg_vol = vol_ma[-1] if vol_ma and vol_ma[-1] else current_vol
-    logger.info(f"Price: ₹{current_price:.2f} | ATR: ₹{current_atr:.2f} | TSI: {tsi[-1]:.2f} | ADX: {adx_vals[-1]:.1f} | Signal: {signal} | Filter: {filter_reason}")
-    logger.info(f"  SMA({SMA_PERIOD}): ₹{current_sma:.2f} | EMA(20): ₹{current_ema:.2f} | RSI({RSI_PERIOD}): {current_rsi:.1f} | Vol Ratio: {current_vol/avg_vol:.2f}x")
-    if signal != "HOLD":
-        result = execute_trade(signal, current_price, current_atr, state, CAPITAL)
-        state["last_signal"] = signal
-        if result["action"] != "NONE":
-            logger.info(f"Trade executed: {result}")
-    else:
-        logger.info("HOLD signal - no trade")
-    if state.get("position"):
-        pos = state["position"]
-        pnl_pct = ((current_price - pos["entry_price"]) / pos["entry_price"]) * 100
-        logger.info(f"Position: Entry ₹{pos['entry_price']:.2f} | Curr ₹{current_price:.2f} | P&L: {pnl_pct:.2f}%")
-    logger.info("=" * 60)
-    return 0
+    """Main trading loop"""
+    import yfinance
+    YFINANCE_AVAILABLE = True
+    try:
+        ticker = yfinance.Ticker("SHREECEM.NS")
+        d = ticker.history(period="3mo")
+        if len(d) < 30:
+            print("SHREECEM: No data")
+            return
+        closes = d['Close'].tolist()
+        print(f"SHREECEM: {len(closes)} candles, last price {closes[-1]:.2f}")
+    except Exception as e:
+        print(f"SHREECEM: Error - {e}")
 
-
-def place_groww_order(symbol, signal, quantity, price):
-    """
-    Place order via Groww API or paper trade.
-    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
-    Falls back to paper trading otherwise.
-    """
-    import groww_api
-    
-    if not groww_api.is_configured():
-        return groww_api.paper_trade(signal, symbol, price, quantity)
-    
-    exchange = "NSE"
-    
-    if signal == "BUY":
-        # Calculate target and stop loss  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
-        result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="BUY",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
-        )
-    elif signal == "SELL":
-        stop_loss = price + (atr * 1.0)
-        target = price - (atr * 4.0)
-        result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="SELL",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
-        )
-    else:
-        return None
-    
-    if result:
-        print("Order placed: {} {} {} @ Rs{:.2f}".format(
-            signal, quantity, symbol, price))
-    return result
+if __name__ == "__main__":
+    main()
 
 
 if __name__ == "__main__":
