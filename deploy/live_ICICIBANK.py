@@ -47,6 +47,38 @@ SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
 MAX_SL_PCT       = 0.015   # Hard cap: 1.5% max stop
 TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
 
+# REGIME FILTER (QA iteration — fix 0% WR in DOWNTREND)
+NIFTY_SYMBOL = "^NSEI"
+SMA_PERIOD   = 20
+REGIME_DOWNTREND_SKIP = True  # Skip BUY in DOWNTREND
+REGIME_RANGE_SIZE     = 0.5   # 50% size in RANGE
+
+def get_market_regime() -> str:
+    """Detect NIFTY regime using SMA ratio. Returns UPTREND/DOWNTREND/RANGE."""
+    try:
+        ticker = yf.Ticker(NIFTY_SYMBOL)
+        data = ticker.history(period="3mo")
+        if len(data) < SMA_PERIOD + 5:
+            return "UPTREND"  # safe default
+        closes = data['Close'].tolist()
+        sma = sum(closes[-SMA_PERIOD:]) / SMA_PERIOD
+        current = closes[-1]
+        ratio = current / sma
+        if ratio > 1.02:
+            return "UPTREND"
+        elif ratio < 0.98:
+            return "DOWNTREND"
+        return "RANGE"
+    except Exception:
+        return "UPTREND"  # safe default
+
+def get_position_multiplier(regime: str) -> float:
+    if regime == "DOWNTREND":
+        return 0.0  # skip
+    elif regime == "RANGE":
+        return REGIME_RANGE_SIZE
+    return 1.0
+
 TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
 TARGET_2_MULT    = 3.0     # T2: 3.0x risk → exit 1/3
 TARGET_3_MULT    = 5.0     # T3: 5.0x risk → exit remaining
