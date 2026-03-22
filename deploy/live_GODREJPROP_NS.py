@@ -187,6 +187,16 @@ def calculate_rsi(ohlcv: List[Dict], period: int = 14) -> List[float]:
             rsi_values[i + 1] = 100 - (100 / (1 + rs))
     return rsi_values
 
+def calculate_volume_ma(ohlcv: List[Dict], period: int = 20) -> List[float]:
+    """Calculate volume moving average for confirmation."""
+    vol_ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            vol_ma.append(None)
+        else:
+            vol_ma.append(sum(ohlcv[j]["volume"] for j in range(i - period + 1, i + 1)) / period)
+    return vol_ma
+
 # RSI filter: BUY>RSI55, SELL<RSI45
 # Regime filter: skip DOWNTREND
 def get_signal(ohlcv: List[Dict], vwap: List[float], atr: List[float], rsi: List[float]) -> tuple[str, float, float, float]:
@@ -200,10 +210,14 @@ def get_signal(ohlcv: List[Dict], vwap: List[float], atr: List[float], rsi: List
     rsi_value = rsi[i] if rsi else 50.0
     if vwap_value is None or atr_value is None or atr_value == 0:
         return "HOLD", current_price, atr_value, rsi_value
-    if current_price > vwap_value + atr_value * ATR_MULTIPLIER and rsi_value < RSI_OVERBOUGHT:
-        return "BUY", current_price, atr_value, rsi_value
-    elif current_price < vwap_value - atr_value * ATR_MULTIPLIER and rsi_value > RSI_OVERSOLD:
+    # ENHANCED: Volume confirmation + RSI 55/45 filter
+    vol_ma_val = vol_ma[i] if i < len(vol_ma) else None
+    if vol_ma_val is not None and ohlcv[i]["volume"] < vol_ma_val * VOLUME_MULT:
+        return "HOLD", current_price, atr_value, rsi_value
+    if current_price > vwap_value + atr_value * ATR_MULTIPLIER and rsi_value > RSI_OVERBOUGHT:
         return "SELL", current_price, atr_value, rsi_value
+    elif current_price < vwap_value - atr_value * ATR_MULTIPLIER and rsi_value < RSI_OVERSOLD:
+        return "BUY", current_price, atr_value, rsi_value
     return "HOLD", current_price, atr_value, rsi_value
 
 def calculate_stop_loss(entry_price: float, atr: float) -> float:
