@@ -27,3 +27,11 @@
   - Gas price correlation: rising gas = favorable for IGL BUY signals
 ### Git: auto-commit iter=212 (IGL + README)
 ### README: Iteration #21 updated
+
+### TATASTEEL Enhancement (01:19 UTC):
+- **live_TATASTEEL.py**: 61.54% WR → v8 LOWWR (added Bollinger Band + 50-MA Trend filter to existing v7 steel logic)
+  - Added calculate_ma() and calculate_bollinger_bands() functions
+  - Updated vwap_enhanced_signal() to include BB and Trend MA filters
+  - Updated PARAMS with trend_ma_period=50, bb_period=20, bb_std=2.0
+  - Updated STRATEGY name to VWAP_RSI_MACD_VOL_BB_v8_LOWWR
+  - v8: STOP_LOSS_PCT=0.006, TARGET_MULT=4.0 (steel keeps 0.8% ATR stop via STOP_LOSS_ATR_MULT)
