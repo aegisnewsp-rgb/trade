@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - ADANIPORTS.NS
-Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8)
-Win Rate: ADANIPORTS.NS (low base) -> Target 55%+ (v8 multi-filter upgrade)
+Strategy: MEAN_REVERSION v9 (RSI-only + VWAP bounce) - NO trend/MACD/BB filters
+Win Rate: ADANIPORTS.NS (0% -> Target 50%+) - v9 MEAN_REVERSION - removed trend/MACD/BB that blocked all signals
 Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.3%
-Enhanced: 2026-03-23 - v8 LOWWR: upgraded from low win-rate script
+Enhanced: 2026-03-23 - v9 MEAN_REVERSION: 0% WR v8 - removed trend/MACD/BB filters, RSI 38/62, vol 1.3x
 """
 
 import os, sys, json, time, logging
@@ -31,7 +31,7 @@ log = logging.getLogger("live_live_ADANIPORTS")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "ADANIPORTS.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
+STRATEGY       = "MEAN_REVERSION_RSI_V9"
 POSITION       = 7000
 
 # 3-TIER EXIT SYSTEM
@@ -45,14 +45,14 @@ PARAMS         = {
     "vwap_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "rsi_overbought": 68,
-    "rsi_oversold": 32,
-    "rsi_confirm_overbought": 68,
-    "rsi_confirm_oversold": 32,
+    "rsi_overbought": 62,
+    "rsi_oversold": 38,
+    "rsi_confirm_overbought": 62,
+    "rsi_confirm_oversold": 38,
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 2.0,
+    "volume_multiplier": 1.3,
     "trend_ma_period": 50,
     "atr_period": 14,
     "bb_period": 20,
