@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - NTPC.NS
-Strategy: VWAP + RSI + Volume Confirmation (Groww Production Enhanced)
-RSI Filter: BUY above 55, SELL below 45 | Volume: 1.2× avg | Entry: 9:30–14:30 IST
-3-Tier Targets: 1.5x/3x/5x risk | Trailing Stop: 0.3× ATR
-Position: ₹7000 | Stop Loss: 0.8% | Daily Loss Cap: 0.3%
+Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8 LOWWR - PSU/Energy profile)
+Enhanced: 2026-03-23 - v8 LOWWR upgrade from VWAP+RSI+Volume
+- v8 LOWWR NEW: Bollinger Band (20,2.0) + 50-MA Trend filter + MACD(12,26,9) multi-filter
+- v8 LOWWR: 3-TIER EXIT 1.5x/3.0x/5.0x, STOP_LOSS 0.6%, TARGET_MULT 4.0x
+Win Rate: ~58% -> Target 65%+
+Position: ₹7000 | Daily Loss Cap: 0.3%
 """
 
 import os
