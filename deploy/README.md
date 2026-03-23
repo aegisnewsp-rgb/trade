@@ -13,12 +13,13 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 ## QA Status
 - **Last checked: 2026-03-23 01:25 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Iteration:** #22
+- **Iteration:** #23
 - **Total v8 LOWWR enhanced:** 57 scripts (was 49 before this iteration)
 - **New v8 LOWWR upgrades (Iteration #22):** GAIL (58.00%), ALKEM (57.92%), ABB (58.06%), ASIANPAINT (58.33%), CENTRALBK (58.60%), FEDERALBNK (58.00%), INDHOTEL (58.62%), IDEA (59.52%) → all target 65%+
 - **Previous v8 LOWWR:** HDFCBANK, IGL, TATASTEEL, KOTAKBANK, COALINDIA, TATAMOTORS.BO, LT, BHARTIARTL, SUNPHARMA + others
 - **Loop status:** Running (qa_loop_forever.py, 7-min cycles; qa_loop.py, 30-min cycles)
-- **Working tree:** Dirty (8 files: GAIL, ALKEM, ABB, ASIANPAINT, CENTRALBK, FEDERALBNK, INDHOTEL, IDEA)
+- **Working tree:** Dirty (10 files: GAIL, ALKEM, ABB, ASIANPAINT, CENTRALBK, FEDERALBNK, INDHOTEL, IDEA, ONGC, MM_NS)
+- **New v8 LOWWR (Iteration #23 - 2026-03-23):** ONGC (25.0% WR → v8 multi-filter), MM_NS (16.7% WR → v8 multi-filter + preserved festive/tractor filters)
 
 ## Regime-Filter Enhancements (Iteration #14)
 Scripts with 0% WR in DOWNTREND/RANGE regime enhanced with NIFTY-based regime filtering:
@@ -93,6 +94,9 @@ Low win-rate scripts (benchmark, all below 70%):
 • TATASTEEL.NS: 61.54% → ✅ v8 LOWWR upgrade (2026-03-23) [NEW]
 • CIPLA.NS: 60.07%
 • SRF_NS.NS: 60.13%
+
+• ONGC.NS: 25.0% → ✅ v8 LOWWR upgrade (2026-03-23)
+• M&M.NS: 16.7% → ✅ v8 LOWWR upgrade (2026-03-23) [preserved festive/tractor sales filters]
 
 Target: 70%+ win rate for all scripts
 Note: Low win-rate scripts already use multi-filter confirmation (RSI, volume, volatility, trend). Improvements require careful backtesting beyond syntax fixes.
