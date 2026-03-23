@@ -33,31 +33,32 @@ cd deploy && for f in live_*.py; do python3 -m py_compile "$f" || echo "FAIL: $f
 | GLENMARK.NS | 56% | v8 LOWWR pharma (0.6% SL, ₹5K pos) |
 | DABUR | 57% | v8 enhanced |
 | GRASIM | 57% | v8 enhanced |
-| COMPINFO.BO | ~5% base | v8 LOWWR upgraded |
-| ADANIPORTS | 0% | v8 LOWWR upgraded (2026-03-23) |
-| ICICIBANK | 0% | v8 LOWWR upgraded (2026-03-23) |
-| AXISBANK | 0% | v8 LOWWR upgraded (2026-03-23) |
-| HCLTECH_NS | 0% | v8 LOWWR upgraded (2026-03-23) |
-| ADANIPOWER | 0% | v8 LOWWR upgraded (2026-03-23) |
-| DRREDDY | 0% | v8 LOWWR upgraded (2026-03-23) |
-| SRF_NS | 0% | v8 LOWWR upgraded (2026-03-23) |
-| SBILIFE_NS | 0% | v8 LOWWR upgraded (2026-03-23) |
-| SHREECEM_NS | 0% | v8 LOWWR upgraded (2026-03-23) |
-| CIPLA | 0% | v8 LOWWR upgraded (2026-03-23) |
+| COMPINFO.BO | 5% (21 trades) | v8 LOWWR (RSI 38/62) |
+| ADANIPORTS | 28% (5 trades) | v8 LOWWR - few trades |
+| ICICIBANK | 25% (7 trades) | v8 LOWWR - few trades |
+| AXISBANK | 21% (5 trades) | v8 LOWWR - few trades |
+| HCLTECH_NS | N/A | v8 LOWWR - no perf data |
+| ADANIPOWER | 24% (5 trades) | v8 LOWWR - few trades |
+| DRREDDY | 32% (5 trades) | v8 LOWWR - few trades |
+| SRF_NS | N/A | v8 LOWWR - no perf data |
+| SBILIFE_NS | N/A | v8 LOWWR - no perf data |
+| SHREECEM_NS | N/A | v8 LOWWR - no perf data |
+| CIPLA | 21% (7 trades) | v8 LOWWR - few trades |
 | CYIENT.BO | 0% | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
 | DSM | 0% (3 trades) | v8 LOWWR - trades too few for stats |
 | GAL | 0% (2 trades) | v8 LOWWR - trades too few for stats |
 | PRAKASHSTL.BO | 0% | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
 | RUPA.BO | 0% | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
 | INFY | 10% (21 trades) | v8 LOWWR (RSI 38/62) - 2026-03-23 |
-| SEL.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
-| SPAL.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
-| SUNDARAM.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
-| ABFRL.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
-| PUNJABCHEM.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
-| SAMTEX.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
+| SEL.BO | 10% (21 trades) | v8 LOWWR (RSI 38/62) |
+| SPAL.BO | 11% (19 trades) | v8 LOWWR (RSI 38/62) |
+| SUNDARAM.BO | 11% (19 trades) | v8 LOWWR (RSI 38/62) |
+| ABFRL.BO | 11% (18 trades) | v8 LOWWR (RSI 38/62) |
+| PUNJABCHEM.BO | 12% (16 trades) | v8 LOWWR (RSI 38/62) |
+| SAMTEX.BO | 13% (23 trades) | v8 LOWWR (RSI 38/62) |
 
 ## Enhancement Log
+- 2026-03-23 00:48: CYIENT.BO, PRAKASHSTL.BO, RUPA.BO pivoted to MEAN_REVERSION v9 (removed trend filter, widened RSI 38/62) - 0% WR under v8 was due to downtrend blocking all signals
 - 2026-03-23 00:32: 12 additional 0% WR scripts upgraded to v8 LOWWR (CYIENT.BO, DSM, GAL, PRAKASHSTL.BO, RUPA.BO, INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, ABFRL.BO, PUNJABCHEM.BO, SAMTEX.BO)
 - 2026-03-23 00:12: 10 additional 0% WR scripts upgraded to v8 LOWWR (ADANIPORTS, ICICIBANK, AXISBANK, HCLTECH_NS, ADANIPOWER, DRREDDY, SRF_NS, SBILIFE_NS, SHREECEM_NS, CIPLA)
 - 2026-03-22 23:36: WIPRO, HEROMOTOCO, GLENMARK.NS upgraded to v8 LOWWR (0.6% SL, ₹5K position)
