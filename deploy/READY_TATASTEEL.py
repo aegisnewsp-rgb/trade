@@ -93,6 +93,14 @@ def main():
     print(f"\nNOTE: Wait 9:45 AM IST for 15min candle confirmation")
     if not (cond_bearish and cond_rsi_ok and cond_trend):
         print("Conditions not met — HOLD"); return
+
+    # ── Time Exit: 2:30 PM IST ─────────────────────────────────────────────
+    now_ist = datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
+    if now_ist.time() >= __import__("datetime").time(14, 30):
+        print(f"[TIME EXIT] 2:30 PM IST — closing at Rs{price:.2f}")
+        return
+    # ─────────────────────────────────────────────────────────────────────
+
     # For SELL: entry = current, stop = above entry, target = below entry
     entry  = price
     stop    = round(price * (1 + STOP_PCT), 2)

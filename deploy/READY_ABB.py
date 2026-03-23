@@ -138,6 +138,15 @@ def main():
         print("Conditions not met — HOLD")
         return
 
+    # ── Time Exit: 2:30 PM IST ─────────────────────────────────────────────
+    now_ist = datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
+    if now_ist.time() >= __import__("datetime").time(14, 30):
+        print(f"[TIME EXIT] 2:30 PM IST — closing at Rs{price:.2f}")
+        if is_configured():
+            print("[TIME EXIT] Would place market close order")
+        return
+    # ─────────────────────────────────────────────────────────────────────
+
     sl     = round(price * (1 - STOP_PCT), 2)
     target = round(price * (1 + TARGET_PCT), 2)
     risk   = price - sl

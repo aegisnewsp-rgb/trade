@@ -106,6 +106,17 @@ def main():
     if not (cond_vwap and cond_rsi and cond_trend):
         print("Conditions not met — HOLD"); return
 
+    # ── Time Exit: 2:30 PM IST ─────────────────────────────────────────────
+    from datetime import time as dtime
+    now_ist = datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
+    if now_ist.time() >= dtime(14, 30):
+        print(f"2:30 PM IST reached — closing all positions at Rs{price:.2f}")
+        # In live mode this would place a MKT close order
+        if is_configured():
+            print("[TIME EXIT] Would close position at market price")
+        return
+    # ─────────────────────────────────────────────────────────────────────
+
     sl     = round(price * (1 - STOP_PCT), 2)
     target = round(price * (1 + TARGET_PCT), 2)
     qty    = max(1, int(POSITION / price))
