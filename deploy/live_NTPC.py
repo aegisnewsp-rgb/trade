@@ -36,21 +36,31 @@ log = logging.getLogger("live_NTPC")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "NTPC.NS"
-STRATEGY       = "VWAP+RSI+Volume"
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
 POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
-TARGET_MULT    = 4.0
+STOP_LOSS_PCT  = 0.006  # v8: 0.6% hard stop
+TARGET_MULT    = 4.0     # v8: 4.0x ATR target
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {
-    # Sniper-optimized params (2026-03-22 Round 4)
+    # v8 LOWWR multi-filter params
     "vwap_period": 14,
     "atr_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "RSI_BUY": 45,        # BUY when RSI < 45
-    "RSI_SELL": 55,       # SELL when RSI > 55
-    "VOL_THRESH": 1.0,    # Volume must be ≥ 1.0× avg
-    "HOLD_DAYS": 10,      # Hold for 10 days
+    "rsi_overbought": 68,   # v8: tighter overbought threshold
+    "rsi_oversold": 32,    # v8: tighter oversold threshold
+    "rsi_confirm_overbought": 68,
+    "rsi_confirm_oversold": 32,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "volume_multiplier": 2.0,  # v8: 2x avg volume confirmation
+    "volume_ma_period": 20,
+    "trend_ma_period": 50,
+    "bb_period": 20,
+    "bb_std": 2.0,
+    # legacy
+    "atr_multiplier_exit": 1.5,
 }
 
 # 3-TIER EXIT SYSTEM
