@@ -2,9 +2,9 @@
 """
 Live Trading Script - COMPINFO.BO
 Strategy: MEAN_REVERSION (RSI-only + VWAP bounce) - v9 LOWWR
-Win Rate: 4.8% -> Target 55%+ (v8 failed, pivoting to RSI-only bounce)
+Win Rate: 4.8% -> Target 50%+ (v9b: vol 2.0→1.3, more signals)
 Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.3%
-Enhanced: 2026-03-23 - v9 MEAN_REVERSION: low WR v8 multi-filter too restrictive
+Enhanced: 2026-03-23 - v9b MEAN_REVERSION: vol_mult 2.0→1.3 to unlock thin-cap signals
 """
 
 import os
@@ -55,7 +55,7 @@ PARAMS         = {
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 2.0,
+    "volume_multiplier": 1.3,
     "trend_ma_period": 50,
     "atr_period": 14,
     "bb_period": 20,

@@ -53,7 +53,7 @@ PARAMS         = {
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 2.0,   # v8: require above-2x avg volume
+    "volume_multiplier": 1.3,   # v8: require above-2x avg volume
     "trend_ma_period": 50,      # v8: trend filter
     "atr_period": 14,
     "bb_period": 20,            # v8: Bollinger Band period
