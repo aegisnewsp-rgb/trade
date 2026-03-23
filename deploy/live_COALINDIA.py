@@ -55,29 +55,20 @@ NO_ENTRY_AFTER = dtime(14, 30)
 BEST_ENTRY_START = dtime(9, 30)
 BEST_ENTRY_END = dtime(12, 0)
 
-# === ENHANCED ENTRY PARAMETERS ===
-ENTRY_VWAP_PCT = 0.004
-# RSI filter: BUY only when RSI > 55, SELL only when RSI < 45
-ENTRY_RSI_MIN = 55
-ENTRY_RSI_MAX = 45
-# Volume 1.2x avg for entry confirmation
-ENTRY_VOL_MULT = 1.2
+# === 3-TIER EXIT SYSTEM (v8 LOWWR) ===
+SL_ATR_MULT = 1.0     # Stop loss: 1.0x ATR
+STOP_LOSS_PCT = 0.006  # v8 LOWWR: 0.6% hard stop
+MAX_SL_PCT = 0.010     # Hard cap: 1.0% max stop
+TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
 
-# 0.8% ATR stop loss
+TARGET_1_MULT = 1.5     # T1: 1.5x risk → exit 1/3
+TARGET_2_MULT = 3.0     # T2: 3.0x risk → exit 1/3
+TARGET_3_MULT = 5.0     # T3: 5.0x risk → exit remaining
 
-# OPTIMIZED PARAMS (sniper scan — 2yr data)
-RSI_BUY = 45
-RSI_SELL = 55
-VOL_THRESH = 0.5
-HOLD_DAYS = 10
-VWAP_TOL = 0.01
-SL_PCT = 1.0
-TGT_PCT = 3.0
-TRAIL_ATR_MULT = 0.3
-BEST_ENTRY_START = "09:30"
-BEST_ENTRY_END = "14:30"
-
-SL_ATR_MULT = 1.0
+# Entry window
+BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
+BEST_ENTRY_END = dtime(14, 30)  # 2:30 PM IST
+NO_ENTRY_AFTER = dtime(14, 30)  # No new entries after 2:30 PM
 MAX_SL_PCT = 0.008
 
 # 3-Tier Targets
