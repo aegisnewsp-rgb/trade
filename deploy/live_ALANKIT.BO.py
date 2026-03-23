@@ -215,15 +215,14 @@ def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.
     return upper, middle, lower
 
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
-    """MEAN_REVERSION v9: RSI-only bounce + VWAP proximity + Volume confirmation.
-    No trend filter (fails for consistently downtrending stocks).
+    """MEAN_REVERSION v9c: RSI crossover + tighter VWAP + volume filters.
     """
     period     = params["vwap_period"]
     atr_mult   = params["atr_multiplier"]
     rsi_period = params["rsi_period"]
-    rsi_oversold   = params.get("rsi_oversold", 38)
-    rsi_overbought = params.get("rsi_overbought", 62)
-    vol_mult   = params.get("volume_multiplier", 1.5)
+    rsi_oversold   = params.get("rsi_oversold", 40)
+    rsi_overbought = params.get("rsi_overbought", 60)
+    vol_mult   = params.get("volume_multiplier", 2.0)
 
     vwap_vals  = calculate_vwap(ohlcv, period)
     atr_vals   = calculate_atr(ohlcv, period)
@@ -237,24 +236,29 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
         if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
 
+        if i > start_idx:
+            prev_rsi = rsi_vals[i - 1]
+        else:
+            prev_rsi = rsi_vals[i]
+
         price = ohlcv[i][3]
         v      = vwap_vals[i]
         a      = atr_vals[i]
         rsi    = rsi_vals[i]
         vol    = ohlcv[i][4]
 
-        # Mean reversion: oversold + price near/at VWAP support
         oversold      = rsi < rsi_oversold
+        rsi_crossed_down = prev_rsi >= rsi_oversold and rsi < rsi_oversold
         near_vwap     = abs(price - v) < a * 1.0
         vol_confirmed = vol > avg_vol * vol_mult
 
-        # Overbought: overbought + price near/at VWAP resistance
         overbought    = rsi > rsi_overbought
+        rsi_crossed_up = prev_rsi <= rsi_overbought and rsi > rsi_overbought
         at_resistance = abs(price - v) < a * 1.0
 
-        if oversold and near_vwap and vol_confirmed:
+        if oversold and rsi_crossed_down and near_vwap and vol_confirmed:
             signals[i] = "BUY"
-        elif overbought and at_resistance and vol_confirmed:
+        elif overbought and rsi_crossed_up and at_resistance and vol_confirmed:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"

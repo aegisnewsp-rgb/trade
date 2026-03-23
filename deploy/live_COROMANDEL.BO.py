@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - COROMANDEL.BO
-Strategy: MEAN_REVERSION (RSI-only + VWAP bounce) - v9 LOWWR
-Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.3%
+Strategy: MEAN_REVERSION v9c LOWWR - RSI crossover + tighter filters
+Position: ₹5000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.25%
+Enhanced: 2026-03-23 - v9c: Tightened to v8 LOWWR standards + RSI crossover
 """
 
 import os
@@ -32,8 +33,8 @@ log = logging.getLogger("live_COROMANDEL_BO")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "COROMANDEL.BO"
-STRATEGY = "MEAN_REVERSION_RSI_V9"  # COROMANDEL.BO  # COROMANDEL.BO
-POSITION       = 7000
+STRATEGY = "MEAN_REVERSION_RSI_V9C"  # COROMANDEL.BO
+POSITION       = 5000
 
 # 3-TIER EXIT SYSTEM
 TARGET_1_MULT = 1.5
@@ -46,14 +47,14 @@ PARAMS         = {
     "vwap_period": 14,
     "atr_multiplier": 0.5,
     "rsi_period": 14,
-    "rsi_overbought": 62,
-    "rsi_oversold": 38,
-    "rsi_confirm_overbought": 62,
-    "rsi_confirm_oversold": 38,
+    "rsi_overbought": 60,
+    "rsi_oversold": 40,
+    "rsi_confirm_overbought": 60,
+    "rsi_confirm_oversold": 40,
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 1.3,   # v8: require above-2x avg volume
+    "volume_multiplier": 2.0,   # v8: require above-2x avg volume
     "trend_ma_period": 50,      # v8: trend filter
     "atr_period": 14,
     "bb_period": 20,            # v8: Bollinger Band period
@@ -214,15 +215,14 @@ def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.
     return upper, middle, lower
 
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
-    """MEAN_REVERSION v9: RSI-only bounce + VWAP proximity + Volume confirmation.
-    No trend filter (fails for consistently downtrending stocks).
+    """MEAN_REVERSION v9c: RSI crossover + tighter VWAP + volume filters.
     """
     period     = params["vwap_period"]
     atr_mult   = params["atr_multiplier"]
     rsi_period = params["rsi_period"]
-    rsi_oversold   = params.get("rsi_oversold", 38)
-    rsi_overbought = params.get("rsi_overbought", 62)
-    vol_mult   = params.get("volume_multiplier", 1.5)
+    rsi_oversold   = params.get("rsi_oversold", 40)
+    rsi_overbought = params.get("rsi_overbought", 60)
+    vol_mult   = params.get("volume_multiplier", 2.0)
 
     vwap_vals  = calculate_vwap(ohlcv, period)
     atr_vals   = calculate_atr(ohlcv, period)
@@ -236,24 +236,29 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
         if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
 
+        if i > start_idx:
+            prev_rsi = rsi_vals[i - 1]
+        else:
+            prev_rsi = rsi_vals[i]
+
         price = ohlcv[i][3]
         v      = vwap_vals[i]
         a      = atr_vals[i]
         rsi    = rsi_vals[i]
         vol    = ohlcv[i][4]
 
-        # Mean reversion: oversold + price near/at VWAP support
         oversold      = rsi < rsi_oversold
+        rsi_crossed_down = prev_rsi >= rsi_oversold and rsi < rsi_oversold
         near_vwap     = abs(price - v) < a * 1.0
         vol_confirmed = vol > avg_vol * vol_mult
 
-        # Overbought: overbought + price near/at VWAP resistance
         overbought    = rsi > rsi_overbought
+        rsi_crossed_up = prev_rsi <= rsi_overbought and rsi > rsi_overbought
         at_resistance = abs(price - v) < a * 1.0
 
-        if oversold and near_vwap and vol_confirmed:
+        if oversold and rsi_crossed_down and near_vwap and vol_confirmed:
             signals[i] = "BUY"
-        elif overbought and at_resistance and vol_confirmed:
+        elif overbought and rsi_crossed_up and at_resistance and vol_confirmed:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
