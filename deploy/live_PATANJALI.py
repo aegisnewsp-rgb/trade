@@ -132,28 +132,57 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
     return vwap
 
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+    """MEAN_REVERSION v9c: RSI crossover + VWAP + Volume confirmation."""
     period        = params["vwap_period"]
     atr_mult      = params["atr_multiplier"]
+    rsi_period    = params.get("rsi_period", 14)
+    rsi_oversold  = params.get("rsi_oversold", 40)
+    rsi_overbought = params.get("rsi_overbought", 60)
+    vol_mult      = params.get("volume_multiplier", 2.0)
+
     vwap_vals     = calculate_vwap(ohlcv, period)
     atr_vals      = calculate_atr(ohlcv, period)
+    rsi_vals      = calculate_rsi_list(ohlcv, rsi_period)
     signals       = ["HOLD"] * len(ohlcv)
 
-    for i in range(period, len(ohlcv)):
+    # Calculate volume average
+    if len(ohlcv) >= 20:
+        avg_vol = sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - 20, len(ohlcv))) / 20
+    else:
+        avg_vol = sum(ohlcv[j]["volume"] for j in range(len(ohlcv))) / max(len(ohlcv), 1)
+
+    start_idx = max(period, rsi_period, 5)
+    for i in range(start_idx, len(ohlcv)):
         if vwap_vals[i] is None or atr_vals[i] is None:
             continue
+
+        # RSI crossover detection
+        prev_rsi = rsi_vals[i - 1] if i > start_idx else rsi_vals[i]
+        curr_rsi = rsi_vals[i]
+
         price    = ohlcv[i]["close"]
         v        = vwap_vals[i]
         a        = atr_vals[i]
+        vol      = ohlcv[i]["volume"]
         signal_mode = globals().get("SIGNAL_MODE", "BREAKOUT")
+
+        # Volume confirmation
+        vol_confirmed = vol >= avg_vol * vol_mult
+
         if signal_mode == "MEAN_REVERSION":
-            if price < v - a * atr_mult:
+            # BUY: RSI crossed below oversold threshold + price near VWAP support
+            rsi_crossed_down = prev_rsi >= rsi_oversold and curr_rsi < rsi_oversold
+            near_support = price < v  # price below VWAP
+            if rsi_crossed_down and near_support and vol_confirmed:
                 signals[i] = "BUY"
-            elif price > v + a * atr_mult:
+            # SELL: RSI crossed above overbought threshold + price near VWAP resistance
+            elif curr_rsi > rsi_overbought and prev_rsi <= rsi_overbought and vol_confirmed:
                 signals[i] = "SELL"
         else:
-            if price > v + a * atr_mult:
+            # BREAKOUT mode
+            if price > v + a * atr_mult and vol_confirmed:
                 signals[i] = "BUY"
-            elif price < v - a * atr_mult:
+            elif price < v - a * atr_mult and vol_confirmed:
                 signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
