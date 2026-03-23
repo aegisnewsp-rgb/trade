@@ -11,15 +11,12 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked: 2026-03-23 01:25 UTC
+- **Last checked: 2026-03-23 02:14 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Iteration:** #23
-- **Total v8 LOWWR enhanced:** 57 scripts (was 49 before this iteration)
-- **New v8 LOWWR upgrades (Iteration #22):** GAIL (58.00%), ALKEM (57.92%), ABB (58.06%), ASIANPAINT (58.33%), CENTRALBK (58.60%), FEDERALBNK (58.00%), INDHOTEL (58.62%), IDEA (59.52%) → all target 65%+
-- **Previous v8 LOWWR:** HDFCBANK, IGL, TATASTEEL, KOTAKBANK, COALINDIA, TATAMOTORS.BO, LT, BHARTIARTL, SUNPHARMA + others
+- **Cycle:** #37
+- **Total v8 LOWWR enhanced:** 57 scripts
 - **Loop status:** Running (qa_loop_forever.py, 7-min cycles; qa_loop.py, 30-min cycles)
-- **Working tree:** Dirty (10 files: GAIL, ALKEM, ABB, ASIANPAINT, CENTRALBK, FEDERALBNK, INDHOTEL, IDEA, ONGC, MM_NS)
-- **New v8 LOWWR (Iteration #23 - 2026-03-23):** ONGC (25.0% WR → v8 multi-filter), MM_NS (16.7% WR → v8 multi-filter + preserved festive/tractor filters)
+- **Working tree:** Clean (no uncommitted changes)
 
 ## Regime-Filter Enhancements (Iteration #14)
 Scripts with 0% WR in DOWNTREND/RANGE regime enhanced with NIFTY-based regime filtering:
