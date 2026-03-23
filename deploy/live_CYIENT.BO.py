@@ -48,7 +48,7 @@ BB_PERIOD      = 20
 BB_STD         = 2.0
 VOLUME_MA_PERIOD = 20
 VOLUME_CONFIRM   = 1.2
-STOP_LOSS_PCT     = 0.008  # Wider stop for mean reversion
+STOP_LOSS_PCT  = 0.006  # Wider stop for mean reversion
 TARGET_MULT       = 3.0   # Tighter target
 DAILY_LOSS_CAP    = 0.003
 
