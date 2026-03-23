@@ -33,8 +33,8 @@ log = logging.getLogger("live_AMTL_BO")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "AMTL.BO"
-STRATEGY = "MEAN_REVERSION_RSI_V9"  # AMTL.BO  # AMTL.BO
-POSITION       = 7000
+STRATEGY = "MEAN_REVERSION_RSI_V9C"  # AMTL.BO
+POSITION       = 5000
 
 # 3-TIER EXIT SYSTEM
 TARGET_1_MULT = 1.5
