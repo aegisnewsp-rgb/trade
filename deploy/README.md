@@ -11,13 +11,12 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked: 2026-03-23 00:36 UTC
+- **Last checked: 2026-03-23 01:04 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Iteration:** #19
-- **Enhancement:** live_CYIENT.BO.py converted from VWAP to MEAN_REVERSION (0% WR → target 50%+)
-- **Loop status:** Running
+- **Iteration:** #20
+- **New v8 LOWWR upgrades:** ADANIENT (57.69%), BPCL (57.50%), CHOLAFIN (57.49%), TECHM (58.00%)
 - **Loop status:** Running (qa_loop_forever.py, 7-min cycles; qa_loop.py, 30-min cycles)
-- **Working tree:** Clean
+- **Working tree:** Clean (pending commit)
 
 ## Regime-Filter Enhancements (Iteration #14)
 Scripts with 0% WR in DOWNTREND/RANGE regime enhanced with NIFTY-based regime filtering:
@@ -77,14 +76,16 @@ Basic low win-rate scripts upgraded to v8 multi-filter standard:
 
 ## Enhancement Notes
 Low win-rate scripts (benchmark, all below 70%):
-• ADANIENT.NS: 57.69% (TSI + multi-filter)
-• TECHM.NS: 58.00% (generic IT benchmark)
-• SHREECEM_NS.NS: 58.06% (generic benchmark)
-• POWERGRID_NS.NS: 58.82%
-• MARUTI_NS.NS: 59.26%
-• HINDPETRO_NS.NS: 59.38%
-• SBILIFE_NS.NS: 59.44%
-• NESTLEIND_NS.NS: 59.93%
+• ADANIENT.NS: 57.69% → ✅ v8 LOWWR upgrade (2026-03-23)
+• TECHM.NS: 58.00% → ✅ v8 LOWWR upgrade (2026-03-23)
+• BPCL.NS: 57.50% → ✅ v8 LOWWR upgrade (2026-03-23)
+• CHOLAFIN.NS: 57.49% → ✅ v8 LOWWR upgrade (2026-03-23)
+• SHREECEM_NS.NS: 58.06% → ✅ v8 LOWWR (already upgraded)
+• POWERGRID_NS.NS: 58.82% → ✅ v8 LOWWR (already upgraded)
+• MARUTI_NS.NS: 59.26% → ✅ v8 LOWWR (already upgraded)
+• HINDPETRO_NS.NS: 59.38% → ✅ v8 LOWWR (already upgraded)
+• SBILIFE_NS.NS: 59.44% → ✅ v8 LOWWR (already upgraded)
+• NESTLEIND_NS.NS: 59.93% → ✅ v8 LOWWR (already upgraded)
 • CIPLA.NS: 60.07%
 • SRF_NS.NS: 60.13%
 
