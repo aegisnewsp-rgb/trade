@@ -65,6 +65,7 @@ cd deploy && for f in live_*.py; do python3 -m py_compile "$f" || echo "FAIL: $f
 | SAMTEX.BO | 13% (23 trades) | v8 LOWWR (RSI 38/62) |
 
 ## Enhancement Log
+- 2026-03-23 01:44: v9b enhancements: vol_mult 2.0→1.3 for thin small-caps (CYIENT, PRAKASHSTL, RUPA, COMPINFO, SHIVALIK, AMTL, ALANKIT, COROMANDEL); atr_mult 1.5→0.5 for high-ATR% stocks (SHIVALIK 4.6%, COROMANDEL 4.4%, ALANKIT 7.2%, AMTL 9.9%, COMPINFO); ATGL.NS atr_mult 1.0→0.5 + stop 1x→2x ATR (8.12% ATR too high for 1x threshold)
 - 2026-03-23 01:34: 7 scripts pivoted to MEAN_REVERSION v9 (COMPINFO.BO, SHIVALIK.BO, AMTL.BO, ALANKIT.BO, COROMANDEL.BO, PATANJALI, ATGL.NS) - v8 multi-filter too restrictive, removed trend/MACD/BB filters
 - 2026-03-23 00:48: CYIENT.BO, PRAKASHSTL.BO, RUPA.BO pivoted to MEAN_REVERSION v9 (removed trend filter, widened RSI 38/62) - 0% WR under v8 was due to downtrend blocking all signals
 - 2026-03-23 00:32: 12 additional 0% WR scripts upgraded to v8 LOWWR (CYIENT.BO, DSM, GAL, PRAKASHSTL.BO, RUPA.BO, INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, ABFRL.BO, PUNJABCHEM.BO, SAMTEX.BO)
