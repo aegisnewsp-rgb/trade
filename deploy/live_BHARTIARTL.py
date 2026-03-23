@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - BHARTIARTL.NS
-Strategy: Momentum (RSI + ATR breakout)
-Win Rate: N/A (default source)
-Position: ₹7000 | Stop Loss: 0.8% ATR | Target: 4.0x ATR | Daily Loss Cap: 0.3%
+Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8 LOWWR)
+Win Rate: N/A -> Target 60%+ (v8 LOWWR: upgraded from Momentum RSI to multi-filter)
+Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x ATR | Daily Loss Cap: 0.3%
+Enhanced: 2026-03-23 - v8 LOWWR: upgraded from Momentum RSI to full multi-filter
 """
 
 import os, sys, json, time, logging, requests
@@ -26,41 +27,37 @@ logging.basicConfig(
 log = logging.getLogger("live_BHARTIARTL")
 
 SYMBOL         = "BHARTIARTL.NS"
-STRATEGY       = "MOMENTUM"
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
 POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
+
+# 3-TIER EXIT SYSTEM
+TARGET_1_MULT = 1.5
+TARGET_2_MULT = 3.0
+TARGET_3_MULT = 5.0
+STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {"rsi_period": 14, "atr_period": 14, "rsi_buy": 55, "rsi_sell": 45}
+PARAMS         = {
+    "vwap_period": 14,
+    "atr_multiplier": 1.5,
+    "rsi_period": 14,
+    "rsi_overbought": 68,
+    "rsi_oversold": 32,
+    "rsi_confirm_overbought": 68,
+    "rsi_confirm_oversold": 32,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "volume_multiplier": 2.0,
+    "trend_ma_period": 50,
+    "atr_period": 14,
+    "bb_period": 20,
+    "bb_std": 2.0,
+}
 
-# 3-TIER EXIT SYSTEM (enhancement)
-SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
-MAX_SL_PCT       = 0.015   # Hard cap: 1.5% max stop
-TRAIL_TRIGGER_PCT = 0.008  # Trail after 0.8% profit
-
-TARGET_1_MULT    = 1.5     # T1: 1.5x risk → exit 1/3
-TARGET_2_MULT    = 3.0     # T2: 3.0x risk → exit 1/3
-TARGET_3_MULT    = 5.0     # T3: 5.0x risk → exit remaining
-
-# Entry window
-BEST_ENTRY_START = dtime(9, 30)  # 9:30 AM IST
-BEST_ENTRY_END   = dtime(14, 30) # 2:30 PM IST
-NO_ENTRY_AFTER   = dtime(14, 30) # No new entries after 2:30 PM
-
-def can_new_entry() -> bool:
-    """Only allow entries during best entry window."""
-    now = ist_now().time()
-    if now < BEST_ENTRY_START:
-        log.info("⏰ Too early — waiting for 9:30 AM IST entry window")
-        return False
-    if now >= NO_ENTRY_AFTER:
-        log.info("⏰ After 2:30 PM IST — no new entries today")
-        return False
-    return True
-
-def in_best_entry_window() -> bool:
-    now = ist_now().time()
-    return BEST_ENTRY_START <= now <= BEST_ENTRY_END
+BEST_ENTRY_START = dtime(9, 30)
+BEST_ENTRY_END   = dtime(14, 30)
+NO_ENTRY_AFTER   = dtime(14, 30)
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -77,6 +74,20 @@ def is_pre_market() -> bool:
     now = ist_now()
     return now.weekday() < 5 and dtime(9, 0) <= now.time() < dtime(9, 15)
 
+def can_new_entry() -> bool:
+    now = ist_now().time()
+    if now < BEST_ENTRY_START:
+        log.info("⏰ Too early — waiting for 9:30 AM IST entry window")
+        return False
+    if now >= NO_ENTRY_AFTER:
+        log.info("⏰ After 2:30 PM IST — no new entries today")
+        return False
+    return True
+
+def in_best_entry_window() -> bool:
+    now = ist_now().time()
+    return BEST_ENTRY_START <= now <= BEST_ENTRY_END
+
 def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     for attempt in range(retries):
         try:
@@ -84,14 +95,8 @@ def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
             if df.empty:
                 raise ValueError("Empty dataframe")
             ohlcv = [
-                {
-                    "date": str(idx.date()),
-                    "open": float(r["Open"]),
-                    "high": float(r["High"]),
-                    "low": float(r["Low"]),
-                    "close": float(r["Close"]),
-                    "volume": int(r["Volume"]),
-                }
+                {"date": str(idx.date()), "open": float(r["Open"]), "high": float(r["High"]),
+                 "low": float(r["Low"]), "close": float(r["Close"]), "volume": int(r["Volume"])}
                 for idx, r in df.iterrows()
             ]
             log.info("Fetched %d candles for %s", len(ohlcv), SYMBOL)
@@ -103,16 +108,13 @@ def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     return None
 
 def calculate_atr(ohlcv: list, period: int = 14) -> list:
-    atr, prev_close = [], None
+    atr = []
+    prev_close = None
     for i, bar in enumerate(ohlcv):
-        tr = (
-            bar["high"] - bar["low"]
-            if prev_close is None
-            else max(
-                bar["high"] - bar["low"],
-                abs(bar["high"] - prev_close),
-                abs(bar["low"] - prev_close),
-            )
+        tr = bar["high"] - bar["low"] if prev_close is None else max(
+            bar["high"] - bar["low"],
+            abs(bar["high"] - prev_close),
+            abs(bar["low"] - prev_close),
         )
         if i < period - 1:
             atr.append(None)
@@ -123,142 +125,224 @@ def calculate_atr(ohlcv: list, period: int = 14) -> list:
         prev_close = bar["close"]
     return atr
 
+def calculate_vwap(ohlcv: list, period: int = 14) -> list:
+    vwap = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            vwap.append(None)
+        else:
+            tp_sum  = sum((ohlcv[j]["high"] + ohlcv[j]["low"] + ohlcv[j]["close"]) / 3
+                          for j in range(i - period + 1, i + 1))
+            vol_sum = sum(ohlcv[j]["volume"] for j in range(i - period + 1, i + 1))
+            vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
+    return vwap
+
 def calculate_rsi(ohlcv: list, period: int = 14) -> list:
-    rsi = []
+    rsi_values = [50.0] * len(ohlcv)
+    if len(ohlcv) < period + 1:
+        return rsi_values
     gains, losses = [], []
-    for i, bar in enumerate(ohlcv):
-        if i == 0:
-            rsi.append(None)
-            continue
-        change = bar["close"] - ohlcv[i - 1]["close"]
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i - 1]["close"]
         gains.append(max(change, 0))
         losses.append(max(-change, 0))
-        if i < period:
-            rsi.append(None)
-        elif i == period:
-            avg_gain = sum(gains[:period]) / period
-            avg_loss = sum(losses[:period]) / period
-            rs = avg_gain / avg_loss if avg_loss > 0 else 0
-            rsi.append(100 - 100 / (1 + rs))
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        if avg_loss == 0:
+            rsi_values[i + 1] = 100.0
         else:
-            avg_gain = (rsi[-1] * (period - 1) + gains[-1]) / period if rsi[-1] is not None else gains[-1]
-            avg_loss = (losses[-1] * (period - 1) + losses[-1]) / period
-            rs = avg_gain / avg_loss if avg_loss > 0 else 0
-            rsi.append(100 - 100 / (1 + rs))
-    return rsi
+            rs = avg_gain / avg_loss
+            rsi_values[i + 1] = 100 - (100 / (1 + rs))
+    return rsi_values
 
-def momentum_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    rsi_period  = params["rsi_period"]
-    atr_period  = params["atr_period"]
-    rsi_buy_thresh = params["rsi_buy"]
-    rsi_sell_thresh = params["rsi_sell"]
+def calculate_macd(ohlcv: list, fast: int = 12, slow: int = 26, signal: int = 9) -> tuple:
+    closes = [b["close"] for b in ohlcv]
+    ema_fast, ema_slow = [closes[0]], [closes[0]]
+    for i in range(1, len(closes)):
+        ema_fast.append(closes[i] * (2/(fast+1)) + ema_fast[-1] * (1 - 2/(fast+1)))
+        ema_slow.append(closes[i] * (2/(slow+1)) + ema_slow[-1] * (1 - 2/(slow+1)))
+    macd_line = [ema_fast[i] - ema_slow[i] for i in range(len(closes))]
+    signal_line = [macd_line[0]]
+    k_sig = 2/(signal+1)
+    for i in range(1, len(macd_line)):
+        signal_line.append(macd_line[i] * k_sig + signal_line[-1] * (1 - k_sig))
+    histogram = [macd_line[i] - signal_line[i] for i in range(len(closes))]
+    return macd_line, signal_line, histogram
 
-    rsi_vals = calculate_rsi(ohlcv, rsi_period)
-    atr_vals = calculate_atr(ohlcv, atr_period)
-
-    # Momentum: BUY when RSI crosses above rsi_buy AND price > 20-day SMA
-    #            SELL when RSI crosses below rsi_sell AND price < 20-day SMA
-    sma_period = 20
-    sma_vals = []
+def calculate_ma(ohlcv: list, period: int) -> list:
+    ma = []
     for i in range(len(ohlcv)):
-        if i < sma_period - 1:
-            sma_vals.append(None)
+        if i < period - 1:
+            ma.append(None)
         else:
-            sma = sum(ohlcv[j]["close"] for j in range(i - sma_period + 1, i + 1)) / sma_period
-            sma_vals.append(sma)
+            ma.append(sum(ohlcv[j]["close"] for j in range(i - period + 1, i + 1)) / period)
+    return ma
 
-    signals = ["HOLD"] * len(ohlcv)
-    for i in range(max(rsi_period, sma_period), len(ohlcv)):
-        if rsi_vals[i] is None or atr_vals[i] is None or sma_vals[i] is None:
+def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
+    if len(ohlcv) < period:
+        return 0
+    return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
+
+def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.0) -> tuple:
+    middle = calculate_ma(ohlcv, period)
+    upper, lower = [], []
+    for i in range(len(ohlcv)):
+        if middle[i] is None:
+            upper.append(None); lower.append(None)
+        else:
+            window = ohlcv[max(0, i - period + 1):i + 1]
+            mean = middle[i]
+            variance = sum((b["close"] - mean) ** 2 for b in window) / len(window)
+            std = variance ** 0.5
+            upper.append(mean + std_dev * std)
+            lower.append(mean - std_dev * std)
+    return upper, middle, lower
+
+def vwap_signal(ohlcv: list, params: dict) -> tuple:
+    period          = params["vwap_period"]
+    rsi_period      = params["rsi_period"]
+    rsi_overbought  = params.get("rsi_confirm_overbought", 68)
+    rsi_oversold    = params.get("rsi_confirm_oversold", 32)
+    vol_mult        = params.get("volume_multiplier", 2.0)
+    trend_period    = params.get("trend_ma_period", 50)
+    bb_period       = params.get("bb_period", 20)
+    bb_std          = params.get("bb_std", 2.0)
+
+    vwap_vals    = calculate_vwap(ohlcv, period)
+    atr_vals     = calculate_atr(ohlcv, period)
+    rsi_vals     = calculate_rsi(ohlcv, rsi_period)
+    macd_line, signal_line, histogram = calculate_macd(
+        ohlcv, params["macd_fast"], params["macd_slow"], params["macd_signal"])
+    ma_vals      = calculate_ma(ohlcv, trend_period)
+    avg_vol      = calculate_avg_volume(ohlcv, period)
+    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
+
+    start_idx = max(period, rsi_period, params["macd_slow"], params["macd_signal"], bb_period, trend_period)
+
+    for i in range(start_idx, len(ohlcv)):
+        if None in (vwap_vals[i], atr_vals[i], rsi_vals[i], macd_line[i], ma_vals[i], bb_upper[i]):
             continue
-        price = ohlcv[i]["close"]
-        rsi   = rsi_vals[i]
-        sma   = sma_vals[i]
-        atr   = atr_vals[i]
 
-        # BUY: RSI above threshold AND price above SMA (uptrend momentum)
-        if rsi > rsi_buy_thresh and price > sma:
-            signals[i] = "BUY"
-        # SELL: RSI below threshold AND price below SMA (downtrend momentum)
-        elif rsi < rsi_sell_thresh and price < sma:
-            signals[i] = "SELL"
+        price   = ohlcv[i]["close"]
+        v       = vwap_vals[i]
+        a       = atr_vals[i]
+        rsi     = rsi_vals[i]
+        vol     = ohlcv[i]["volume"]
+        trend   = ma_vals[i]
+        macd_h  = histogram[i]
+        sig_h   = histogram[i - 1] if i > 0 else 0
+        bb_up   = bb_upper[i]
+        bb_lo   = bb_lower[i]
 
-    current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], current_atr
+        # BUY: all filters must align
+        buy_ok = (
+            price > v and               # price above VWAP
+            rsi < rsi_oversold and      # RSI oversold (<32)
+            macd_h > 0 and             # MACD histogram positive
+            sig_h <= macd_h and         # MACD turning bullish
+            vol > avg_vol * vol_mult and # volume confirmation
+            price > trend               # above 50-MA trend
+        )
 
+        if buy_ok:
+            return "BUY", price, a, rsi
 
-def main():
-    """Main trading loop for BHARTIARTL"""
-    symbol = "BHARTIARTL"
-    params = {
-        "rsi_period": 14,
-        "atr_period": 14,
-        "rsi_buy": 60,
-        "rsi_sell": 40,
-    }
-    data = fetch_recent_data(days=60)
-    if not data:
-        print(f"No data for {symbol}")
-        return
-    signal, price, atr = momentum_signal(data, params)
-    if signal in ("BUY", "SELL"):
-        print(f"SIGNAL: {signal} {symbol} @ Rs{price:.2f} ATR: {atr:.2f}")
-        quantity = max(1, 7000 // price)
-        place_groww_order(symbol, signal, quantity, price)
-    else:
-        print(f"No signal: {signal}")
+        # SELL: all filters must align
+        sell_ok = (
+            price < v and               # price below VWAP
+            rsi > rsi_overbought and    # RSI overbought (>68)
+            macd_h < 0 and             # MACD histogram negative
+            sig_h >= macd_h and        # MACD turning bearish
+            vol > avg_vol * vol_mult and # volume confirmation
+            price < trend               # below 50-MA trend
+        )
 
-if __name__ == "__main__":
-    main()
+        if sell_ok:
+            return "SELL", price, a, rsi
+
+    return "HOLD", ohlcv[-1]["close"], atr_vals[-1] if atr_vals else 0.0, rsi_vals[-1]
+
+def get_exit_levels(entry_price: float, atr: float, params: dict) -> list:
+    risk = entry_price * STOP_LOSS_PCT
+    t1 = round(entry_price + (TARGET_1_MULT * risk), 2)
+    t2 = round(entry_price + (TARGET_2_MULT * risk), 2)
+    t3 = round(entry_price + (TARGET_3_MULT * risk), 2)
+    return [
+        {"level": 1, "price": t1, "risk_mult": TARGET_1_MULT, "exit_pct": 0.33, "desc": "Secure 1.5×"},
+        {"level": 2, "price": t2, "risk_mult": TARGET_2_MULT, "exit_pct": 0.33, "desc": "Main 3×"},
+        {"level": 3, "price": t3, "risk_mult": TARGET_3_MULT, "exit_pct": 0.34, "desc": "Stretch 5×"},
+    ]
 
 def place_groww_order(symbol, signal, quantity, price):
-    """
-    Place order via Groww API or paper trade.
-    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
-    Falls back to paper trading otherwise.
-    """
     import groww_api
-    
     if not groww_api.is_configured():
         return groww_api.paper_trade(signal, symbol, price, quantity)
-    
     exchange = "NSE"
-    
     if signal == "BUY":
-        # Calculate target and stop loss  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
+        stop_loss = price - (atr * 1.0)
+        target = price + (atr * 4.0)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="BUY",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
-        )
+            exchange=exchange, symbol=symbol, transaction="BUY",
+            quantity=quantity, target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5)
     elif signal == "SELL":
         stop_loss = price + (atr * 1.0)
         target = price - (atr * 4.0)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="SELL",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
-        )
+            exchange=exchange, symbol=symbol, transaction="SELL",
+            quantity=quantity, target_price=target, stop_loss_price=stop_loss,
+            trailing_sl=0.3, trailing_target=0.5)
     else:
         return None
-    
     if result:
-        print("Order placed: {} {} {} @ Rs{:.2f}".format(
-            signal, quantity, symbol, price))
+        print("Order placed: {} {} {} @ Rs{:.2f}".format(signal, quantity, symbol, price))
     return result
 
+def main():
+    print(f"\n{'='*60}")
+    print(f"Running: BHARTIARTL.NS | Strategy: VWAP_RSI_MACD_VOL_BB_v8_LOWWR")
+    print(f"{'='*60}")
 
-# Entry point below
+    ohlcv = fetch_recent_data(days=60)
+    if not ohlcv:
+        print("No data fetched")
+        return
+
+    signal, price, atr, rsi = vwap_signal(ohlcv, PARAMS)
+    print(f"Signal: {signal} | Price: Rs{price:.2f} | ATR: Rs{atr:.2f} | RSI: {rsi:.1f}")
+
+    if signal == "BUY":
+        sl = round(price * (1 - STOP_LOSS_PCT), 2)
+        exits = get_exit_levels(price, atr, PARAMS)
+        qty = max(1, int(POSITION / price))
+        risk = price - sl
+        print(f"Stop: Rs{sl:.2f} | Risk: Rs{risk:.2f}")
+        print(f"T1: Rs{exits[0]['price']:.2f} | T2: Rs{exits[1]['price']:.2f} | T3: Rs{exits[2]['price']:.2f}")
+        print(f"Qty: {qty}")
+        try:
+            from groww_api import paper_trade
+            paper_trade("BUY", SYMBOL, price, qty)
+        except:
+            pass
+    elif signal == "SELL":
+        sl = round(price * (1 + STOP_LOSS_PCT), 2)
+        exits = get_exit_levels(price, atr, PARAMS)
+        qty = max(1, int(POSITION / price))
+        risk = sl - price
+        print(f"Stop: Rs{sl:.2f} | Risk: Rs{risk:.2f}")
+        print(f"T1: Rs{exits[0]['price']:.2f} | T2: Rs{exits[1]['price']:.2f} | T3: Rs{exits[2]['price']:.2f}")
+        print(f"Qty: {qty}")
+        try:
+            from groww_api import paper_trade
+            paper_trade("SELL", SYMBOL, price, qty)
+        except:
+            pass
+    else:
+        print("No trade — HOLD signal")
+
+
+if __name__ == "__main__":
+    main()
