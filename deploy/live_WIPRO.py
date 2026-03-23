@@ -30,7 +30,7 @@ logging.basicConfig(
 log = logging.getLogger("live_WIPRO")
 
 SYMBOL         = "WIPRO.NS"
-STRATEGY       = "MEAN_REVERSION_RSI_V9"  # WIPRO
+STRATEGY       = "MEAN_REVERSION_RSI_V9"  # WIPRO  # WIPRO
 POSITION       = 5000
 STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 4.0
@@ -269,13 +269,15 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         # v8: Prevent buying at upper BB extension or selling at lower BB extension
         bb_near_middle = bb_lo < price < bb_up
 
-        # BUY: price above VWAP by atr_mult ATRs, RSI deep oversold confirm, bullish MACD, volume confirmed, bull market, BB filter
-        if (price > v + a * atr_mult and r < rsi_confirm_oversold and macd_bullish
-                and volume_confirmed and bull_market and bb_near_middle):
+        # MEAN_REVERSION BUY: RSI oversold + near VWAP support + volume confirmed
+        # Removed: MACD, trend, BB filters (these were blocking good signals)
+        near_vwap_support = abs(price - v) < a * 1.5  # within 1.5 ATR of VWAP
+        if (r < rsi_oversold and near_vwap_support and volume_confirmed):
             signals[i] = "BUY"
-        # SELL: price below VWAP by atr_mult ATRs, RSI deep overbought confirm, bearish MACD, volume confirmed, bear market, BB filter
-        elif (price < v - a * atr_mult and r > rsi_confirm_overbought and macd_bearish
-                and volume_confirmed and bear_market and bb_near_middle):
+        # MEAN_REVERSION SELL: RSI overbought + near VWAP resistance + volume confirmed
+        # Removed: MACD, trend, BB filters (these were blocking good signals)
+        near_vwap_resist = abs(price - v) < a * 1.5  # within 1.5 ATR of VWAP
+        elif (r > rsi_overbought and near_vwap_resist and volume_confirmed):
             signals[i] = "SELL"
 
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0

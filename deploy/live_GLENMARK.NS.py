@@ -34,7 +34,7 @@ log = logging.getLogger("live_GLENMARK.NS")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "GLENMARK.NS"
-STRATEGY       = "MEAN_REVERSION_RSI_V9"  # GLENMARK
+STRATEGY       = "MEAN_REVERSION_RSI_V9"  # GLENMARK.NS  # GLENMARK
 POSITION       = 5000
 
 # 3-TIER EXIT SYSTEM

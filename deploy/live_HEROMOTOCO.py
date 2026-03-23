@@ -31,7 +31,7 @@ logging.basicConfig(
 log = logging.getLogger("live_HEROMOTOCO")
 
 SYMBOL         = "HEROMOTOCO.NS"
-STRATEGY       = "MEAN_REVERSION_RSI_V9"  # HEROMOTOCO
+STRATEGY       = "MEAN_REVERSION_RSI_V9"  # HEROMOTOCO  # HEROMOTOCO
 POSITION       = 5000
 STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 4.0
