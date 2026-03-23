@@ -264,7 +264,7 @@ def main():
 
     print(f"\n{'='*60}")
     print(f"Running: {ticker_sym} ({yahoo_sym})")
-    print(f"Strategy: VWAP_RSI_MACD_VOL_BB_v8_LOWWR")
+    print(f"Strategy: MEAN_REVERSION_RSI_V9")
     print(f"{'='*60}")
 
     try:
