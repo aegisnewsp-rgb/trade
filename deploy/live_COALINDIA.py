@@ -211,6 +211,53 @@ def calculate_sma(prices: list, period: int) -> float:
         return prices[-1] if prices else 0.0
     return sum(prices[-period:]) / period
 
+def calculate_ma(ohlcv: list, period: int) -> list:
+    """v8 LOWWR: Simple moving average for trend filter."""
+    ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            ma.append(None)
+        else:
+            ma.append(sum(ohlcv[j]["close"] for j in range(i - period + 1, i + 1)) / period)
+    return ma
+
+def calculate_macd(ohlcv: list, fast: int = 12, slow: int = 26, signal: int = 9) -> tuple:
+    """v8 LOWWR: MACD for momentum confirmation."""
+    closes = [b["close"] for b in ohlcv]
+    ema_fast, ema_slow = [closes[0]], [closes[0]]
+    for i in range(1, len(closes)):
+        ema_fast.append(closes[i] * (2/(fast+1)) + ema_fast[-1] * (1 - 2/(fast+1)))
+        ema_slow.append(closes[i] * (2/(slow+1)) + ema_slow[-1] * (1 - 2/(slow+1)))
+    macd_line = [ema_fast[i] - ema_slow[i] for i in range(len(closes))]
+    signal_line = [macd_line[0]]
+    k_sig = 2/(signal+1)
+    for i in range(1, len(macd_line)):
+        signal_line.append(macd_line[i] * k_sig + signal_line[-1] * (1 - k_sig))
+    histogram = [macd_line[i] - signal_line[i] for i in range(len(closes))]
+    return macd_line, signal_line, histogram
+
+def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
+    """v8 LOWWR: Average volume for confirmation."""
+    if len(ohlcv) < period:
+        return 0
+    return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
+
+def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.0) -> tuple:
+    """v8 LOWWR: Bollinger Bands for volatility confirmation."""
+    middle = calculate_ma(ohlcv, period)
+    upper, lower = [], []
+    for i in range(len(ohlcv)):
+        if middle[i] is None:
+            upper.append(None); lower.append(None)
+        else:
+            window = ohlcv[max(0, i - period + 1):i + 1]
+            mean = middle[i]
+            variance = sum((b["close"] - mean) ** 2 for b in window) / len(window)
+            std = variance ** 0.5
+            upper.append(mean + std_dev * std)
+            lower.append(mean - std_dev * std)
+    return upper, middle, lower
+
 
 def get_market_regime() -> tuple[str, float]:
     nifty_data = fetch_recent_data(NIFTY_SYMBOL, days=40)
