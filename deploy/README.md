@@ -11,11 +11,12 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked: 2026-03-23 02:14 UTC
+- **Last checked: 2026-03-23 03:36 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Cycle:** #37
+- **Cycle:** #73 (qa_loop.py, 5-min cycles)
 - **Total v8 LOWWR enhanced:** 57 scripts
-- **Loop status:** Running (qa_loop_forever.py, 7-min cycles; qa_loop.py, 30-min cycles)
+- **Win-rate status:** All tracked scripts ≥ 45% (none below threshold)
+- **Loop status:** Running
 - **Working tree:** Clean (no uncommitted changes)
 
 ## Regime-Filter Enhancements (Iteration #14)
