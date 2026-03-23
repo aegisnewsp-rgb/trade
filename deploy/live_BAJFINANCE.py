@@ -385,7 +385,7 @@ def main():
     yahoo_sym = ticker_sym + exchange_suffix
     
     print(f"\n{'='*60}")
-    print(f"Running: {ticker_sym} ({yahoo_sym})")
+    print(f"Running: {ticker_sym} ({yahoo_sym}) | Strategy: {STRATEGY}")
     print(f"{'='*60}")
     
     # Fetch data
