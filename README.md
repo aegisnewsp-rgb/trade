@@ -7,13 +7,13 @@
 - Exchange: NSE (`.NS`) and BSE (`.BO`)
 - Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8)
 
-## Status (2026-03-23 00:31 UTC)
-- ✅ All 471 scripts pass `py_compile` (QA cycle 38 ✓)
+## Status (2026-03-23 00:32 UTC)
+- ✅ All 471 scripts pass `py_compile` (QA cycle 39 ✓)
 - ✅ Strategy v8 enhancements applied (MACD, volume, trend, BB filters)
 - ✅ 3-tier exit system active
 - ✅ Telegram status reporting enabled
-- ✅ 13 scripts on v8 LOWWR (WIPRO, HEROMOTOCO, GLENMARK + 10 bottom performers)
-- ✅ 10 additional 0% WR scripts upgraded: SRF_NS, SBILIFE_NS, SHREECEM_NS, CIPLA, ADANIPORTS, ICICIBANK, AXISBANK, HCLTECH_NS, ADANIPOWER, DRREDDY → v8 LOWWR
+- ✅ 25 scripts on v8 LOWWR (13 previous + 12 newly upgraded)
+- ✅ 12 new 0% WR scripts upgraded to v8 LOWWR: CYIENT.BO, DSM, GAL, PRAKASHSTL.BO, RUPA.BO, INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, ABFRL.BO, PUNJABCHEM.BO, SAMTEX.BO
 - ✅ QA compile check running — 471/471 OK, 0 fails
 
 ## Quick Check
