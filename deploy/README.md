@@ -11,9 +11,9 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked: 2026-03-23 00:27 UTC
+- **Last checked: 2026-03-23 00:36 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Iteration:** #18
+- **Iteration:** #19
 - **Enhancement:** live_CYIENT.BO.py converted from VWAP to MEAN_REVERSION (0% WR → target 50%+)
 - **Loop status:** Running
 - **Loop status:** Running (qa_loop_forever.py, 7-min cycles; qa_loop.py, 30-min cycles)
@@ -62,6 +62,18 @@ Bottom 10 scripts with < 15% historical win rate enhanced with **MEAN_REVERSION*
 - STOP_LOSS_PCT: 0.008 → 0.006 (tighter stop loss)
 - TARGET_MULT: 4.0 → 2.5 (lower target, more achievable)
 - atr_multiplier: 1.5 → 1.0 (tighter VWAP bands)
+
+## v8 LOWWR Enhancements (Iteration #19 - 2026-03-23)
+Basic low win-rate scripts upgraded to v8 multi-filter standard:
+- **live_MARUTI_NS.py** (low base) -> v8 multi-filter upgrade
+- **live_HINDPETRO_NS.py** (low base) -> v8 multi-filter upgrade
+- **live_NESTLEIND_NS.py** (low base) -> v8 multi-filter upgrade
+- **live_POWERGRID_NS.py** (low base) -> v8 multi-filter upgrade
+
+**v8 multi-filter strategy:**
+- VWAP + RSI(14,32/68) + MACD(12,26,9) + Volume(2x MA) + Trend(50-MA) + Bollinger Band(20,2.0)
+- 3-TIER EXIT SYSTEM: 1.5x/3.0x/5.0x risk targets
+- STOP_LOSS_PCT: 0.6% | TARGET_MULT: 4.0x
 
 ## Enhancement Notes
 Low win-rate scripts (benchmark, all below 70%):
