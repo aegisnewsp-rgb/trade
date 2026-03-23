@@ -11,9 +11,9 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked:** 2026-03-23 00:01 UTC
+- **Last checked:** 2026-03-23 00:20 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Iteration:** #16
+- **Iteration:** #17
 - **Enhancement:** live_CYIENT.BO.py converted from VWAP to MEAN_REVERSION (0% WR → target 50%+)
 - **Loop status:** Running
 - **Loop status:** Running (qa_loop_forever.py, 7-min cycles; qa_loop.py, 30-min cycles)
