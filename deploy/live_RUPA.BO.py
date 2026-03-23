@@ -55,7 +55,7 @@ PARAMS         = {
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 2.0,
+    "volume_multiplier": 1.3,
     "trend_ma_period": 50,
     "atr_period": 14,
     "bb_period": 20,
