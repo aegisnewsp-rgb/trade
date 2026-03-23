@@ -2,9 +2,9 @@
 """
 Live Trading Script - GLENMARK.NS
 Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8)
-Win Rate: 56.00% -> Target 58%+ (v8 LOWWR: Tighter SL, stricter entry for pharma sector)
+Win Rate: ~56% -> Target 58%+ (MEAN_REVERSION v9: RSI 38/62, vol 1.3x, removed trend/MACD/BB filters)
 Position: ₹5000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.25%
-Enhanced: 2026-03-22 - v8 LOWWR: Applied tighter parameters for pharma volatility
+Enhanced: 2026-03-23 - v9 MEAN_REVERSION: Removed trend/MACD/BB filters, RSI 38/62, vol 1.3x (same approach that fixed 0% WR scripts) for pharma volatility
 """
 
 import os
@@ -34,7 +34,7 @@ log = logging.getLogger("live_GLENMARK.NS")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "GLENMARK.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR_PHARMA"
+STRATEGY       = "MEAN_REVERSION_RSI_V9"  # GLENMARK
 POSITION       = 5000
 
 # 3-TIER EXIT SYSTEM
@@ -46,16 +46,16 @@ TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.0025
 PARAMS         = {
     "vwap_period": 14,
-    "atr_multiplier": 1.5,
+    "atr_multiplier": 1.0,
     "rsi_period": 14,
-    "rsi_overbought": 68,       # v8: tightened from 65
-    "rsi_oversold": 32,         # v8: tightened from 35
+    "rsi_overbought": 62,       # v8: tightened from 65
+    "rsi_oversold": 38,         # v8: tightened from 35
     "rsi_confirm_overbought": 68,  # v8: new - strict overbought
     "rsi_confirm_oversold": 32,    # v8: new - strict oversold
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 2.0,   # v8: require above-2x avg volume
+    "volume_multiplier": 1.3,   # v8: require above-2x avg volume
     "trend_ma_period": 50,      # v8: trend filter
     "atr_period": 14,
     "bb_period": 20,            # v8: Bollinger Band period

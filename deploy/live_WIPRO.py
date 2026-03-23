@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - WIPRO.NS
-Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter + Bollinger Band (Enhanced v8)
-Win Rate: 52.17% -> Target 58%+ (v8 LOWWR: Tighter SL at 0.6%, stricter RSI confirmation, reduced position)
+Strategy: MEAN_REVERSION v9 (RSI 38/62 + vol 1.3x + no trend/MACD/BB) - previously v8 LOWWR
+Win Rate: ~52% -> Target 58%+ (MEAN_REVERSION v9: RSI 38/62, vol 1.3x, removed trend/MACD/BB filters)
 Position: ₹5000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.25%
-Enhanced: 2026-03-22 - v8 LOWWR: Applied tighter parameters for IT sector volatility
+Enhanced: 2026-03-23 - v9 MEAN_REVERSION: Removed trend/MACD/BB filters, RSI 38/62, vol 1.3x (same approach that fixed 0% WR scripts) for IT sector volatility
 """
 
 import os, sys, json, time, logging, requests
@@ -30,23 +30,23 @@ logging.basicConfig(
 log = logging.getLogger("live_WIPRO")
 
 SYMBOL         = "WIPRO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
+STRATEGY       = "MEAN_REVERSION_RSI_V9"  # WIPRO
 POSITION       = 5000
 STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.0025
 PARAMS = {
     "vwap_period": 20,
-    "atr_multiplier": 1.5,       # v8b: tightened from 2.0 to GLENMARK standard
+    "atr_multiplier": 1.0,       # v8b: tightened from 2.0 to GLENMARK standard
     "rsi_period": 14,
-    "rsi_oversold": 40,
-    "rsi_overbought": 60,
+    "rsi_oversold": 38,
+    "rsi_overbought": 62,
     "rsi_confirm_oversold": 32,   # v8b: tightened from 35 to GLENMARK standard
     "rsi_confirm_overbought": 68,  # v8b: tightened from 65 to GLENMARK standard
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,            # v8b: faster signal for earlier entry
-    "volume_multiplier": 2.0,     # v8b: tightened from 1.5 to GLENMARK standard
+    "volume_multiplier": 1.3,     # v8b: tightened from 1.5 to GLENMARK standard
     "trend_ma_period": 50,
     "atr_period": 14,
     "bb_period": 20,             # v8b: Bollinger Band period

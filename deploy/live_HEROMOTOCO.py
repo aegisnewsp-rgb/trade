@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - HEROMOTOCO.NS
-Strategy: VWAP + RSI + MACD + Volume Filter + Trend Filter + Bollinger Band (Enhanced v8)
+Strategy: MEAN_REVERSION v9 (RSI 38/62 + vol 1.3x + no trend/MACD/BB) - previously v8 LOWWR
 Enhanced with: Fuel Price Correlation, Rural Demand Indicator
-Win Rate: 55.00% -> Target 58%+ (v8 LOWWR: Tighter SL, stricter entry for auto sector)
+Win Rate: ~55% -> Target 58%+ (MEAN_REVERSION v9: RSI 38/62, vol 1.3x, removed trend/MACD/BB filters)
 Position: ₹5000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.25%
 """
 
@@ -31,7 +31,7 @@ logging.basicConfig(
 log = logging.getLogger("live_HEROMOTOCO")
 
 SYMBOL         = "HEROMOTOCO.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR_AUTOMOBILE"
+STRATEGY       = "MEAN_REVERSION_RSI_V9"  # HEROMOTOCO
 POSITION       = 5000
 STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 4.0
@@ -43,17 +43,17 @@ MONETARY_INDEX_SYMBOL = "^IRX"  # 13-week Treasury bill rate (proxy for rural cr
 
 PARAMS = {
     "vwap_period": 20,
-    "atr_multiplier": 1.5,          # v8: tightened from 2.0
+    "atr_multiplier": 1.0,          # v8: tightened from 2.0
     "rsi_period": 14,
-    "rsi_oversold": 40,
-    "rsi_overbought": 60,
+    "rsi_oversold": 38,
+    "rsi_overbought": 62,
     "rsi_buy": 50,                   # sniper (2026-03-22)
     "rsi_confirm_oversold": 32,      # v8: tightened from 35
     "rsi_confirm_overbought": 68,     # v8: tightened from 65
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 2.0,        # v8: tightened from 1.5
+    "volume_multiplier": 1.3,        # v8: tightened from 1.5
     "vol_threshold": 0.5,            # sniper (2026-03-22)
     "trend_ma_period": 50,
     "atr_period": 14,
