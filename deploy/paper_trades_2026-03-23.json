@@ -1,68 +1,70 @@
 {
   "date": "2026-03-23",
-  "execution_time_ist": "09:36 IST",
-  "market_regime": "DOWNTREND (NIFTY below 20d SMA)",
+  "execution_time_ist": "09:37 IST",
+  "market_regime": "DOWNTREND (NIFTY below 20d SMA, -10.7% in 10d)",
   "trades": [
     {
       "symbol": "ABB.NS",
       "direction": "BUY",
-      "entry": 6213.00,
-      "stop": 6175.72,
-      "target": 6362.11,
+      "entry": 6212.50,
+      "stop": 6175.43,
+      "target": 6361.60,
       "qty": 1,
-      "position_value": 6213,
-      "risk": 37.28,
+      "position_value": 6212.50,
+      "risk": 37.07,
       "status": "ACTIVE",
-      "signal_time": "09:36 IST"
+      "signal_time": "09:37 IST",
+      "exit_criteria": "Stop or Target hit — no in-between exit"
     },
     {
       "symbol": "RELIANCE.NS",
       "direction": "BUY",
-      "entry": 1407.50,
-      "stop": 1396.24,
-      "target": 1441.28,
+      "entry": 1407.00,
+      "stop": 1395.74,
+      "target": 1440.76,
       "qty": 4,
-      "position_value": 5630,
+      "position_value": 5628.00,
       "risk": 45.04,
       "status": "ACTIVE",
-      "signal_time": "09:36 IST"
+      "signal_time": "09:37 IST"
     },
     {
       "symbol": "COALINDIA.NS",
       "direction": "BUY",
-      "entry": 461.40,
-      "stop": 457.71,
-      "target": 472.47,
+      "entry": 460.85,
+      "stop": 457.16,
+      "target": 471.91,
       "qty": 21,
-      "position_value": 9689,
+      "position_value": 9677.85,
       "risk": 77.49,
       "status": "ACTIVE",
-      "signal_time": "09:36 IST"
+      "signal_time": "09:37 IST"
     },
     {
       "symbol": "TATASTEEL.NS",
       "direction": "SELL",
-      "entry": 189.03,
-      "stop": 190.92,
-      "target": 183.36,
+      "entry": 188.77,
+      "stop": 190.66,
+      "target": 183.10,
       "qty": 52,
-      "position_value": 9829,
+      "position_value": 9816.04,
       "risk": 98.28,
-      "status": "ACTIVE_PENDING_CONFIRM",
-      "signal_time": "09:36 IST",
-      "note": "Wait for 9:45 AM 15min candle confirmation"
+      "status": "ACTIVE",
+      "signal_time": "09:37 IST",
+      "note": "Counter-trend SELL in downtrend — confirm at 9:45 AM"
     },
     {
       "symbol": "LUPIN.NS",
       "direction": "HOLD",
-      "reason": "Price (2301.70) below VWAP (2308.46) - conditions not met",
+      "reason": "Price below VWAP — conditions not met",
       "status": "SKIPPED"
     }
   ],
   "summary": {
-    "total_position_value": 31361,
-    "total_risk": 258.09,
+    "total_position_value": 31334.39,
+    "total_risk": 257.88,
     "active_trades": 4,
-    "skipped": 1
+    "skipped": 1,
+    "script": "READY_*.py files in deploy/"
   }
 }

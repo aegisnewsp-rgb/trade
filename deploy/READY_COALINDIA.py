@@ -70,7 +70,7 @@ def paper_trade(signal, price, qty):
 def main():
     import yfinance as yf
     from datetime import datetime
-    ist = datetime.utcnow() + datetime.timedelta(hours=5, minutes=30)
+    ist = datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)
     print(f"\n{'='*60}")
     print(f"COALINDIA.NS  |  {ist.strftime('%H:%M IST')}  |  DOWNTREND REGIME")
     print(f"{'='*60}")
