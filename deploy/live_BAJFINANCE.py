@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - BAJFINANCE.NS
-Strategy: VWAP + Volume Confirmation Filter
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
-Enhanced: Volume confirmation filter added
+Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8 LOWWR - NBFC profile)
+Enhanced: 2026-03-23 - v8 LOWWR upgrade from VWAP+Volume
+- v8 LOWWR NEW: Bollinger Band (20,2.0) + 50-MA Trend filter + MACD(12,26,9) multi-filter
+- v8 LOWWR: 3-TIER EXIT 1.5x/3.0x/5.0x, STOP_LOSS 0.6%, TARGET_MULT 4.0x
+Win Rate: ~58% -> Target 65%+
+Position: ₹7000 | Daily Loss Cap: 0.3%
 """
 
 import os
