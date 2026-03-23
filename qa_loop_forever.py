@@ -10,8 +10,8 @@ from datetime import datetime, timezone
 WORKSPACE = Path("/home/node/workspace/trade-project")
 DEPLOY = WORKSPACE / "deploy"
 LOGS = DEPLOY / "logs"
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "-1002381931352")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "") or "8516421227:AAGgqhEv5KRfijZ3d441oValLWUsRG_A8RE"
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "") or "8692074549"
 
 CYCLE = 0
 LOW_WINRATE_THRESHOLD = 45.0
