@@ -7,18 +7,16 @@
 - Exchange: NSE (`.NS`) and BSE (`.BO`)
 - Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8)
 
-## Status (2026-03-23 02:32 UTC)
-- ✅ All 471 scripts pass `py_compile` (QA cycle 40 ✓)
-- ✅ Strategy v8 enhancements applied (MACD, volume, trend, BB filters)
+## Status (2026-03-23 02:22 UTC)
+- ✅ All 471 scripts pass `py_compile` (QA cycle 41 ✓)
+- ✅ Strategy v8/v9 enhancements applied (MACD, volume, trend, BB, RSI filters)
 - ✅ 3-tier exit system active
 - ✅ Telegram status reporting enabled
-- ✅ 25 scripts on v8 LOWWR (13 previous + 12 newly upgraded)
-- ✅ 7 more scripts pivoted to MEAN_REVERSION v9 (COMPINFO.BO, SHIVALIK.BO, AMTL.BO, ALANKIT.BO, COROMANDEL.BO, PATANJALI, ATGL.NS)
-  - v8 multi-filter (MACD+trend+BB) too restrictive for these low-liquidity small-caps
-  - v9: RSI-only + VWAP proximity + Volume (no trend filter)
-  - RSI widened to 38/62 for more signal opportunities
-- ✅ 3 x 0% WR scripts pivoted to MEAN_REVERSION v9 (CYIENT.BO, PRAKASHSTL.BO, RUPA.BO)
-  - v8 trend filter blocked all signals in downtrends
+- ✅ 7 x 5-9% WR scripts upgraded to v9c MEAN_REVERSION (RSI 40/60 + vol 2x + RSI crossover)
+  - COMPINFO.BO, SHIVALIK.BO, AMTL.BO, ALANKIT.BO, COROMANDEL.BO, PATANJALI, ATGL.NS
+  - v9c: RSI tightened to 40/60 (was 38/62), volume mult 2.0x (was 1.3x), RSI crossover req
+  - Position reduced ₹7000→₹5000, Daily loss cap 0.3%→0.25%
+  - RSI crossover = RSI crossed threshold yesterday→today (not just sitting oversold)
 - ✅ QA compile check running — 471/471 OK, 0 fails
 
 ## Quick Check
