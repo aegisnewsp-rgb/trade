@@ -32,13 +32,13 @@ cd deploy && for f in live_*.py; do python3 -m py_compile "$f" || echo "FAIL: $f
 | GLENMARK.NS | 56% | v8 LOWWR pharma (0.6% SL, ₹5K pos) |
 | DABUR | 57% | v8 enhanced |
 | GRASIM | 57% | v8 enhanced |
-| COMPINFO.BO | 5% (21 trades) | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
-| SHIVALIK.BO | 5% (20 trades) | v9 MEAN_REVERSION - 2026-03-23 |
-| AMTL.BO | 6% (18 trades) | v9 MEAN_REVERSION - 2026-03-23 |
-| ALANKIT.BO | 6% (17 trades) | v9 MEAN_REVERSION - 2026-03-23 |
-| COROMANDEL.BO | 6% (16 trades) | v9 MEAN_REVERSION - 2026-03-23 |
-| PATANJALI | 8% (13 trades) | v9 MEAN_REVERSION - 2026-03-23 |
-| ATGL | 9% (22 trades) | v9 MEAN_REVERSION - 2026-03-23 |
+| COMPINFO.BO | 5% (21 trades) | **→ v9c** (RSI 40/60 + vol 2x + RSI crossover) - 2026-03-23 |
+| SHIVALIK.BO | 5% (20 trades) | **→ v9c** (RSI 40/60 + vol 2x + RSI crossover) - 2026-03-23 |
+| AMTL.BO | 6% (18 trades) | **→ v9c** (RSI 40/60 + vol 2x + RSI crossover) - 2026-03-23 |
+| ALANKIT.BO | 6% (17 trades) | **→ v9c** (RSI 40/60 + vol 2x + RSI crossover) - 2026-03-23 |
+| COROMANDEL.BO | 6% (16 trades) | **→ v9c** (RSI 40/60 + vol 2x + RSI crossover) - 2026-03-23 |
+| PATANJALI | 8% (13 trades) | **→ v9c** (RSI 40/60 + vol 2x + RSI crossover) - 2026-03-23 |
+| ATGL.NS | 9% (22 trades) | **→ v9c** (RSI 40/60 + vol 2x + RSI crossover) - 2026-03-23 |
 | ADANIPORTS | 28% (5 trades) | v8 LOWWR - few trades |
 | ICICIBANK | 25% (7 trades) | v8 LOWWR - few trades |
 | AXISBANK | 21% (5 trades) | v8 LOWWR - few trades |
@@ -55,7 +55,7 @@ cd deploy && for f in live_*.py; do python3 -m py_compile "$f" || echo "FAIL: $f
 | PRAKASHSTL.BO | 0% | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
 | RUPA.BO | 0% | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
 | INFY | 10% (21 trades) | v8 LOWWR (RSI 38/62) - 2026-03-23 |
-| SEL.BO | 10% (21 trades) | v8 LOWWR (RSI 38/62) |
+| SEL.BO | 10% (21 trades) | v8 LOWWR (RSI 38/62) - 2026-03-23 |
 | SPAL.BO | 11% (19 trades) | v8 LOWWR (RSI 38/62) |
 | SUNDARAM.BO | 11% (19 trades) | v8 LOWWR (RSI 38/62) |
 | ABFRL.BO | 11% (18 trades) | v8 LOWWR (RSI 38/62) |
