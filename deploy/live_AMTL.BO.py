@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - AMTL.BO
-Strategy: MEAN_REVERSION (RSI-only + VWAP bounce) - v9 LOWWR
-Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.3%
+Strategy: MEAN_REVERSION v9c LOWWR - RSI crossover + tighter filters
+Position: ₹5000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.25%
+Enhanced: 2026-03-23 - v9c: Tightened to v8 LOWWR standards + RSI crossover
 """
 
 import os
@@ -46,14 +47,14 @@ PARAMS         = {
     "vwap_period": 14,
     "atr_multiplier": 0.5,
     "rsi_period": 14,
-    "rsi_overbought": 62,
-    "rsi_oversold": 38,
-    "rsi_confirm_overbought": 62,
-    "rsi_confirm_oversold": 38,
+    "rsi_overbought": 60,
+    "rsi_oversold": 40,
+    "rsi_confirm_overbought": 60,
+    "rsi_confirm_oversold": 40,
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 1.3,   # v8: require above-2x avg volume
+    "volume_multiplier": 2.0,
     "trend_ma_period": 50,      # v8: trend filter
     "atr_period": 14,
     "bb_period": 20,            # v8: Bollinger Band period
