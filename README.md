@@ -13,7 +13,11 @@
 - ✅ 3-tier exit system active
 - ✅ Telegram status reporting enabled
 - ✅ 25 scripts on v8 LOWWR (13 previous + 12 newly upgraded)
-- ✅ 12 new 0% WR scripts upgraded to v8 LOWWR: CYIENT.BO, DSM, GAL, PRAKASHSTL.BO, RUPA.BO, INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, ABFRL.BO, PUNJABCHEM.BO, SAMTEX.BO
+- ✅ v8 LOWWR scripts (INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, etc.) confirmed 10-13% WR — monitoring
+- ✅ 3 x 0% WR scripts pivoted to MEAN_REVERSION v9 (CYIENT.BO, PRAKASHSTL.BO, RUPA.BO)
+  - v8 trend filter blocked all signals in downtrends
+  - v9: RSI-only + VWAP proximity + Volume (no trend filter)
+  - RSI thresholds widened to 38/62 for more signal opportunities
 - ✅ QA compile check running — 471/471 OK, 0 fails
 
 ## Quick Check
