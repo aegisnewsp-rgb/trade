@@ -50,3 +50,9 @@
   - Updated PARAMS with v8 LOWWR standard params
   - Updated STRATEGY name to VWAP_RSI_MACD_VOL_BB_v8_LOWWR
   - Replaced old entry params with 3-TIER EXIT SYSTEM
+
+### TATAMOTORS.BO Enhancement (01:30 UTC):
+- **live_TATAMOTORS.BO.py**: 63.64% WR → v8 LOWWR (upgraded from basic VWAP to full multi-filter)
+  - Full rewrite with v8 multi-filter (RSI 32/68 + MACD + BB + Trend MA + Volume 2x)
+  - Added STOP_LOSS_PCT=0.006, TARGET_MULT=4.0, 3-TIER EXIT
+  - Added all v8 calculation functions: calculate_rsi, calculate_macd, calculate_ma, calculate_avg_volume, calculate_bollinger_bands
