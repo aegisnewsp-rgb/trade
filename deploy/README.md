@@ -14,7 +14,7 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - **Last checked: 2026-03-23 01:12 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
 - **Iteration:** #21
-- **New v8 LOWWR upgrades:** HDFCBANK (60.61%), IGL (60.2%), TATASTEEL (61.54%), KOTAKBANK (N/A), COALINDIA (Target 65%+), TATAMOTORS.BO (63.64%), LT (N/A)
+- **New v8 LOWWR upgrades:** HDFCBANK (60.61%), IGL (60.2%), TATASTEEL (61.54%), KOTAKBANK (N/A), COALINDIA (Target 65%+), TATAMOTORS.BO (63.64%), LT (N/A), BHARTIARTL (N/A)
 - **Bug fix:** IGL - fixed YFINANCE_AVAILABLE chained assignment bug (was overwriting boolean with Path)
 - **Loop status:** Running (qa_loop_forever.py, 7-min cycles; qa_loop.py, 30-min cycles)
 - **Working tree:** Dirty (2 files modified: live_HDFCBANK.py, live_IGL.py)
