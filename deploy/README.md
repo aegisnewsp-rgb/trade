@@ -11,9 +11,11 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked:** 2026-03-22 23:06 UTC
+- **Last checked:** 2026-03-23 00:01 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Iteration:** #15
+- **Iteration:** #16
+- **Enhancement:** live_CYIENT.BO.py converted from VWAP to MEAN_REVERSION (0% WR → target 50%+)
+- **Loop status:** Running
 - **Loop status:** Running (qa_loop_forever.py, 7-min cycles; qa_loop.py, 30-min cycles)
 - **Working tree:** Clean
 
@@ -29,8 +31,16 @@ Scripts with 0% WR in DOWNTREND/RANGE regime enhanced with NIFTY-based regime fi
 - RANGE (0.98-1.02): 50% position size
 - DOWNTREND (ratio < 0.98): 0% position size (BUY signals blocked)
 
+## 0% WR Enhancements (Iteration #16)
+Scripts with 0% win rate (12+ trades) converted to MEAN_REVERSION mode:
+- **live_CYIENT.BO.py** (0% WR, 12 trades): Changed from VWAP to MEAN_REVERSION. RSI oversold (<35) + lower BB + volume confirm = BUY
+
+**MEAN_REVERSION approach:**
+- BUY: RSI <= 35 AND price <= lower Bollinger Band AND volume > 1.2x 20-day MA
+- SELL: RSI >= 65 AND price >= upper Bollinger Band AND volume > 1.2x 20-day MA
+- Tighter stop loss (0.8%) and target (3.0x) for mean reversion style
+
 ## Low-WR Enhancements (Iteration #13)
-Scripts with <30% backtest WR enhanced with RSI + Volume filtering:
 - live_NMDC.py: 12.5% WR → MEAN_REVERSION mode (SIGNAL_MODE=MEAN_REVERSION, SL=0.6%, TGT=2.5x, ATR=1.0)
 - live_SAIL.py: 25% WR → added RSI filter (RSI>50 BUY, RSI<45 SELL) + volume confirmation (1.2x avg)
 

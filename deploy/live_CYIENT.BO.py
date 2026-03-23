@@ -127,6 +127,61 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
             vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
     return vwap
 
+def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.0) -> Tuple[list, list, list]:
+    """Calculate Bollinger Bands (middle, upper, lower)."""
+    if len(ohlcv) < period:
+        return None, None, None
+    middle = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            middle.append(None)
+        else:
+            closes = [ohlcv[j]["close"] for j in range(i - period + 1, i + 1)]
+            sma = sum(closes) / period
+            variance = sum((c - sma) ** 2 for c in closes) / period
+            std = variance ** 0.5
+            middle.append(sma)
+    upper = [m + std_dev * std if m is not None else None for m in middle]
+    lower = [m - std_dev * std if m is not None else None for m in middle]
+    return middle, upper, lower
+
+def mean_reversion_signal(ohlcv: list, params: dict) -> Tuple[str, float, float]:
+    """MEAN_REVERSION strategy: BUY at RSI oversold + price near lower BB."""
+    rsi_period = params.get("rsi_period", 14)
+    rsi_oversold = params.get("rsi_oversold", 35)
+    rsi_overbought = params.get("rsi_overbought", 65)
+    bb_period = params.get("bb_period", 20)
+    bb_std = params.get("bb_std", 2.0)
+    vol_ma_period = params.get("volume_ma_period", 20)
+    vol_confirm = params.get("volume_confirm", 1.2)
+    
+    rsi = calculate_rsi(ohlcv, rsi_period)
+    middle, upper, lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
+    
+    if rsi is None or lower is None:
+        return "HOLD", ohlcv[-1]["close"], 0.0
+    
+    current_price = ohlcv[-1]["close"]
+    current_vol = ohlcv[-1]["volume"]
+    bb_lower = lower[-1]
+    bb_upper = upper[-1]
+    
+    # Volume confirmation
+    vol_ma = calculate_volume_ma(ohlcv, vol_ma_period)
+    vol_confirmed = vol_ma > 0 and current_vol >= vol_ma * vol_confirm
+    
+    atr_vals = calculate_atr(ohlcv, 14)
+    atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
+    
+    # MEAN_REVERSION logic
+    signal = "HOLD"
+    if rsi <= rsi_oversold and current_price <= bb_lower and vol_confirmed:
+        signal = "BUY"
+    elif rsi >= rsi_overbought and current_price >= bb_upper and vol_confirmed:
+        signal = "SELL"
+    
+    return signal, current_price, atr
+
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     period = params["vwap_period"]; atr_mult = params["atr_multiplier"]
     vwap_vals = calculate_vwap(ohlcv, period); atr_vals = calculate_atr(ohlcv, period)
@@ -414,8 +469,16 @@ def main():
     price = ohlcv_list[-1][2]  # close price
     
     try:
-        # Try strategy functions in priority order
-        if 'vwap_signal' in dir():
+        # MEAN_REVERSION strategy for 0% WR script
+        if 'mean_reversion_signal' in dir():
+            sig_result = mean_reversion_signal(ohlcv_list, PARAMS)
+            if isinstance(sig_result, tuple) and len(sig_result) >= 2:
+                signal, price = sig_result[0], float(sig_result[1])
+                if len(sig_result) >= 3:
+                    atr = float(sig_result[2])
+            elif isinstance(sig_result, str):
+                signal = sig_result
+        elif 'vwap_signal' in dir():
             sig_result = vwap_signal(ohlcv_list, {})
             if isinstance(sig_result, tuple) and len(sig_result) >= 2:
                 signal, price = sig_result[0], float(sig_result[1])
