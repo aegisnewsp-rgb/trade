@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - ONGC.NS
-Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8 LOWWR)
-Win Rate: 25.0% -> Target 65%+ (v8 LOWWR: full multi-filter upgrade from VWAP basic)
-Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x ATR | Daily Loss Cap: 0.3%
-Enhanced: 2026-03-23 - v8 LOWWR: added MACD + Bollinger Band + Trend MA + RSI filters
+Strategy: MEAN_REVERSION v9 (RSI-only + VWAP bounce) - NO trend/MACD/BB filters
+Win Rate: 25.0% -> Target 55%+ (v9 MEAN_REVERSION - pivoted from v8 multi-filter too restrictive)
+Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.3%
+Enhanced: 2026-03-23 - v9 MEAN_REVERSION: removed MACD/BB/trend filters that blocked signals
 """
 
 import os
@@ -34,7 +34,7 @@ log = logging.getLogger("live_ONGC")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "ONGC.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
+STRATEGY       = "MEAN_REVERSION_RSI_V9"  # v9: simpler, no MACD/BB/trend filters
 POSITION       = 7000
 
 # 3-TIER EXIT SYSTEM
@@ -48,18 +48,12 @@ PARAMS         = {
     "vwap_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "rsi_overbought": 68,
-    "rsi_oversold": 32,
-    "rsi_confirm_overbought": 68,
-    "rsi_confirm_oversold": 32,
-    "macd_fast": 12,
-    "macd_slow": 26,
-    "macd_signal": 9,
-    "volume_multiplier": 2.0,
-    "trend_ma_period": 50,
+    "rsi_overbought": 62,
+    "rsi_oversold": 38,
+    "rsi_confirm_overbought": 62,
+    "rsi_confirm_oversold": 38,
+    "volume_multiplier": 1.3,
     "atr_period": 14,
-    "bb_period": 20,
-    "bb_std": 2.0,
 }
 
 BEST_ENTRY_START = dtime(9, 30)
@@ -98,10 +92,6 @@ def can_new_entry() -> bool:
         log.info("⏰ After 2:30 PM IST — no new entries today")
         return False
     return True
-
-def in_best_entry_window() -> bool:
-    now = ist_now().time()
-    return BEST_ENTRY_START <= now <= BEST_ENTRY_END
 
 def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     for attempt in range(retries):
@@ -172,114 +162,61 @@ def calculate_rsi(ohlcv: list, period: int = 14) -> list:
             rsi_values[i + 1] = 100 - (100 / (1 + rs))
     return rsi_values
 
-def calculate_macd(ohlcv: list, fast: int = 12, slow: int = 26, signal: int = 9) -> tuple:
-    closes = [b["close"] for b in ohlcv]
-    ema_fast, ema_slow = [closes[0]], [closes[0]]
-    for i in range(1, len(closes)):
-        ema_fast.append(closes[i] * (2/(fast+1)) + ema_fast[-1] * (1 - 2/(fast+1)))
-        ema_slow.append(closes[i] * (2/(slow+1)) + ema_slow[-1] * (1 - 2/(slow+1)))
-    macd_line = [ema_fast[i] - ema_slow[i] for i in range(len(closes))]
-    signal_line = [macd_line[0]]
-    k_sig = 2/(signal+1)
-    for i in range(1, len(macd_line)):
-        signal_line.append(macd_line[i] * k_sig + signal_line[-1] * (1 - k_sig))
-    histogram = [macd_line[i] - signal_line[i] for i in range(len(closes))]
-    return macd_line, signal_line, histogram
-
-def calculate_ma(ohlcv: list, period: int) -> list:
-    ma = []
-    for i in range(len(ohlcv)):
-        if i < period - 1:
-            ma.append(None)
-        else:
-            ma.append(sum(ohlcv[j]["close"] for j in range(i - period + 1, i + 1)) / period)
-    return ma
-
 def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
     if len(ohlcv) < period:
         return 0
     return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
 
-def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.0) -> tuple:
-    middle = calculate_ma(ohlcv, period)
-    upper, lower = [], []
-    for i in range(len(ohlcv)):
-        if middle[i] is None:
-            upper.append(None); lower.append(None)
-        else:
-            window = ohlcv[max(0, i - period + 1):i + 1]
-            mean = middle[i]
-            variance = sum((b["close"] - mean) ** 2 for b in window) / len(window)
-            std = variance ** 0.5
-            upper.append(mean + std_dev * std)
-            lower.append(mean - std_dev * std)
-    return upper, middle, lower
-
 def vwap_signal(ohlcv: list, params: dict) -> tuple:
-    period          = params["vwap_period"]
-    atr_mult        = params["atr_multiplier"]
-    rsi_period      = params["rsi_period"]
-    rsi_overbought  = params.get("rsi_confirm_overbought", 68)
-    rsi_oversold    = params.get("rsi_confirm_oversold", 32)
-    vol_mult        = params.get("volume_multiplier", 2.0)
-    trend_period    = params.get("trend_ma_period", 50)
-    bb_period      = params.get("bb_period", 20)
-    bb_std         = params.get("bb_std", 2.0)
+    """MEAN_REVERSION v9: RSI-only + VWAP bounce + Volume confirmation.
+    No trend filter, no MACD, no Bollinger Bands (too restrictive for ONGC).
+    """
+    period     = params["vwap_period"]
+    atr_mult   = params["atr_multiplier"]
+    rsi_period = params["rsi_period"]
+    rsi_oversold   = params.get("rsi_oversold", 38)
+    rsi_overbought = params.get("rsi_overbought", 62)
+    vol_mult   = params.get("volume_multiplier", 1.3)
 
-    vwap_vals   = calculate_vwap(ohlcv, period)
-    atr_vals    = calculate_atr(ohlcv, params["atr_period"])
-    rsi_vals    = calculate_rsi(ohlcv, rsi_period)
-    macd_line, signal_line, histogram = calculate_macd(
-        ohlcv, params["macd_fast"], params["macd_slow"], params["macd_signal"])
-    ma_vals     = calculate_ma(ohlcv, trend_period)
-    avg_vol     = calculate_avg_volume(ohlcv, period)
-    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
+    vwap_vals  = calculate_vwap(ohlcv, period)
+    atr_vals   = calculate_atr(ohlcv, period)
+    rsi_vals   = calculate_rsi(ohlcv, rsi_period)
+    avg_vol    = calculate_avg_volume(ohlcv, period)
 
-    start_idx = max(period, rsi_period, params["macd_slow"], params["macd_signal"], bb_period, trend_period)
+    start_idx = max(period, rsi_period, 5)
     signals   = ["HOLD"] * len(ohlcv)
 
     for i in range(start_idx, len(ohlcv)):
-        if None in (vwap_vals[i], atr_vals[i], rsi_vals[i], macd_line[i], ma_vals[i], bb_upper[i]):
+        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
 
-        price   = ohlcv[i]["close"]
-        v       = vwap_vals[i]
-        a       = atr_vals[i]
-        rsi     = rsi_vals[i]
-        vol     = ohlcv[i]["volume"]
-        trend   = ma_vals[i]
-        macd_h  = histogram[i]
-        sig_h   = histogram[i - 1] if i > 0 else 0
-        bb_up   = bb_upper[i]
-        bb_lo   = bb_lower[i]
+        price = ohlcv[i]["close"]
+        v      = vwap_vals[i]
+        a      = atr_vals[i]
+        rsi    = rsi_vals[i]
+        vol    = ohlcv[i]["volume"]
 
-        # BUY: price breaks above VWAP + ATR, RSI confirming, MACD turning positive, volume surge, above trend MA
-        buy_ok = (
-            price > v and
-            rsi < rsi_oversold and
-            macd_h > 0 and
-            sig_h <= macd_h and
-            vol > avg_vol * vol_mult and
-            price > trend
-        )
+        # Mean reversion BUY: oversold + price near VWAP from below + volume surge
+        oversold      = rsi < rsi_oversold
+        near_vwap     = abs(price - v) < a * 1.0
+        vol_confirmed = vol > avg_vol * vol_mult
+        price_above_vwap = price > v  # recovering from below VWAP
 
-        if buy_ok:
+        # Mean reversion SELL: overbought + price near VWAP from above + volume surge
+        overbought    = rsi > rsi_overbought
+        at_resistance = abs(price - v) < a * 1.0
+        price_below_vwap = price < v  # falling from above VWAP
+
+        if oversold and near_vwap and vol_confirmed and price_above_vwap:
             signals[i] = "BUY"
-
-        # SELL: price breaks below VWAP - ATR, RSI overbought, MACD turning negative, volume surge, below trend MA
-        sell_ok = (
-            price < v and
-            rsi > rsi_overbought and
-            macd_h < 0 and
-            sig_h >= macd_h and
-            vol > avg_vol * vol_mult and
-            price < trend
-        )
-
-        if sell_ok:
+        elif overbought and at_resistance and vol_confirmed and price_below_vwap:
             signals[i] = "SELL"
 
-    return signals[-1], price, a, rsi
+    current_signal = signals[-1] if signals else "HOLD"
+    current_price  = ohlcv[-1]["close"]
+    current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
+    current_rsi    = rsi_vals[-1] if rsi_vals else 50.0
+    return current_signal, current_price, current_atr, current_rsi
 
 def get_exit_levels(entry_price: float, atr: float, params: dict) -> list:
     risk = entry_price * STOP_LOSS_PCT
@@ -294,7 +231,7 @@ def get_exit_levels(entry_price: float, atr: float, params: dict) -> list:
 
 def main():
     print(f"\n{'='*60}")
-    print(f"Running: ONGC.NS | Strategy: VWAP_RSI_MACD_VOL_BB_v8_LOWWR")
+    print(f"Running: ONGC.NS | Strategy: MEAN_REVERSION v9 (RSI + VWAP bounce)")
     print(f"{'='*60}")
 
     ohlcv = fetch_recent_data(days=60)
@@ -320,7 +257,6 @@ def main():
             paper_trade("BUY", SYMBOL, price, qty)
         except:
             pass
-
     elif signal == "SELL":
         sl = round(price * (1 + STOP_LOSS_PCT), 2)
         exits = get_exit_levels(price, atr, PARAMS)

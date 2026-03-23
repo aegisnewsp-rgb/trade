@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - COMPINFO.BO
-Strategy: MEAN_REVERSION v9c LOWWR - RSI crossover + tighter filters
-Win Rate: 4.8% -> Target 50%+ (v9c: RSI 40/60 + vol 2.0 + RSI crossover requirement)
+Strategy: MEAN_REVERSION v9 (RSI-only + VWAP bounce) - NO RSI crossover requirement
+Win Rate: 4.8% -> Target 50%+ (v9: RSI 38/62 + vol 1.3x + no RSI crossover)
 Position: ₹5000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.25%
 Enhanced: 2026-03-23 - v9c: Tightened to v8 LOWWR standards + RSI crossover
 """
@@ -34,7 +34,7 @@ log = logging.getLogger("live_COMPINFO_BO")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "COMPINFO.BO"
-STRATEGY = "MEAN_REVERSION_RSI_V9C"  # COMPINFO.BO
+STRATEGY = "MEAN_REVERSION_RSI_V9"  # COMPINFO.BO
 POSITION       = 5000
 
 # 3-TIER EXIT SYSTEM
@@ -46,20 +46,14 @@ TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {
     "vwap_period": 14,
-    "atr_multiplier": 0.5,
+    "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "rsi_overbought": 60,
-    "rsi_oversold": 40,
-    "rsi_confirm_overbought": 60,
-    "rsi_confirm_oversold": 40,
-    "macd_fast": 12,
-    "macd_slow": 26,
-    "macd_signal": 9,
-    "volume_multiplier": 2.0,
-    "trend_ma_period": 50,
+    "rsi_overbought": 62,
+    "rsi_oversold": 38,
+    "rsi_confirm_overbought": 62,
+    "rsi_confirm_oversold": 38,
+    "volume_multiplier": 1.3,
     "atr_period": 14,
-    "bb_period": 20,
-    "bb_std": 2.0,
 }
 
 IST_TZ_OFFSET = 5.5
@@ -240,19 +234,20 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
 
         # Mean reversion: oversold + RSI crossover (was >38, now <38) + price near/at VWAP
         # Volume confirms institutional interest
+        # Mean reversion BUY: oversold + price near VWAP from below + volume surge
         oversold      = rsi < rsi_oversold
-        rsi_crossed_down = prev_rsi >= rsi_oversold and rsi < rsi_oversold  # v9c: crossover req
-        near_vwap     = abs(price - v) < a * 1.0   # within 1 ATR of VWAP
+        near_vwap     = abs(price - v) < a * 1.0
         vol_confirmed = vol > avg_vol * vol_mult
+        price_above_vwap = price > v  # recovering from below VWAP
 
-        # Overbought: overbought + RSI crossover (was <62, now >62) + price near/at VWAP resistance
+        # Mean reversion SELL: overbought + price near VWAP from above + volume surge
         overbought   = rsi > rsi_overbought
-        rsi_crossed_up = prev_rsi <= rsi_overbought and rsi > rsi_overbought  # v9c: crossover
-        at_resistance = abs(price - v) < a * 1.0  # same proximity logic
+        at_resistance = abs(price - v) < a * 1.0
+        price_below_vwap = price < v  # falling from above VWAP
 
-        if oversold and rsi_crossed_down and near_vwap and vol_confirmed:
+        if oversold and near_vwap and vol_confirmed and price_above_vwap:
             signals[i] = "BUY"
-        elif overbought and rsi_crossed_up and at_resistance and vol_confirmed:
+        elif overbought and at_resistance and vol_confirmed and price_below_vwap:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
