@@ -44,7 +44,7 @@ TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {
     "vwap_period": 14,
-    "atr_multiplier": 1.5,
+    "atr_multiplier": 0.5,
     "rsi_period": 14,
     "rsi_overbought": 62,
     "rsi_oversold": 38,
