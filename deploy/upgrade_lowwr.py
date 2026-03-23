@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
+"""Upgrade scripts to v8 LOWWR standard."""
+import sys, os
+from pathlib import Path
+
+TEMPLATE = '''#!/usr/bin/env python3
 """
-Live Trading Script - PUNJABCHEM.BO
+Live Trading Script - {SYMBOL}
 Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8)
-Win Rate: PUNJABCHEM.BO (low base) -> Target 55%+ (v8 multi-filter upgrade)
+Win Rate: {SYMBOL} (low base) -> Target 55%+ (v8 multi-filter upgrade)
 Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.3%
 Enhanced: 2026-03-23 - v8 LOWWR: upgraded from low win-rate script
 """
@@ -26,15 +31,15 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_PUNJABCHEM_BO.log"),
+        logging.FileHandler(LOG_DIR / "live_{LOGNAME}.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_PUNJABCHEM_BO")
+log = logging.getLogger("live_{LOGNAME}")
 
 # ── Config ────────────────────────────────────────────────────────────────────
-SYMBOL         = "PUNJABCHEM.BO"
-STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"  # PUNJABCHEM.BO
+SYMBOL         = "{SYMBOL}"
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"  # {SYMBOL}
 POSITION       = 7000
 
 # 3-TIER EXIT SYSTEM
@@ -44,7 +49,7 @@ TARGET_3_MULT = 5.0
 STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
-PARAMS         = {
+PARAMS         = {{
     "vwap_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
@@ -60,7 +65,7 @@ PARAMS         = {
     "atr_period": 14,
     "bb_period": 20,
     "bb_std": 2.0,
-}
+}}
 
 IST_TZ_OFFSET = 5.5
 
@@ -85,18 +90,18 @@ def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     for attempt in range(retries):
         try:
             ticker = yf.Ticker(SYMBOL)
-            df = ticker.history(period=f"{days}d")
+            df = ticker.history(period=f"{{days}}d")
             if df.empty:
                 raise ValueError("Empty dataframe")
             ohlcv = [
-                {
+                {{
                     "date":   str(idx.date()),
                     "open":   float(row["Open"]),
                     "high":   float(row["High"]),
                     "low":    float(row["Low"]),
                     "close":  float(row["Close"]),
                     "volume": int(row["Volume"]),
-                }
+                }}
                 for idx, row in df.iterrows()
             ]
             log.info("Fetched %d candles for %s", len(ohlcv), SYMBOL)
@@ -276,18 +281,18 @@ def main():
     exchange_suffix = ".NS" if ".NS" in sym else ".BO"
     yahoo_sym = ticker_sym + exchange_suffix
 
-    print(f"\n{'='*60}")
-    print(f"Running: {ticker_sym} ({yahoo_sym})")
-    print(f"{'='*60}")
+    print(f"\\n{{'='*60}}")
+    print(f"Running: {{ticker_sym}} ({{yahoo_sym}})")
+    print(f"{{'='*60}}")
 
     try:
         ticker = yf.Ticker(yahoo_sym)
         data = ticker.history(period="3mo")
         if data.empty:
-            print(f"No data for {yahoo_sym}")
+            print(f"No data for {{yahoo_sym}}")
             return
     except Exception as e:
-        print(f"Data fetch error: {e}")
+        print(f"Data fetch error: {{e}}")
         return
 
     ohlcv_list = []
@@ -316,29 +321,56 @@ def main():
         elif isinstance(sig_result, str):
             signal = sig_result
     except Exception as e:
-        print(f"Signal error: {e}")
+        print(f"Signal error: {{e}}")
         signal = "HOLD"
 
-    print(f"\nSignal: {signal}")
-    print(f"Price:  Rs{price:.2f}")
-    print(f"ATR:    Rs{atr:.2f}")
+    print(f"\\nSignal: {{signal}}")
+    print(f"Price:  Rs{{price:.2f}}")
+    print(f"ATR:    Rs{{atr:.2f}}")
 
     if signal == "BUY":
         sl = round(price - atr * 1.0, 2)
         tgt = round(price + atr * 4.0, 2)
         qty = max(1, int(7000 / price))
-        print(f"Qty:    {qty}")
-        print(f"Stop:   Rs{sl:.2f}")
-        print(f"Target: Rs{tgt:.2f}")
+        print(f"Qty:    {{qty}}")
+        print(f"Stop:   Rs{{sl:.2f}}")
+        print(f"Target: Rs{{tgt:.2f}}")
     elif signal == "SELL":
         sl = round(price + atr * 1.0, 2)
         tgt = round(price - atr * 4.0, 2)
         qty = max(1, int(7000 / price))
-        print(f"Qty:    {qty}")
-        print(f"Stop:   Rs{sl:.2f}")
-        print(f"Target: Rs{tgt:.2f}")
+        print(f"Qty:    {{qty}}")
+        print(f"Stop:   Rs{{sl:.2f}}")
+        print(f"Target: Rs{{tgt:.2f}}")
     else:
         print("No trade — HOLD signal")
 
 if __name__ == "__main__":
     main()
+'''
+
+SCRIPTS_TO_UPGRADE = [
+    ("CYIENT.BO", "live_CYIENT.BO.py", "CYIENT_BO"),
+    ("DSM", "live_DSM.py", "DSM"),
+    ("GAL", "live_GAL.py", "GAL"),
+    ("PRAKASHSTL.BO", "live_PRAKASHSTL.BO.py", "PRAKASHSTL_BO"),
+    ("RUPA.BO", "live_RUPA.BO.py", "RUPA_BO"),
+    ("INFY", "live_INFY.py", "INFY"),
+    ("SEL.BO", "live_SEL.BO.py", "SEL_BO"),
+    ("SPAL.BO", "live_SPAL.BO.py", "SPAL_BO"),
+    ("SUNDARAM.BO", "live_SUNDARAM.BO.py", "SUNDARAM_BO"),
+    ("ABFRL.BO", "live_ABFRL.BO.py", "ABFRL_BO"),
+    ("PUNJABCHEM.BO", "live_PUNJABCHEM.BO.py", "PUNJABCHEM_BO"),
+    ("SAMTEX.BO", "live_SAMTEX.BO.py", "SAMTEX_BO"),
+]
+
+for symbol, filepath, logname in SCRIPTS_TO_UPGRADE:
+    if not os.path.exists(filepath):
+        print(f"SKIP (not found): {filepath}")
+        continue
+    content = TEMPLATE.format(SYMBOL=symbol, LOGNAME=logname)
+    with open(filepath, 'w') as f:
+        f.write(content)
+    print(f"Upgraded: {filepath} -> v8 LOWWR")
+
+print("Done!")
