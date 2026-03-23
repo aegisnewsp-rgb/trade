@@ -7,16 +7,16 @@
 - Exchange: NSE (`.NS`) and BSE (`.BO`)
 - Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8)
 
-## Status (2026-03-23 02:22 UTC)
-- ✅ All 471 scripts pass `py_compile` (QA cycle 41 ✓)
+## Status (2026-03-23 02:34 UTC)
+- ✅ All 471 scripts pass `py_compile` (QA cycle 42 ✓)
 - ✅ Strategy v8/v9 enhancements applied (MACD, volume, trend, BB, RSI filters)
 - ✅ 3-tier exit system active
 - ✅ Telegram status reporting enabled
 - ✅ 7 x 5-9% WR scripts upgraded to v9c MEAN_REVERSION (RSI 40/60 + vol 2x + RSI crossover)
   - COMPINFO.BO, SHIVALIK.BO, AMTL.BO, ALANKIT.BO, COROMANDEL.BO, PATANJALI, ATGL.NS
-  - v9c: RSI tightened to 40/60 (was 38/62), volume mult 2.0x (was 1.3x), RSI crossover req
-  - Position reduced ₹7000→₹5000, Daily loss cap 0.3%→0.25%
-  - RSI crossover = RSI crossed threshold yesterday→today (not just sitting oversold)
+- ✅ 7 x 10-13% WR scripts pivoted to v9 MEAN_REVERSION (RSI 38/62 + vol 1.3x + no trend/MACD/BB)
+  - INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, ABFRL.BO, PUNJABCHEM.BO, SAMTEX.BO
+  - Same simpler filter set that fixed 0% WR scripts (CYIENT, PRAKASHSTL, RUPA)
 - ✅ QA compile check running — 471/471 OK, 0 fails
 
 ## Quick Check
@@ -54,13 +54,13 @@ cd deploy && for f in live_*.py; do python3 -m py_compile "$f" || echo "FAIL: $f
 | GAL | 0% (2 trades) | v8 LOWWR - trades too few for stats |
 | PRAKASHSTL.BO | 0% | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
 | RUPA.BO | 0% | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
-| INFY | 10% (21 trades) | v8 LOWWR (RSI 38/62) - 2026-03-23 |
-| SEL.BO | 10% (21 trades) | v8 LOWWR (RSI 38/62) - 2026-03-23 |
-| SPAL.BO | 11% (19 trades) | v8 LOWWR (RSI 38/62) |
-| SUNDARAM.BO | 11% (19 trades) | v8 LOWWR (RSI 38/62) |
-| ABFRL.BO | 11% (18 trades) | v8 LOWWR (RSI 38/62) |
-| PUNJABCHEM.BO | 12% (16 trades) | v8 LOWWR (RSI 38/62) |
-| SAMTEX.BO | 13% (23 trades) | v8 LOWWR (RSI 38/62) |
+| INFY | 10% (21 trades) | **→ v9 MEAN_REVERSION** (RSI+VWAP, no trend) - 2026-03-23 |
+| SEL.BO | 10% (21 trades) | **→ v9 MEAN_REVERSION** (RSI+VWAP, no trend) - 2026-03-23 |
+| SPAL.BO | 11% (19 trades) | **→ v9 MEAN_REVERSION** (RSI+VWAP, no trend) - 2026-03-23 |
+| SUNDARAM.BO | 11% (19 trades) | **→ v9 MEAN_REVERSION** (RSI+VWAP, no trend) - 2026-03-23 |
+| ABFRL.BO | 11% (18 trades) | **→ v9 MEAN_REVERSION** (RSI+VWAP, no trend) - 2026-03-23 |
+| PUNJABCHEM.BO | 12% (16 trades) | **→ v9 MEAN_REVERSION** (RSI+VWAP, no trend) - 2026-03-23 |
+| SAMTEX.BO | 13% (23 trades) | **→ v9 MEAN_REVERSION** (RSI+VWAP, no trend) - 2026-03-23 |
 
 ## Enhancement Log
 - 2026-03-23 01:44: v9b enhancements: vol_mult 2.0→1.3 for thin small-caps (CYIENT, PRAKASHSTL, RUPA, COMPINFO, SHIVALIK, AMTL, ALANKIT, COROMANDEL); atr_mult 1.5→0.5 for high-ATR% stocks (SHIVALIK 4.6%, COROMANDEL 4.4%, ALANKIT 7.2%, AMTL 9.9%, COMPINFO); ATGL.NS atr_mult 1.0→0.5 + stop 1x→2x ATR (8.12% ATR too high for 1x threshold)
