@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - CHOLAFIN.NS
-Strategy: FIBONACCI
-Win Rate: 57.49%
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
+Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8 LOWWR)
+Win Rate: 57.49% -> Target 62%+ (v8 LOWWR: upgraded from low win-rate script)
+Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x ATR | Daily Loss Cap: 0.25%
+Enhanced: 2026-03-23 - v8 LOWWR: full multi-filter upgrade
 """
 
 import os, sys, json, time, logging, requests
@@ -18,30 +19,40 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "live_CHOLAFIN.log"),
+        logging.FileHandler(LOG_DIR / "CHOLAFIN.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("live_CHOLAFIN")
+log = logging.getLogger("CHOLAFIN")
 
 SYMBOL         = "CHOLAFIN.NS"
-STRATEGY       = "FIBONACCI"
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
 POSITION       = 7000
 
 # 3-TIER EXIT SYSTEM
 TARGET_1_MULT = 1.5
 TARGET_2_MULT = 3.0
 TARGET_3_MULT = 5.0
-STOP_LOSS_PCT  = 0.008
+STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 4.0
-DAILY_LOSS_CAP = 0.003
-PARAMS         = {"swing_period": 20, "fib_levels": [0.382, 0.618, 0.786, 1.272, 1.618]}
-
-# Sniper-optimized params (Round 3, 2026-03-22)
-RSI_BUY       = 45       # BUY only when RSI > 45
-RSI_SELL      = 45       # SELL only when RSI < 45
-VOL_THRESH    = 0.5      # Volume 0.5x avg for entry confirmation
-HOLD_DAYS     = 5        # hold for 5 trading days
+DAILY_LOSS_CAP = 0.0025
+PARAMS         = {
+    "vwap_period": 14,
+    "atr_multiplier": 1.5,
+    "rsi_period": 14,
+    "rsi_overbought": 68,
+    "rsi_oversold": 32,
+    "rsi_confirm_overbought": 68,
+    "rsi_confirm_oversold": 32,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "volume_multiplier": 2.0,
+    "trend_ma_period": 50,
+    "atr_period": 14,
+    "bb_period": 20,
+    "bb_std": 2.0,
+}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -51,7 +62,6 @@ IST_TZ_OFFSET = 5.5
 def ist_now() -> datetime:
     return datetime.utcnow() + __import__("datetime").timedelta(hours=IST_TZ_OFFSET)
 
-# Smart entry: 9:30-14:30 IST
 def is_market_open() -> bool:
     now = ist_now()
     if now.weekday() >= 5: return False
@@ -68,12 +78,14 @@ def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
             ticker = yf.Ticker(SYMBOL)
             df = ticker.history(period=f"{days}d")
             if df.empty: raise ValueError("Empty dataframe")
-            ohlcv = [
-                {"date": str(idx.date()), "open": float(row["Open"]),
-                 "high": float(row["High"]), "low": float(row["Low"]),
-                 "close": float(row["Close"]), "volume": int(row["Volume"])}
-                for idx, row in df.iterrows()
-            ]
+            ohlcv = [{
+                "date":   str(idx.date()),
+                "open":   float(row["Open"]),
+                "high":   float(row["High"]),
+                "low":    float(row["Low"]),
+                "close":  float(row["Close"]),
+                "volume": int(row["Volume"]),
+            } for idx, row in df.iterrows()]
             log.info("Fetched %d candles for %s", len(ohlcv), SYMBOL)
             return ohlcv
         except Exception as e:
@@ -83,132 +95,211 @@ def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     return None
 
 def calculate_atr(ohlcv: list, period: int = 14) -> list:
+    """Index-based ATR: ohlcv[i] = [open, high, low, close, volume]"""
     atr = []
     prev_close = None
     for i, bar in enumerate(ohlcv):
-        tr = bar["high"] - bar["low"] if prev_close is None else max(
-            bar["high"] - bar["low"],
-            abs(bar["high"] - prev_close),
-            abs(bar["low"]  - prev_close),
-        )
+        high, low = bar[1], bar[2]
+        close = bar[3]
+        tr = high - low if prev_close is None else max(
+            high - low, abs(high - prev_close), abs(low - prev_close))
         if i < period - 1:
             atr.append(None)
         elif i == period - 1:
             atr.append(tr)
         else:
             atr.append((atr[-1] * (period - 1) + tr) / period)
-        prev_close = bar["close"]
+        prev_close = close
     return atr
 
-def find_swing_hl(ohlcv: list, period: int) -> tuple[float, float, float, float]:
-    highs  = [b["high"]  for b in ohlcv]
-    lows   = [b["low"]   for b in ohlcv]
-    swing_high = max(highs[-period:])
-    swing_low  = min(lows[-period:])
-    recent_high_idx  = highs[-period:].index(swing_high) + (len(highs) - period)
-    recent_low_idx   = lows[-period:].index(swing_low)  + (len(lows)  - period)
-    return swing_high, swing_low, recent_high_idx, recent_low_idx
+def calculate_vwap(ohlcv: list, period: int = 14) -> list:
+    """Index-based VWAP: ohlcv[i] = [open, high, low, close, volume]"""
+    vwap = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            vwap.append(None)
+        else:
+            tp_sum  = sum((ohlcv[j][1] + ohlcv[j][2] + ohlcv[j][3]) / 3
+                          for j in range(i - period + 1, i + 1))
+            vol_sum = sum(ohlcv[j][4] for j in range(i - period + 1, i + 1))
+            vwap.append(tp_sum / vol_sum if vol_sum > 0 else 0.0)
+    return vwap
 
-def fibonacci_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period     = params["swing_period"]
-    fib_levels = params["fib_levels"]
-    closes     = [b["close"] for b in ohlcv]
-    s_high, s_low, _, _ = find_swing_hl(ohlcv, period)
-    diff = s_high - s_low
-    signals = ["HOLD"] * len(ohlcv)
-    for i in range(period, len(ohlcv)):
-        price = closes[i]
-        # Retracement levels (buy zone near support)
-        for level in [0.382, 0.618, 0.786]:
-            fib_price = s_low + level * diff
-            if abs(price - fib_price) / price < 0.005:
-                signals[i] = "BUY"
-                break
-        if signals[i] != "HOLD": continue
-        # Extension levels (sell zone near resistance)
-        for level in [1.272, 1.618]:
-            fib_price = s_high + level * diff
-            if abs(price - fib_price) / price < 0.005:
-                signals[i] = "SELL"
-                break
-    atr_vals       = calculate_atr(ohlcv)
+def calculate_rsi(ohlcv: list, period: int = 14) -> list:
+    """Index-based RSI: ohlcv[i] = [open, high, low, close, volume]"""
+    rsi_values = [50.0] * len(ohlcv)
+    if len(ohlcv) < period + 1:
+        return rsi_values
+    gains, losses = [], []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i][3] - ohlcv[i - 1][3]
+        gains.append(max(change, 0))
+        losses.append(max(-change, 0))
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+        if avg_loss == 0:
+            rsi_values[i + 1] = 100.0
+        else:
+            rs = avg_gain / avg_loss
+            rsi_values[i + 1] = 100 - (100 / (1 + rs))
+    return rsi_values
+
+def calculate_macd(ohlcv: list, fast: int = 12, slow: int = 26, signal: int = 9) -> tuple:
+    closes = [b[3] for b in ohlcv]
+    ema_fast, ema_slow = [closes[0]], [closes[0]]
+    for i in range(1, len(closes)):
+        ema_fast.append(closes[i] * (2/(fast+1)) + ema_fast[-1] * (1 - 2/(fast+1)))
+        ema_slow.append(closes[i] * (2/(slow+1)) + ema_slow[-1] * (1 - 2/(slow+1)))
+    macd_line = [ema_fast[i] - ema_slow[i] for i in range(len(closes))]
+    signal_line = [macd_line[0]]
+    k_sig = 2/(signal+1)
+    for i in range(1, len(macd_line)):
+        signal_line.append(macd_line[i] * k_sig + signal_line[-1] * (1 - k_sig))
+    histogram = [macd_line[i] - signal_line[i] for i in range(len(closes))]
+    return macd_line, signal_line, histogram
+
+def calculate_ma(ohlcv: list, period: int) -> list:
+    ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            ma.append(None)
+        else:
+            ma.append(sum(ohlcv[j][3] for j in range(i - period + 1, i + 1)) / period)
+    return ma
+
+def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
+    if len(ohlcv) < period:
+        return 0
+    return sum(ohlcv[j][4] for j in range(len(ohlcv) - period, len(ohlcv))) / period
+
+def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.0) -> tuple:
+    middle = calculate_ma(ohlcv, period)
+    upper, lower = [], []
+    for i in range(len(ohlcv)):
+        if middle[i] is None:
+            upper.append(None); lower.append(None)
+        else:
+            window = ohlcv[max(0, i - period + 1):i + 1]
+            mean = middle[i]
+            variance = sum((b[3] - mean) ** 2 for b in window) / len(window)
+            std = variance ** 0.5
+            upper.append(mean + std_dev * std)
+            lower.append(mean - std_dev * std)
+    return upper, middle, lower
+
+def vwap_signal(ohlcv: list, params: dict) -> tuple:
+    period          = params["vwap_period"]
+    atr_mult        = params["atr_multiplier"]
+    rsi_period      = params["rsi_period"]
+    rsi_overbought  = params.get("rsi_confirm_overbought", 68)
+    rsi_oversold    = params.get("rsi_confirm_oversold", 32)
+    vol_mult        = params.get("volume_multiplier", 2.0)
+    trend_period    = params.get("trend_ma_period", 50)
+    bb_period       = params.get("bb_period", 20)
+    bb_std          = params.get("bb_std", 2.0)
+
+    vwap_vals    = calculate_vwap(ohlcv, period)
+    atr_vals     = calculate_atr(ohlcv, period)
+    rsi_vals     = calculate_rsi(ohlcv, rsi_period)
+    macd_line, signal_line, histogram = calculate_macd(
+        ohlcv, params["macd_fast"], params["macd_slow"], params["macd_signal"])
+    ma_vals      = calculate_ma(ohlcv, trend_period)
+    avg_vol      = calculate_avg_volume(ohlcv, period)
+    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
+
+    start_idx = max(period, rsi_period, params["macd_slow"], params["macd_signal"], bb_period, trend_period)
+    signals   = ["HOLD"] * len(ohlcv)
+
+    for i in range(start_idx, len(ohlcv)):
+        if None in (vwap_vals[i], atr_vals[i], rsi_vals[i], macd_line[i], ma_vals[i], bb_upper[i]):
+            continue
+
+        price   = ohlcv[i][3]
+        v       = vwap_vals[i]
+        a       = atr_vals[i]
+        rsi     = rsi_vals[i]
+        vol     = ohlcv[i][4]
+        trend   = ma_vals[i]
+        macd_h  = histogram[i]
+        sig_h   = histogram[i - 1] if i > 0 else 0
+        bb_up   = bb_upper[i]
+        bb_lo   = bb_lower[i]
+
+        volume_confirmed = vol > avg_vol * vol_mult
+        bull_market  = price > trend
+        bear_market  = price < trend
+        macd_bullish = macd_h > 0 and macd_h > sig_h
+        macd_bearish = macd_h < 0 and macd_h < sig_h
+        bb_near_middle = bb_lo < price < bb_up
+
+        if (price > v + a * atr_mult and rsi < rsi_oversold and macd_bullish
+                and volume_confirmed and bull_market and bb_near_middle):
+            signals[i] = "BUY"
+        elif (price < v - a * atr_mult and rsi > rsi_overbought and macd_bearish
+                and volume_confirmed and bear_market and bb_near_middle):
+            signals[i] = "SELL"
+
     current_signal = signals[-1] if signals else "HOLD"
-    current_price  = ohlcv[-1]["close"]
+    current_price  = ohlcv[-1][3]
     current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return current_signal, current_price, current_atr
+    current_rsi    = rsi_vals[-1] if rsi_vals else 50.0
+    return current_signal, current_price, current_atr, current_rsi
 
 def place_groww_order(symbol, signal, quantity, price):
-    """
-    Place order via Groww API or paper trade.
-    Uses Bracket Orders (BO) when GROWW_API_KEY is set.
-    Falls back to paper trading otherwise.
-    """
     import groww_api
-    
     if not groww_api.is_configured():
         return groww_api.paper_trade(signal, symbol, price, quantity)
-    
     exchange = "NSE"
-    
     if signal == "BUY":
-        # Calculate target and stop loss  # 0.8% ATR approximation
-        stop_loss = price - (atr * 1.0)  # 1x ATR stop
-        target = price + (atr * 4.0)  # 4x ATR target
-        # Use bracket order for BUY with target + stop loss
+        stop_loss = price - (atr * 1.0)
+        target   = price + (atr * 4.0)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="BUY",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
-        )
+            exchange=exchange, symbol=symbol, transaction="BUY",
+            quantity=quantity, target_price=target,
+            stop_loss_price=stop_loss, trailing_sl=0.3, trailing_target=0.5)
     elif signal == "SELL":
         stop_loss = price + (atr * 1.0)
-        target = price - (atr * 4.0)
+        target   = price - (atr * 4.0)
         result = groww_api.place_bo(
-            exchange=exchange,
-            symbol=symbol,
-            transaction="SELL",
-            quantity=quantity,
-            target_price=target,
-            stop_loss_price=stop_loss,
-            trailing_sl=0.3,
-            trailing_target=0.5
-        )
+            exchange=exchange, symbol=symbol, transaction="SELL",
+            quantity=quantity, target_price=target,
+            stop_loss_price=stop_loss, trailing_sl=0.3, trailing_target=0.5)
     else:
         return None
-    
     if result:
-        print("Order placed: {} {} {} @ Rs{:.2f}".format(
-            signal, quantity, symbol, price))
+        print(f"Order placed: {signal} {quantity} {symbol} @ Rs{price:.2f}")
     return result
 
-
-
 def main():
-    """Main trading loop"""
-    import yfinance
-    YFINANCE_AVAILABLE = True
     try:
-        ticker = yfinance.Ticker("CHOLAFIN.NS")
-        d = ticker.history(period="3mo")
-        if len(d) < 30:
-            print("CHOLAFIN: No data")
-            return
-        closes = d['Close'].tolist()
-        print(f"CHOLAFIN: {len(closes)} candles, last price {closes[-1]:.2f}")
+        ticker = yf.Ticker(SYMBOL)
+        data = ticker.history(period="3mo")
+        if data.empty:
+            print(f"No data for {SYMBOL}"); return
+        ohlcv_list = [[float(row['Open']), float(row['High']),
+                       float(row['Low']), float(row['Close']), float(row['Volume'])]
+                      for _, row in data.iterrows()]
+        print(f"Running: {SYMBOL} | Strategy: VWAP_RSI_MACD_VOL_BB_v8_LOWWR")
+        print(f"Loaded {len(ohlcv_list)} candles")
+        signal, price, atr, rsi = vwap_signal(ohlcv_list, PARAMS)
+        print(f"Signal: {signal} | Price: Rs{price:.2f} | ATR: Rs{atr:.2f} | RSI: {rsi:.1f}")
+        if signal == "BUY":
+            sl = round(price - atr * 1.0, 2); tgt = round(price + atr * 4.0, 2)
+            qty = max(1, int(10000 / price))
+            print(f"Qty: {qty} | Stop: Rs{sl:.2f} | Target: Rs{tgt:.2f}")
+            place_groww_order(SYMBOL, signal, qty, price)
+        elif signal == "SELL":
+            sl = round(price + atr * 1.0, 2); tgt = round(price - atr * 4.0, 2)
+            qty = max(1, int(10000 / price))
+            print(f"Qty: {qty} | Stop: Rs{sl:.2f} | Target: Rs{tgt:.2f}")
+            place_groww_order(SYMBOL, signal, qty, price)
+        else:
+            print("No trade — HOLD")
     except Exception as e:
-        print(f"CHOLAFIN: Error - {e}")
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()
-
-
-if __name__ == "__main__":
-    main()
-
-
-if __name__ == "__main__": main()

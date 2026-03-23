@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
 """
-Live Trading Script - TECHM.NS
+Upgrade low win-rate scripts to v8 multi-filter standard.
+"""
+import re
+from pathlib import Path
+
+WORKDIR = Path("/home/node/workspace/trade-project/deploy")
+
+# Template for v8 upgrade
+V8_TEMPLATE = '''#!/usr/bin/env python3
+"""
+Live Trading Script - {SYMBOL}
 Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8 LOWWR)
-Win Rate: 58.0% -> Target 62%+ (v8 LOWWR: upgraded from low win-rate script)
+Win Rate: {WIN_RATE}% -> Target 62%+ (v8 LOWWR: upgraded from low win-rate script)
 Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x ATR | Daily Loss Cap: 0.25%
 Enhanced: 2026-03-23 - v8 LOWWR: full multi-filter upgrade
 """
@@ -19,13 +29,13 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_DIR / "TECHM.log"),
+        logging.FileHandler(LOG_DIR / "{LOGNAME}.log"),
         logging.StreamHandler(sys.stdout),
     ],
 )
-log = logging.getLogger("TECHM")
+log = logging.getLogger("{LOGNAME}")
 
-SYMBOL         = "TECHM.NS"
+SYMBOL         = "{SYMBOL}"
 STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
 POSITION       = 7000
 
@@ -36,7 +46,7 @@ TARGET_3_MULT = 5.0
 STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.0025
-PARAMS         = {
+PARAMS         = {{
     "vwap_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
@@ -52,7 +62,7 @@ PARAMS         = {
     "atr_period": 14,
     "bb_period": 20,
     "bb_std": 2.0,
-}
+}}
 
 GROWW_API_KEY    = os.getenv("GROWW_API_KEY")
 GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
@@ -76,16 +86,16 @@ def fetch_recent_data(days: int = 60, retries: int = 3) -> list | None:
     for attempt in range(retries):
         try:
             ticker = yf.Ticker(SYMBOL)
-            df = ticker.history(period=f"{days}d")
+            df = ticker.history(period=f"{{days}}d")
             if df.empty: raise ValueError("Empty dataframe")
-            ohlcv = [{
+            ohlcv = [{{
                 "date":   str(idx.date()),
                 "open":   float(row["Open"]),
                 "high":   float(row["High"]),
                 "low":    float(row["Low"]),
                 "close":  float(row["Close"]),
                 "volume": int(row["Volume"]),
-            } for idx, row in df.iterrows()]
+            }} for idx, row in df.iterrows()]
             log.info("Fetched %d candles for %s", len(ohlcv), SYMBOL)
             return ohlcv
         except Exception as e:
@@ -270,7 +280,7 @@ def place_groww_order(symbol, signal, quantity, price):
     else:
         return None
     if result:
-        print(f"Order placed: {signal} {quantity} {symbol} @ Rs{price:.2f}")
+        print(f"Order placed: {{signal}} {{quantity}} {{symbol}} @ Rs{{price:.2f}}")
     return result
 
 def main():
@@ -278,28 +288,68 @@ def main():
         ticker = yf.Ticker(SYMBOL)
         data = ticker.history(period="3mo")
         if data.empty:
-            print(f"No data for {SYMBOL}"); return
+            print(f"No data for {{SYMBOL}}"); return
         ohlcv_list = [[float(row['Open']), float(row['High']),
                        float(row['Low']), float(row['Close']), float(row['Volume'])]
                       for _, row in data.iterrows()]
-        print(f"Running: {SYMBOL} | Strategy: VWAP_RSI_MACD_VOL_BB_v8_LOWWR")
-        print(f"Loaded {len(ohlcv_list)} candles")
+        print(f"Running: {{SYMBOL}} | Strategy: VWAP_RSI_MACD_VOL_BB_v8_LOWWR")
+        print(f"Loaded {{len(ohlcv_list)}} candles")
         signal, price, atr, rsi = vwap_signal(ohlcv_list, PARAMS)
-        print(f"Signal: {signal} | Price: Rs{price:.2f} | ATR: Rs{atr:.2f} | RSI: {rsi:.1f}")
+        print(f"Signal: {{signal}} | Price: Rs{{price:.2f}} | ATR: Rs{{atr:.2f}} | RSI: {{rsi:.1f}}")
         if signal == "BUY":
             sl = round(price - atr * 1.0, 2); tgt = round(price + atr * 4.0, 2)
             qty = max(1, int(10000 / price))
-            print(f"Qty: {qty} | Stop: Rs{sl:.2f} | Target: Rs{tgt:.2f}")
+            print(f"Qty: {{qty}} | Stop: Rs{{sl:.2f}} | Target: Rs{{tgt:.2f}}")
             place_groww_order(SYMBOL, signal, qty, price)
         elif signal == "SELL":
             sl = round(price + atr * 1.0, 2); tgt = round(price - atr * 4.0, 2)
             qty = max(1, int(10000 / price))
-            print(f"Qty: {qty} | Stop: Rs{sl:.2f} | Target: Rs{tgt:.2f}")
+            print(f"Qty: {{qty}} | Stop: Rs{{sl:.2f}} | Target: Rs{{tgt:.2f}}")
             place_groww_order(SYMBOL, signal, qty, price)
         else:
             print("No trade — HOLD")
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error: {{e}}")
 
 if __name__ == "__main__":
     main()
+'''
+
+# Scripts to upgrade with their win rates
+UPGRADES = [
+    ("live_ADANIENT.py", "ADANIENT.NS", "ADANIENT", 57.69),
+    ("live_BPCL.py",     "BPCL.NS",     "BPCL",     57.50),
+    ("live_CHOLAFIN.py", "CHOLAFIN.NS", "CHOLAFIN", 57.49),
+    ("live_TECHM.py",    "TECHM.NS",    "TECHM",    58.00),
+]
+
+for fname, symbol, logname, wr in UPGRADES:
+    fpath = WORKDIR / fname
+    if not fpath.exists():
+        print(f"SKIP (not found): {fname}")
+        continue
+    # Check if already v8
+    content = fpath.read_text()
+    if "v8_LOWWR" in content or "VWAP_RSI_MACD_VOL_BB_v8" in content:
+        print(f"SKIP (already v8): {fname}")
+        continue
+    
+    new_content = V8_TEMPLATE.format(
+        SYMBOL=symbol,
+        WIN_RATE=wr,
+        LOGNAME=logname,
+    )
+    fpath.write_text(new_content)
+    # Verify syntax
+    import py_compile
+    try:
+        py_compile.compile(str(fpath), doraise=True)
+        print(f"UPGRADED: {fname} ({wr}% -> v8 LOWWR)")
+    except py_compile.PyCompileError as e:
+        print(f"FAILED: {fname} - {e}")
+        # Restore from git
+        import subprocess
+        subprocess.run(["git", "checkout", str(fpath)], cwd=WORKDIR)
+        print(f"RESTORED: {fname}")
+
+print("Done!")
