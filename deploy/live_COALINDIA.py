@@ -353,25 +353,83 @@ def smart_entry_conditions_met(intraday_15m: list, intraday_1hr: list,
     return False, "❌ Entry conditions not met: " + " | ".join(reasons)
 
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period = params["vwap_period"]
-    atr_mult = params["atr_multiplier"]
-    vwap_vals = calculate_vwap(ohlcv)
-    atr_vals = calculate_atr(ohlcv, period)
-    signals = ["HOLD"] * len(ohlcv)
+def vwap_signal(ohlcv: list, params: dict) -> tuple:
+    """
+    v8 LOWWR: VWAP + RSI + MACD + Volume + Trend + Bollinger Band multi-filter.
     
-    for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None:
+    Coal commodity specific (from v7 base):
+      - VWAP + ATR-based entry (coal is volatile)
+      - RSI, MACD, BB, Trend MA all must confirm for signal
+      - Volume 2x MA for entry confirmation
+    """
+    period          = params["vwap_period"]
+    atr_mult        = params["atr_multiplier"]
+    rsi_period      = params["rsi_period"]
+    rsi_overbought  = params.get("rsi_confirm_overbought", 68)
+    rsi_oversold    = params.get("rsi_confirm_oversold", 32)
+    vol_mult        = params.get("volume_multiplier", 2.0)
+    trend_period    = params.get("trend_ma_period", 50)
+    bb_period       = params.get("bb_period", 20)
+    bb_std          = params.get("bb_std", 2.0)
+
+    vwap_vals    = calculate_vwap(ohlcv)
+    atr_vals     = calculate_atr(ohlcv, period)
+    # v8: use ohlcv closes for RSI to match standard pattern
+    closes_list  = [b["close"] for b in ohlcv]
+    rsi_vals     = calculate_rsi(closes_list, rsi_period)
+    macd_line, signal_line, histogram = calculate_macd(
+        ohlcv, params["macd_fast"], params["macd_slow"], params["macd_signal"])
+    ma_vals      = calculate_ma(ohlcv, trend_period)
+    avg_vol      = calculate_avg_volume(ohlcv, period)
+    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
+
+    start_idx = max(period, rsi_period, params["macd_slow"], params["macd_signal"], bb_period, trend_period)
+
+    for i in range(start_idx, len(ohlcv)):
+        if None in (vwap_vals[i], atr_vals[i], rsi_vals[i] if i < len(rsi_vals) else None,
+                    macd_line[i] if i < len(macd_line) else None,
+                    ma_vals[i] if i < len(ma_vals) else None,
+                    bb_lower[i] if i < len(bb_lower) else None):
             continue
-        price = ohlcv[i]["close"]
-        v, a = vwap_vals[i], atr_vals[i]
-        if price > v + a * atr_mult:
-            signals[i] = "BUY"
-        elif price < v - a * atr_mult:
-            signals[i] = "SELL"
-    
+
+        price   = ohlcv[i]["close"]
+        v       = vwap_vals[i]
+        a       = atr_vals[i]
+        rsi     = rsi_vals[i] if i < len(rsi_vals) else 50
+        vol     = ohlcv[i]["volume"]
+        trend   = ma_vals[i]
+        macd_h  = histogram[i] if i < len(histogram) else 0
+        sig_h   = histogram[i - 1] if i > 0 and (i-1) < len(histogram) else 0
+        bb_lo   = bb_lower[i]
+
+        # BUY: all filters must align
+        buy_ok = (
+            price > v and               # price above VWAP
+            rsi < rsi_oversold and      # RSI oversold (<32)
+            macd_h > 0 and             # MACD histogram positive
+            sig_h <= macd_h and         # MACD turning bullish
+            vol > avg_vol * vol_mult and # volume confirmation
+            price > trend               # above 50-MA trend
+        )
+
+        if buy_ok:
+            return "BUY", price, a, rsi
+
+        # SELL: all filters must align
+        sell_ok = (
+            price < v and               # price below VWAP
+            rsi > rsi_overbought and    # RSI overbought (>68)
+            macd_h < 0 and             # MACD histogram negative
+            sig_h >= macd_h and        # MACD turning bearish
+            vol > avg_vol * vol_mult and # volume confirmation
+            price < trend               # below 50-MA trend
+        )
+
+        if sell_ok:
+            return "SELL", price, a, rsi
+
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], current_atr
+    return "HOLD", ohlcv[-1]["close"], current_atr, 50.0
 
 
 def calculate_dynamic_sl(entry_price: float, atr: float) -> float:

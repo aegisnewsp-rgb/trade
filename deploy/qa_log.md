@@ -42,3 +42,11 @@
   - Added STOP_LOSS_PCT=0.006, TARGET_MULT=4.0, 3-TIER EXIT
   - Added calculate_macd(), calculate_ma(), calculate_avg_volume(), calculate_bollinger_bands()
   - Rewrote vwap_signal() with full v8 multi-filter
+
+### COALINDIA Enhancement (01:25 UTC):
+- **live_COALINDIA.py**: Target 65%+ → v8 LOWWR (upgraded from VWAP_SMART_ENTRY to full multi-filter)
+  - Added calculate_ma(), calculate_macd(), calculate_avg_volume(), calculate_bollinger_bands()
+  - Updated vwap_signal() with full v8 multi-filter (RSI 32/68 + MACD + BB + Trend MA)
+  - Updated PARAMS with v8 LOWWR standard params
+  - Updated STRATEGY name to VWAP_RSI_MACD_VOL_BB_v8_LOWWR
+  - Replaced old entry params with 3-TIER EXIT SYSTEM
