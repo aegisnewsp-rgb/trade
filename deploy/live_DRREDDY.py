@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - DRREDDY.NS
-Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8)
-Win Rate: DRREDDY.NS (low base) -> Target 55%+ (v8 multi-filter upgrade)
+Strategy: MEAN_REVERSION v9 (RSI-only + VWAP bounce) - NO trend/MACD/BB filters
+Win Rate: 0% -> Target 50%+ - v9 MEAN_REVERSION (removed trend/MACD/BB filters)
 Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.3%
-Enhanced: 2026-03-23 - v8 LOWWR: upgraded from low win-rate script
+Enhanced: 2026-03-23 - v9 MEAN_REVERSION: 0% WR v8 - removed trend/MACD/BB filters, RSI 38/62, vol 1.3x
 """
 
 import os, sys, json, time, logging
@@ -31,7 +31,7 @@ log = logging.getLogger("live_live_DRREDDY")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "DRREDDY.NS"
-STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
+STRATEGY       = "MEAN_REVERSION_RSI_V9"
 POSITION       = 7000
 
 # 3-TIER EXIT SYSTEM
@@ -45,14 +45,14 @@ PARAMS         = {
     "vwap_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "rsi_overbought": 68,
-    "rsi_oversold": 32,
-    "rsi_confirm_overbought": 68,
-    "rsi_confirm_oversold": 32,
+    "rsi_overbought": 62,
+    "rsi_oversold": 38,
+    "rsi_confirm_overbought": 62,
+    "rsi_confirm_oversold": 38,
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 2.0,
+    "volume_multiplier": 1.3,
     "trend_ma_period": 50,
     "atr_period": 14,
     "bb_period": 20,
@@ -198,55 +198,48 @@ def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.
     return upper, middle, lower
 
 def vwap_signal(ohlcv: list, params: dict) -> tuple:
-    period          = params["vwap_period"]
-    atr_mult        = params["atr_multiplier"]
-    rsi_overbought  = params.get("rsi_confirm_overbought", 68)
-    rsi_oversold    = params.get("rsi_confirm_oversold", 32)
-    vol_mult        = params.get("volume_multiplier", 2.0)
-    trend_period    = params.get("trend_ma_period", 50)
-    bb_period       = params.get("bb_period", 20)
-    bb_std          = params.get("bb_std", 2.0)
+    """MEAN_REVERSION v9: RSI-only bounce + VWAP proximity + Volume confirmation.
+    No trend filter (fails for consistently downtrending stocks).
+    No MACD filter (too slow for mean reversion).
+    No Bollinger Band filter (redundant with VWAP proximity).
+    """
+    period     = params["vwap_period"]
+    atr_mult   = params["atr_multiplier"]
+    rsi_period = params["rsi_period"]
+    rsi_oversold   = params.get("rsi_oversold", 38)
+    rsi_overbought = params.get("rsi_overbought", 62)
+    vol_mult   = params.get("volume_multiplier", 1.3)
 
-    vwap_vals    = calculate_vwap(ohlcv, period)
-    atr_vals     = calculate_atr(ohlcv, period)
-    rsi_vals     = calculate_rsi(ohlcv, params["rsi_period"])
-    macd_line, signal_line, histogram = calculate_macd(ohlcv, params["macd_fast"], params["macd_slow"], params["macd_signal"])
-    ma_vals      = calculate_ma(ohlcv, trend_period)
-    avg_vol      = calculate_avg_volume(ohlcv, period)
-    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
+    vwap_vals  = calculate_vwap(ohlcv, period)
+    atr_vals   = calculate_atr(ohlcv, period)
+    rsi_vals   = calculate_rsi(ohlcv, rsi_period)
+    avg_vol    = calculate_avg_volume(ohlcv, period)
 
-    start_idx = max(period, params["rsi_period"], params["macd_slow"], params["macd_signal"], bb_period, trend_period)
+    start_idx = max(period, rsi_period, 5)
     signals   = ["HOLD"] * len(ohlcv)
 
     for i in range(start_idx, len(ohlcv)):
         if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
-        if macd_line[i] is None or ma_vals[i] is None or bb_upper[i] is None:
-            continue
 
-        price   = ohlcv[i][3]
-        v       = vwap_vals[i]
-        a       = atr_vals[i]
-        rsi     = rsi_vals[i]
-        vol     = ohlcv[i][4]
-        trend   = ma_vals[i]
-        macd_h  = histogram[i]
-        sig_h   = histogram[i - 1] if i > 0 else 0
-        bb_up   = bb_upper[i]
-        bb_lo   = bb_lower[i]
+        price = ohlcv[i][3]
+        v      = vwap_vals[i]
+        a      = atr_vals[i]
+        rsi    = rsi_vals[i]
+        vol    = ohlcv[i][4]
 
-        volume_confirmed = vol > avg_vol * vol_mult
-        bull_market  = price > trend
-        bear_market  = price < trend
-        macd_bullish = macd_h > 0 and macd_h > sig_h
-        macd_bearish = macd_h < 0 and macd_h < sig_h
-        bb_near_middle = bb_lo < price < bb_up
+        # Mean reversion: oversold + price near/at VWAP support
+        oversold      = rsi < rsi_oversold
+        near_vwap     = abs(price - v) < a * 1.0   # within 1 ATR of VWAP
+        vol_confirmed = vol > avg_vol * vol_mult
 
-        if (price > v + a * atr_mult and rsi < rsi_oversold and macd_bullish
-                and volume_confirmed and bull_market and bb_near_middle):
+        # Overbought: overbought + price near/at VWAP resistance
+        overbought   = rsi > rsi_overbought
+        at_resistance = abs(price - v) < a * 1.0  # same proximity logic
+
+        if oversold and near_vwap and vol_confirmed:
             signals[i] = "BUY"
-        elif (price < v - a * atr_mult and rsi > rsi_overbought and macd_bearish
-                and volume_confirmed and bear_market and bb_near_middle):
+        elif overbought and at_resistance and vol_confirmed:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
@@ -271,7 +264,7 @@ def main():
 
     print(f"\n{'='*60}")
     print(f"Running: {ticker_sym} ({yahoo_sym})")
-    print(f"Strategy: VWAP_RSI_MACD_VOL_BB_v8_LOWWR")
+    print(f"Strategy: MEAN_REVERSION_RSI_V9")
     print(f"{'='*60}")
 
     try:
