@@ -511,7 +511,7 @@ def main():
     print(f"ATR:    Rs{atr:.2f}")
     
     if signal == "BUY":
-        sl = round(price - atr * 1.0, 2)
+        sl = round(price - atr * 2.0, 2)
         tgt = round(price + atr * 4.0, 2)
         qty = max(1, int(10000 / price))
         print(f"Qty:    {qty}")
@@ -538,7 +538,7 @@ def main():
                 pass
     
     elif signal == "SELL":
-        sl = round(price + atr * 1.0, 2)
+        sl = round(price + atr * 2.0, 2)
         tgt = round(price - atr * 4.0, 2)
         qty = max(1, int(10000 / price))
         print(f"Qty:    {qty}")
