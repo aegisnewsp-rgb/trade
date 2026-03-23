@@ -36,31 +36,29 @@ log = logging.getLogger("live_BAJFINANCE")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "BAJFINANCE.NS"
-STRATEGY       = "VWAP+Volume"
+STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
 POSITION       = 7000
-STOP_LOSS_PCT  = 0.008
+STOP_LOSS_PCT  = 0.006  # v8: 0.6% hard stop
 TARGET_MULT    = 4.0
 DAILY_LOSS_CAP = 0.003
 PARAMS         = {
-    # Sniper-optimized params (Round 3, 2026-03-22)
-    "rsi_buy": 50,
-    "rsi_sell": 45,
-    "vol_threshold": 0.75,
-    "sl_pct": 1.0,
-    "tgt_pct": 3.0,
-    "hold_days": 5,
-    "trail_atr_mult": 0.3,
-    "best_entry_start": "09:30",
-    "best_entry_end": "14:30",
-    # Legacy params preserved
+    # v8 LOWWR multi-filter params
     "vwap_period": 14,
     "atr_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "rsi_overbought": 55,
-    "rsi_oversold": 45,
-    "volume_multiplier": 1.2,
+    "rsi_overbought": 68,
+    "rsi_oversold": 32,
+    "rsi_confirm_overbought": 68,
+    "rsi_confirm_oversold": 32,
+    "macd_fast": 12,
+    "macd_slow": 26,
+    "macd_signal": 9,
+    "volume_multiplier": 2.0,  # v8: 2x avg volume
     "volume_ma_period": 20,
+    "trend_ma_period": 50,
+    "bb_period": 20,
+    "bb_std": 2.0,
 }
 
 # 3-TIER EXIT SYSTEM (enhancement)
