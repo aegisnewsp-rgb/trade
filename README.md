@@ -7,20 +7,17 @@
 - Exchange: NSE (`.NS`) and BSE (`.BO`)
 - Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8)
 
-## Status (2026-03-23 03:20 UTC)
-- ✅ All 471 scripts pass `py_compile` (QA cycle 46 ✓)
-- ✅ 10 x 0% WR scripts upgraded to v9 MEAN_REVERSION (RSI 38/62, vol 1.3x, NO trend/MACD/BB)
-  - ADANIPORTS, ICICIBANK, AXISBANK, HCLTECH_NS, ADANIPOWER, SRF_NS, DRREDDY, SBILIFE_NS, SHREECEM_NS, CIPLA
+## Status (2026-03-23 04:53 UTC)
+- ✅ All 471 scripts pass `py_compile` (QA cycle 47 ✓)
+- ✅ MM_NS (16.7%), ONGC (25%) pivoted to v9 MEAN_REVERSION (removed MACD/BB/trend multi-filter)
+- ✅ COMPINFO.BO (4.8%) RSI crossover requirement removed (too strict, replaced with simple RSI 38/62)
+- ✅ 10 x 0% WR scripts on v9 MEAN_REVERSION (ADANIPORTS, ICICIBANK, AXISBANK, HCLTECH_NS, ADANIPOWER, SRF_NS, DRREDDY, SBILIFE_NS, SHREECEM_NS, CIPLA)
 - ✅ Strategy v8/v9 enhancements applied (MACD, volume, trend, BB, RSI filters)
 - ✅ 3-tier exit system active
 - ✅ Telegram status reporting enabled
-- ✅ 7 x 5-9% WR scripts upgraded to v9c MEAN_REVERSION (RSI 40/60 + vol 2x + RSI crossover)
-  - COMPINFO.BO, SHIVALIK.BO, AMTL.BO, ALANKIT.BO, COROMANDEL.BO, PATANJALI, ATGL.NS
-- ✅ 7 x 10-13% WR scripts pivoted to v9 MEAN_REVERSION (RSI 38/62 + vol 1.3x + no trend/MACD/BB)
-  - INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, ABFRL.BO, PUNJABCHEM.BO, SAMTEX.BO
-  - Same simpler filter set that fixed 0% WR scripts (CYIENT, PRAKASHSTL, RUPA)
-- ✅ 3 x 52-56% WR scripts upgraded to v9 MEAN_REVERSION (WIPRO 52%, HEROMOTOCO 55%, GLENMARK 56%)
-  - Removed trend/MACD/BB filters, RSI 38/62, vol 1.3x — same approach that fixed 0% WR scripts
+- ✅ 7 x 5-9% WR scripts on v9c/v9 MEAN_REVERSION (COMPINFO.BO, SHIVALIK.BO, AMTL.BO, ALANKIT.BO, COROMANDEL.BO, PATANJALI, ATGL.NS)
+- ✅ 7 x 10-13% WR scripts on v9 MEAN_REVERSION (INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, ABFRL.BO, PUNJABCHEM.BO, SAMTEX.BO)
+- ✅ 3 x 52-56% WR scripts on v9 MEAN_REVERSION (WIPRO 52%, HEROMOTOCO 55%, GLENMARK 56%)
 - ✅ QA compile check running — 471/471 OK, 0 fails
 
 ## Quick Check
