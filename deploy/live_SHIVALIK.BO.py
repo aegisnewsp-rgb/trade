@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - SHIVALIK.BO
-Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8)
-Win Rate: SHIVALIK.BO (low base) -> Target 55%+ (v8 multi-filter upgrade)
-Position: ₹7000 | Stop Loss: 0.8% | Target: 4.0x | Daily Loss Cap: 0.3%
-Enhanced: 2026-03-22 - v8 LOWWR: upgraded from low win-rate auto-gen
+Strategy: MEAN_REVERSION (RSI-only + VWAP bounce) - v9 LOWWR
+Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.3%
 """
 
 import os
@@ -34,7 +32,7 @@ log = logging.getLogger("live_SHIVALIK_BO")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "SHIVALIK.BO"
-STRATEGY       = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"  # SHIVALIK.BO
+STRATEGY = "MEAN_REVERSION_RSI_V9"  # SHIVALIK.BO  # SHIVALIK.BO
 POSITION       = 7000
 
 # 3-TIER EXIT SYSTEM
@@ -48,10 +46,10 @@ PARAMS         = {
     "vwap_period": 14,
     "atr_multiplier": 1.5,
     "rsi_period": 14,
-    "rsi_overbought": 68,       # v8: tightened from 65
-    "rsi_oversold": 32,         # v8: tightened from 35
-    "rsi_confirm_overbought": 68,  # v8: new - strict overbought
-    "rsi_confirm_oversold": 32,    # v8: new - strict oversold
+    "rsi_overbought": 62,       # v8: tightened from 65
+    "rsi_oversold": 38,         # v8: tightened from 35
+    "rsi_confirm_overbought": 62,  # v8: new - strict overbought
+    "rsi_confirm_oversold": 38,    # v8: new - strict oversold
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
