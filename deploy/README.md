@@ -11,13 +11,14 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked: 2026-03-23 01:12 UTC
+- **Last checked: 2026-03-23 01:25 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Iteration:** #21
-- **New v8 LOWWR upgrades:** HDFCBANK (60.61%), IGL (60.2%), TATASTEEL (61.54%), KOTAKBANK (N/A), COALINDIA (Target 65%+), TATAMOTORS.BO (63.64%), LT (N/A), BHARTIARTL (N/A), SUNPHARMA (N/A)
-- **Bug fix:** IGL - fixed YFINANCE_AVAILABLE chained assignment bug (was overwriting boolean with Path)
+- **Iteration:** #22
+- **Total v8 LOWWR enhanced:** 57 scripts (was 49 before this iteration)
+- **New v8 LOWWR upgrades (Iteration #22):** GAIL (58.00%), ALKEM (57.92%), ABB (58.06%), ASIANPAINT (58.33%), CENTRALBK (58.60%), FEDERALBNK (58.00%), INDHOTEL (58.62%), IDEA (59.52%) → all target 65%+
+- **Previous v8 LOWWR:** HDFCBANK, IGL, TATASTEEL, KOTAKBANK, COALINDIA, TATAMOTORS.BO, LT, BHARTIARTL, SUNPHARMA + others
 - **Loop status:** Running (qa_loop_forever.py, 7-min cycles; qa_loop.py, 30-min cycles)
-- **Working tree:** Dirty (2 files modified: live_HDFCBANK.py, live_IGL.py)
+- **Working tree:** Dirty (8 files: GAIL, ALKEM, ABB, ASIANPAINT, CENTRALBK, FEDERALBNK, INDHOTEL, IDEA)
 
 ## Regime-Filter Enhancements (Iteration #14)
 Scripts with 0% WR in DOWNTREND/RANGE regime enhanced with NIFTY-based regime filtering:
