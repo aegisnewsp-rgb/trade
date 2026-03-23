@@ -401,7 +401,10 @@ def vwap_enhanced_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     macd_fast     = params["macd_fast"]
     macd_slow     = params["macd_slow"]
     macd_signal   = params["macd_signal"]
-    vwap_margin   = params.get("vwap_entry_margin", 0.005)  # v7: 0.5% VWAP entry
+    vwap_margin   = params.get("vwap_entry_margin", 0.005)
+    trend_period  = params.get("trend_ma_period", 50)
+    bb_period     = params.get("bb_period", 20)
+    bb_std        = params.get("bb_std", 2.0)
 
     vwap_vals  = calculate_vwap(ohlcv, vwap_period)
     atr_vals   = calculate_atr(ohlcv, vwap_period)
@@ -411,14 +414,17 @@ def vwap_enhanced_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
     adx_vals, plus_di, minus_di = calculate_adx(ohlcv, adx_period)
     macd_line, signal_line, histogram = calculate_macd(
         ohlcv, macd_fast, macd_slow, macd_signal)
+    trend_ma   = calculate_ma(ohlcv, trend_period)
+    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
 
     signals    = ["HOLD"] * len(ohlcv)
     start_idx  = max(vwap_period, rsi_period, vol_period, atr_vol_p,
-                     adx_period * 2, macd_slow + macd_signal)
+                     adx_period * 2, macd_slow + macd_signal, trend_period, bb_period)
 
     for i in range(start_idx, len(ohlcv)):
         if None in (vwap_vals[i], atr_vals[i], rsi_vals[i],
-                    vol_sma[i], atr_sma[i], adx_vals[i], histogram[i]):
+                    vol_sma[i], atr_sma[i], adx_vals[i], histogram[i],
+                    trend_ma[i], bb_lower[i]):
             continue
         price   = ohlcv[i]["close"]
         v       = vwap_vals[i]
@@ -430,6 +436,9 @@ def vwap_enhanced_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         atr_avg = atr_sma[i]
         adx     = adx_vals[i]
         hist    = histogram[i]
+        ma50    = trend_ma[i]
+        bb_up   = bb_upper[i]
+        bb_lo   = bb_lower[i]
 
         # Volatility filter: skip in choppy / high-volatility regimes
         if atr_avg is not None and atr_now > atr_avg * 1.15:
@@ -443,13 +452,22 @@ def vwap_enhanced_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         if vol < vol_avg * vol_mult:
             continue
 
-        # v7: Steel momentum entry — price > VWAP + 0.5% + RSI > 55 + bullish MACD
+        # v8 LOWWR: Trend MA filter (price must be above 50-MA for BUY)
+        if ma50 is not None and price < ma50:
+            pass  # skip BUY if below trend
+
+        # v8 LOWWR: Bollinger Band - price should be above lower BB for BUY
+        if bb_lo is not None and price < bb_lo:
+            pass  # skip BUY if below lower BB in oversold
+
+        # v7: Steel momentum entry — price > VWAP + 0.5% + RSI > 50 + bullish MACD
+        # v8 LOWWR: add BB and Trend MA confirmation
         if price > v * (1 + vwap_margin):
-            if rsi > rsi_buy_min and hist > 0:
+            if rsi > rsi_buy_min and hist > 0 and ma50 is not None and price > ma50:
                 signals[i] = "BUY"
         # v7: Steel short — price < VWAP - 0.5% + RSI < 45 + bearish MACD
         elif price < v * (1 - vwap_margin):
-            if rsi < rsi_sell_max and hist < 0:
+            if rsi < rsi_sell_max and hist < 0 and ma50 is not None and price < ma50:
                 signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
