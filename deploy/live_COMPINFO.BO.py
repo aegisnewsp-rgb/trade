@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - COMPINFO.BO
-Strategy: MEAN_REVERSION (RSI-only + VWAP bounce) - v9 LOWWR
-Win Rate: 4.8% -> Target 50%+ (v9b: vol 2.0→1.3, more signals)
-Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.3%
-Enhanced: 2026-03-23 - v9b MEAN_REVERSION: vol_mult 2.0→1.3 to unlock thin-cap signals
+Strategy: MEAN_REVERSION v9c LOWWR - RSI crossover + tighter filters
+Win Rate: 4.8% -> Target 50%+ (v9c: RSI 40/60 + vol 2.0 + RSI crossover requirement)
+Position: ₹5000 | Stop Loss: 0.6% | Target: 4.0x | Daily Loss Cap: 0.25%
+Enhanced: 2026-03-23 - v9c: Tightened to v8 LOWWR standards + RSI crossover
 """
 
 import os
@@ -34,8 +34,8 @@ log = logging.getLogger("live_COMPINFO_BO")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL         = "COMPINFO.BO"
-STRATEGY = "MEAN_REVERSION_RSI_V9"  # COMPINFO.BO
-POSITION       = 7000
+STRATEGY = "MEAN_REVERSION_RSI_V9C"  # COMPINFO.BO
+POSITION       = 5000
 
 # 3-TIER EXIT SYSTEM
 TARGET_1_MULT = 1.5
@@ -48,14 +48,14 @@ PARAMS         = {
     "vwap_period": 14,
     "atr_multiplier": 0.5,
     "rsi_period": 14,
-    "rsi_overbought": 62,
-    "rsi_oversold": 38,
-    "rsi_confirm_overbought": 62,
-    "rsi_confirm_oversold": 38,
+    "rsi_overbought": 60,
+    "rsi_oversold": 40,
+    "rsi_confirm_overbought": 60,
+    "rsi_confirm_oversold": 40,
     "macd_fast": 12,
     "macd_slow": 26,
     "macd_signal": 9,
-    "volume_multiplier": 1.3,
+    "volume_multiplier": 2.0,
     "trend_ma_period": 50,
     "atr_period": 14,
     "bb_period": 20,
