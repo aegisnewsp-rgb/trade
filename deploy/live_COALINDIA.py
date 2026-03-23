@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - COALINDIA.NS
-Strategy: VWAP + Smart Entry (Enhanced)
-RSI filter (55/45) | Volume 1.2x avg | Smart Entry 9:30 AM-2:30 PM IST | 3-Tier Targets 1.5x/3x/5x risk
-Win Rate: Target 65%+
-Position: ₹10000 | Daily Loss Cap: 0.3%
+Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (Enhanced v8 LOWWR)
+Win Rate: Target 65%+ -> Target 68%+ (v8 LOWWR: full multi-filter upgrade)
+Position: ₹10000 | Stop Loss: 0.6% | Target: 4.0x ATR | Daily Loss Cap: 0.3%
+Enhanced: 2026-03-23 - v8 LOWWR: added MACD + Bollinger Band + Trend MA to coal commodity logic
 """
 
 import os, sys, json, time, logging
