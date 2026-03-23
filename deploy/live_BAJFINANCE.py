@@ -204,42 +204,105 @@ def calculate_avg_volume(ohlcv: list, period: int = 20) -> float:
         return 0
     return sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - period, len(ohlcv))) / period
 
-def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
-    """VWAP signal with RSI filter (55/45) + volume 1.2× avg confirmation"""
-    period        = params["vwap_period"]
-    atr_period    = params.get("atr_period", 14)
-    atr_mult      = params["atr_multiplier"]
-    rsi_period    = params["rsi_period"]
-    rsi_ob        = params["rsi_overbought"]   # 55
-    rsi_os        = params["rsi_oversold"]     # 45
-    vol_ma_period = params.get("volume_ma_period", 20)
-    vol_mult      = params["volume_multiplier"]  # 1.2
+def calculate_macd(ohlcv: list, fast: int = 12, slow: int = 26, signal: int = 9) -> tuple:
+    closes = [b["close"] for b in ohlcv]
+    ema_fast, ema_slow = [closes[0]], [closes[0]]
+    for i in range(1, len(closes)):
+        ema_fast.append(closes[i] * (2/(fast+1)) + ema_fast[-1] * (1 - 2/(fast+1)))
+        ema_slow.append(closes[i] * (2/(slow+1)) + ema_slow[-1] * (1 - 2/(slow+1)))
+    macd_line = [ema_fast[i] - ema_slow[i] for i in range(len(closes))]
+    signal_line = [macd_line[0]]
+    k_sig = 2/(signal+1)
+    for i in range(1, len(macd_line)):
+        signal_line.append(macd_line[i] * k_sig + signal_line[-1] * (1 - k_sig))
+    histogram = [macd_line[i] - signal_line[i] for i in range(len(closes))]
+    return macd_line, signal_line, histogram
 
-    vwap_vals = calculate_vwap(ohlcv, period)
-    atr_vals  = calculate_atr(ohlcv, atr_period)
-    rsi_vals  = calculate_rsi(ohlcv, rsi_period)
-    vol_ma    = calculate_volume_ma(ohlcv, vol_ma_period)
-    avg_vol   = calculate_avg_volume(ohlcv, vol_ma_period)
+def calculate_ma(ohlcv: list, period: int) -> list:
+    ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            ma.append(None)
+        else:
+            ma.append(sum(ohlcv[j]["close"] for j in range(i - period + 1, i + 1)) / period)
+    return ma
+
+def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.0) -> tuple:
+    middle = calculate_ma(ohlcv, period)
+    upper, lower = [], []
+    for i in range(len(ohlcv)):
+        if middle[i] is None:
+            upper.append(None); lower.append(None)
+        else:
+            window = ohlcv[max(0, i - period + 1):i + 1]
+            mean = middle[i]
+            variance = sum((b["close"] - mean) ** 2 for b in window) / len(window)
+            std = variance ** 0.5
+            upper.append(mean + std_dev * std)
+            lower.append(mean - std_dev * std)
+    return upper, middle, lower
+
+def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
+    """v8 LOWWR multi-filter: VWAP + RSI(32/68) + MACD + Volume(2x) + 50-MA + Bollinger Band"""
+    period          = params["vwap_period"]
+    atr_mult        = params["atr_multiplier"]
+    rsi_period      = params["rsi_period"]
+    rsi_overbought  = params.get("rsi_confirm_overbought", 68)
+    rsi_oversold    = params.get("rsi_confirm_oversold", 32)
+    vol_mult        = params.get("volume_multiplier", 2.0)
+    trend_period    = params.get("trend_ma_period", 50)
+    bb_period       = params.get("bb_period", 20)
+    bb_std          = params.get("bb_std", 2.0)
+
+    vwap_vals    = calculate_vwap(ohlcv, period)
+    atr_vals     = calculate_atr(ohlcv, period)
+    rsi_vals     = calculate_rsi(ohlcv, rsi_period)
+    macd_line, signal_line, histogram = calculate_macd(
+        ohlcv, params["macd_fast"], params["macd_slow"], params["macd_signal"])
+    ma_vals      = calculate_ma(ohlcv, trend_period)
+    avg_vol      = calculate_avg_volume(ohlcv, period)
+    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
+
+    start_idx = max(period, rsi_period, params["macd_slow"], params["macd_signal"], bb_period, trend_period)
     signals   = ["HOLD"] * len(ohlcv)
 
-    for i in range(max(period, rsi_period, vol_ma_period), len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None or vol_ma[i] is None:
+    for i in range(start_idx, len(ohlcv)):
+        if None in (vwap_vals[i], atr_vals[i], rsi_vals[i], macd_line[i], ma_vals[i], bb_upper[i]):
             continue
-        price    = ohlcv[i]["close"]
-        v        = vwap_vals[i]
-        a        = atr_vals[i]
-        r        = rsi_vals[i]
-        current_vol = ohlcv[i]["volume"]
-        avg_vol_i = vol_ma[i]
 
-        # Volume confirmation: volume ≥ 1.2× average
-        vol_ok     = current_vol >= avg_vol_i * vol_mult
-        rsi_buy_ok  = r < rsi_ob   # RSI below 55
-        rsi_sell_ok = r > rsi_os   # RSI above 45
+        price   = ohlcv[i]["close"]
+        v       = vwap_vals[i]
+        a       = atr_vals[i]
+        rsi     = rsi_vals[i]
+        vol     = ohlcv[i]["volume"]
+        trend   = ma_vals[i]
+        macd_h  = histogram[i]
+        sig_h   = histogram[i - 1] if i > 0 else 0
+        bb_up   = bb_upper[i]
+        bb_lo   = bb_lower[i]
 
-        if price > v + a * atr_mult and vol_ok and rsi_buy_ok:
+        # v8 LOWWR BUY: all filters must align
+        buy_ok = (
+            price > v and               # price above VWAP
+            rsi < rsi_oversold and      # RSI oversold (<32)
+            macd_h > 0 and              # MACD histogram positive
+            sig_h <= macd_h and         # MACD turning bullish (histogram rising)
+            vol > avg_vol * vol_mult and # volume confirmation (2x)
+            price > trend               # above 50-MA trend
+        )
+        if buy_ok:
             signals[i] = "BUY"
-        elif price < v - a * atr_mult and vol_ok and rsi_sell_ok:
+
+        # v8 LOWWR SELL: all filters must align
+        sell_ok = (
+            price < v and               # price below VWAP
+            rsi > rsi_overbought and   # RSI overbought (>68)
+            macd_h < 0 and            # MACD histogram negative
+            sig_h >= macd_h and       # MACD turning bearish (histogram falling)
+            vol > avg_vol * vol_mult and # volume confirmation (2x)
+            price < trend              # below 50-MA trend
+        )
+        if sell_ok:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
