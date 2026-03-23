@@ -11,12 +11,13 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked: 2026-03-23 01:04 UTC
+- **Last checked: 2026-03-23 01:12 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Iteration:** #20
-- **New v8 LOWWR upgrades:** ADANIENT (57.69%), BPCL (57.50%), CHOLAFIN (57.49%), TECHM (58.00%)
+- **Iteration:** #21
+- **New v8 LOWWR upgrades:** HDFCBANK (60.61%), IGL (60.2%)
+- **Bug fix:** IGL - fixed YFINANCE_AVAILABLE chained assignment bug (was overwriting boolean with Path)
 - **Loop status:** Running (qa_loop_forever.py, 7-min cycles; qa_loop.py, 30-min cycles)
-- **Working tree:** Clean (pending commit)
+- **Working tree:** Dirty (2 files modified: live_HDFCBANK.py, live_IGL.py)
 
 ## Regime-Filter Enhancements (Iteration #14)
 Scripts with 0% WR in DOWNTREND/RANGE regime enhanced with NIFTY-based regime filtering:
@@ -86,6 +87,8 @@ Low win-rate scripts (benchmark, all below 70%):
 • HINDPETRO_NS.NS: 59.38% → ✅ v8 LOWWR (already upgraded)
 • SBILIFE_NS.NS: 59.44% → ✅ v8 LOWWR (already upgraded)
 • NESTLEIND_NS.NS: 59.93% → ✅ v8 LOWWR (already upgraded)
+• HDFCBANK.NS: 60.61% → ✅ v8 LOWWR upgrade (2026-03-23) [NEW]
+• IGL.NS: 60.2% → ✅ v8 LOWWR upgrade (2026-03-23) + bug fix [NEW]
 • CIPLA.NS: 60.07%
 • SRF_NS.NS: 60.13%
 
