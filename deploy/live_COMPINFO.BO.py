@@ -226,25 +226,33 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float, float]:
         if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
             continue
 
+        # Need previous RSI for crossover detection
+        if i > start_idx:
+            prev_rsi = rsi_vals[i - 1]
+        else:
+            prev_rsi = rsi_vals[i]  # No crossover on first valid bar
+
         price = ohlcv[i][3]
         v      = vwap_vals[i]
         a      = atr_vals[i]
         rsi    = rsi_vals[i]
         vol    = ohlcv[i][4]
 
-        # Mean reversion: oversold + price near/at VWAP support
+        # Mean reversion: oversold + RSI crossover (was >38, now <38) + price near/at VWAP
         # Volume confirms institutional interest
         oversold      = rsi < rsi_oversold
+        rsi_crossed_down = prev_rsi >= rsi_oversold and rsi < rsi_oversold  # v9c: crossover req
         near_vwap     = abs(price - v) < a * 1.0   # within 1 ATR of VWAP
         vol_confirmed = vol > avg_vol * vol_mult
 
-        # Overbought: overbought + price near/at VWAP resistance
+        # Overbought: overbought + RSI crossover (was <62, now >62) + price near/at VWAP resistance
         overbought   = rsi > rsi_overbought
+        rsi_crossed_up = prev_rsi <= rsi_overbought and rsi > rsi_overbought  # v9c: crossover
         at_resistance = abs(price - v) < a * 1.0  # same proximity logic
 
-        if oversold and near_vwap and vol_confirmed:
+        if oversold and rsi_crossed_down and near_vwap and vol_confirmed:
             signals[i] = "BUY"
-        elif overbought and at_resistance and vol_confirmed:
+        elif overbought and rsi_crossed_up and at_resistance and vol_confirmed:
             signals[i] = "SELL"
 
     current_signal = signals[-1] if signals else "HOLD"
