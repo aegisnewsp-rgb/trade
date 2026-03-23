@@ -141,22 +141,53 @@ def calculate_vwap(ohlcv: list, period: int = 14) -> list:
     return vwap
 
 def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
-    period   = params["vwap_period"]
-    atr_mult = params["atr_multiplier"]
+    """MEAN_REVERSION v9c: RSI crossover + VWAP + Volume confirmation."""
+    period    = params["vwap_period"]
+    atr_mult  = params["atr_multiplier"]
+    rsi_period = params.get("rsi_period", 14)
+    rsi_oversold = params.get("rsi_oversold", 40)
+    rsi_overbought = params.get("rsi_overbought", 60)
+    vol_mult  = params.get("volume_multiplier", 2.0)
+
     vwap_vals = calculate_vwap(ohlcv, period)
     atr_vals  = calculate_atr(ohlcv, period)
+    rsi_vals  = calculate_rsi_list(ohlcv, rsi_period)
     signals   = ["HOLD"] * len(ohlcv)
-    for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None: continue
+
+    # Calculate volume average
+    if len(ohlcv) >= 20:
+        avg_vol = sum(ohlcv[j]["volume"] for j in range(len(ohlcv) - 20, len(ohlcv))) / 20
+    else:
+        avg_vol = sum(ohlcv[j]["volume"] for j in range(len(ohlcv))) / max(len(ohlcv), 1)
+
+    start_idx = max(period, rsi_period, 5)
+    for i in range(start_idx, len(ohlcv)):
+        if vwap_vals[i] is None or atr_vals[i] is None:
+            continue
+
+        prev_rsi = rsi_vals[i - 1] if i > start_idx else rsi_vals[i]
+        curr_rsi = rsi_vals[i]
+
         price = ohlcv[i]["close"]
         v, a  = vwap_vals[i], atr_vals[i]
+        vol   = ohlcv[i]["volume"]
         signal_mode = globals().get("SIGNAL_MODE", "BREAKOUT")
+
+        vol_confirmed = vol >= avg_vol * vol_mult
+
         if signal_mode == "MEAN_REVERSION":
-            if price < v - a * atr_mult: signals[i] = "BUY"
-            elif price > v + a * atr_mult: signals[i] = "SELL"
+            rsi_crossed_down = prev_rsi >= rsi_oversold and curr_rsi < rsi_oversold
+            near_support = price < v
+            if rsi_crossed_down and near_support and vol_confirmed:
+                signals[i] = "BUY"
+            elif curr_rsi > rsi_overbought and prev_rsi <= rsi_overbought and vol_confirmed:
+                signals[i] = "SELL"
         else:
-            if price > v + a * atr_mult: signals[i] = "BUY"
-            elif price < v - a * atr_mult: signals[i] = "SELL"
+            if price > v + a * atr_mult and vol_confirmed:
+                signals[i] = "BUY"
+            elif price < v - a * atr_mult and vol_confirmed:
+                signals[i] = "SELL"
+
     return signals[-1] if signals else "HOLD", ohlcv[-1]["close"], atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
 
 def place_groww_order(symbol, signal, quantity, price):
@@ -264,6 +295,28 @@ def calculate_rsi(ohlcv: List[dict], period: int = 14) -> float:
         return 100.0
     rs = avg_gain / avg_loss
     return 100 - (100 / (1 + rs))
+
+
+def calculate_rsi_list(ohlcv: list, period: int = 14) -> list:
+    """Calculate RSI indicator as a list of values."""
+    rsi_values = [50.0] * len(ohlcv)
+    if len(ohlcv) < period + 1:
+        return rsi_values
+    gains = []
+    losses = []
+    for i in range(1, len(ohlcv)):
+        change = ohlcv[i]["close"] - ohlcv[i-1]["close"]
+        gains.append(change if change > 0 else 0)
+        losses.append(abs(change) if change < 0 else 0)
+    for i in range(period, len(ohlcv)):
+        avg_gain = sum(gains[i - period + 1:i + 1]) / period
+        avg_loss = sum(losses[i - period + 1:i + 1]) / period
+        if avg_loss == 0:
+            rsi_values[i] = 100.0
+        else:
+            rs = avg_gain / avg_loss
+            rsi_values[i] = 100 - (100 / (1 + rs))
+    return rsi_values
 
 
 def apply_filters(
