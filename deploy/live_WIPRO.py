@@ -277,7 +277,7 @@ def vwap_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
         # MEAN_REVERSION SELL: RSI overbought + near VWAP resistance + volume confirmed
         # Removed: MACD, trend, BB filters (these were blocking good signals)
         near_vwap_resist = abs(price - v) < a * 1.5  # within 1.5 ATR of VWAP
-        elif (r > rsi_overbought and near_vwap_resist and volume_confirmed):
+        if (r > rsi_overbought and near_vwap_resist and volume_confirmed):
             signals[i] = "SELL"
 
     current_atr = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
