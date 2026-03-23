@@ -42,27 +42,30 @@ SYMBOL             = "TATASTEEL.NS"
 STRATEGY           = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
 POSITION           = 7000
 STOP_LOSS_ATR_MULT = 0.8    # v7: tighter 0.8% ATR stop — steel is volatile commodity
-TARGET_ATR_MULT    = 3.0    # 3.0x ATR target
+STOP_LOSS_PCT     = 0.006  # v8: 0.6% hard stop (v8 LOWWR standard)
+TARGET_ATR_MULT   = 4.0    # v8: 4.0x ATR target (v8 LOWWR standard)
+TARGET_MULT       = 4.0    # v8 LOWWR
 DAILY_LOSS_CAP     = 0.003
 PARAMS = {
     "vwap_period":         14,
-    "atr_multiplier":      0.8,   # v7: 0.8% ATR stop (steel-specific)
+    "atr_multiplier":      1.5,
     "rsi_period":          14,
-    "rsi_buy_min":         50,   # sniper: 50 (was 55)
-    "rsi_sell_max":        45,   # SELL only when RSI < 45
+    "rsi_buy_min":         50,    # v8: kept at 50 (steel momentum)
+    "rsi_sell_max":        45,    # SELL only when RSI < 45
     "vol_sma_period":      20,
-    "vol_confirm_mult":    0.75,  # sniper: 0.75 (was 1.2)
+    "vol_confirm_mult":    1.5,   # v8: 1.5x volume confirm
     "atr_vol_period":      20,
     "adx_period":          14,
-    "adx_min":            25,   # v7: 25 — only very confirmed trends for cyclical steel
+    "adx_min":            25,    # v7: 25 — only very confirmed trends for cyclical steel
     "macd_fast":           12,
     "macd_slow":           26,
     "macd_signal":          9,
-    "session_avoid_min":   15,   # avoid first/last 15 minutes of session
     "vwap_entry_margin":   0.005, # v7: price must be > VWAP + 0.5% for BUY
-    "session_start_avoid": 15,   # v7: minutes to avoid at session open
-    "session_end_avoid":   15,   # v7: minutes to avoid at session close
     "hold_days": 5,              # sniper (2026-03-22)
+    # v8 LOWWR additions:
+    "trend_ma_period":     50,   # 50-MA trend filter
+    "bb_period":           20,   # Bollinger Band period
+    "bb_std":             2.0,   # Bollinger Band std dev
 }
 
 BENCHMARK_WIN_RATE = 0.6154   # v7 live benchmark targeting 62%+
@@ -332,7 +335,46 @@ def calculate_macd(ohlcv: list, fast: int = 12, slow: int = 26, signal: int = 9)
 
     return macd_line, signal_line, histogram
 
+def calculate_ma(ohlcv: list, period: int) -> list:
+    """Simple moving average - used for trend filter."""
+    ma = []
+    for i in range(len(ohlcv)):
+        if i < period - 1:
+            ma.append(None)
+        else:
+            ma.append(sum(ohlcv[j]["close"] for j in range(i - period + 1, i + 1)) / period)
+    return ma
+
+def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.0) -> tuple:
+    """Bollinger Bands - used for volatility confirmation."""
+    middle = calculate_ma(ohlcv, period)
+    upper, lower = [], []
+    for i in range(len(ohlcv)):
+        if middle[i] is None:
+            upper.append(None); lower.append(None)
+        else:
+            window = ohlcv[max(0, i - period + 1):i + 1]
+            mean = middle[i]
+            variance = sum((b["close"] - mean) ** 2 for b in window) / len(window)
+            std = variance ** 0.5
+            upper.append(mean + std_dev * std)
+            lower.append(mean - std_dev * std)
+    return upper, middle, lower
+
 def vwap_enhanced_signal(ohlcv: list, params: dict) -> tuple[str, float, float]:
+    """
+    VWAP + RSI + MACD + Volume + ADX + Bollinger Band + Trend MA (v8 LOWWR - steel commodity).
+    
+    Steel-specific logic (v7 base):
+      - Entry: price > VWAP + 0.5% (cleaner breakout than ATR-based for commodities)
+      - Stop: 0.8% ATR (tighter for volatile steel)
+      - RSI: > 50 for BUY, < 45 for SELL (momentum confirmation)
+      - ADX: > 25 (strongly confirmed trends only for cyclical steel)
+      - Volume: > 1.5x SMA (steel volume spikes are meaningful)
+    v8 LOWWR additions:
+      - Bollinger Band (20,2.0): price above lower BB for BUY
+      - Trend MA (50): price above 50-MA for BUY confirmation
+    """
     """
     VWAP + RSI + Volume + ADX + MACD (v7 - steel commodity profile).
     
