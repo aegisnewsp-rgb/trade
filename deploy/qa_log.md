@@ -35,3 +35,10 @@
   - Updated PARAMS with trend_ma_period=50, bb_period=20, bb_std=2.0
   - Updated STRATEGY name to VWAP_RSI_MACD_VOL_BB_v8_LOWWR
   - v8: STOP_LOSS_PCT=0.006, TARGET_MULT=4.0 (steel keeps 0.8% ATR stop via STOP_LOSS_ATR_MULT)
+
+### KOTAKBANK Enhancement (01:20 UTC):
+- **live_KOTAKBANK.py**: N/A WR → v8 LOWWR (upgraded from basic VWAP_RSI_FILTER to full multi-filter)
+  - Basic VWAP_RSI strategy (RSI 35/65, ATR-based stops) → v8 multi-filter (RSI 32/68 + MACD + BB + Trend MA)
+  - Added STOP_LOSS_PCT=0.006, TARGET_MULT=4.0, 3-TIER EXIT
+  - Added calculate_macd(), calculate_ma(), calculate_avg_volume(), calculate_bollinger_bands()
+  - Rewrote vwap_signal() with full v8 multi-filter
