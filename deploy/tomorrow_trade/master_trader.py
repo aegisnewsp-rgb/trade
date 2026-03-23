@@ -48,7 +48,7 @@ DAILY_PNL_FILE = ROOT / "logs" / "daily_pnl.json"
 def get_ist_time():
     """Get current IST time"""
     # IST+5:30
-    now = (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)) + datetime.timedelta(hours=5, minutes=30) + datetime.timedelta(hours=5, minutes=30)
+    now = (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)) + datetime.timedelta(hours=5, minutes=30)
     return now
 
 
