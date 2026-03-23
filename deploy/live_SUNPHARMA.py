@@ -250,34 +250,77 @@ def calculate_bollinger_bands(ohlcv: list, period: int = 20, std_dev: float = 2.
     return upper, middle, lower
 
 def vwap_signal(ohlcv: list, params: dict) -> tuple:
-    period        = params["vwap_period"]
-    atr_mult      = params["atr_multiplier"]
-    rsi_period    = params["rsi_period"]
-    rsi_ob        = params["rsi_overbought"]
-    rsi_os        = params["rsi_oversold"]
-    vwap_vals     = calculate_vwap(ohlcv, period)
-    atr_vals      = calculate_atr(ohlcv, period)
-    rsi_vals      = calculate_rsi(ohlcv, rsi_period)
-    signals       = ["HOLD"] * len(ohlcv)
+    """
+    v8 LOWWR: VWAP + RSI + MACD + Volume + Trend + Bollinger Band multi-filter.
+    
+    Pharma sector specific (from base VWAP Momentum):
+      - VWAP + ATR-based entry
+      - RSI, MACD, BB, Trend MA all must confirm for signal
+      - Volume 2x MA for entry confirmation
+    """
+    period          = params["vwap_period"]
+    atr_mult        = params["atr_multiplier"]
+    rsi_period      = params["rsi_period"]
+    rsi_overbought  = params.get("rsi_confirm_overbought", 68)
+    rsi_oversold    = params.get("rsi_confirm_oversold", 32)
+    vol_mult        = params.get("volume_multiplier", 2.0)
+    trend_period    = params.get("trend_ma_period", 50)
+    bb_period       = params.get("bb_period", 20)
+    bb_std          = params.get("bb_std", 2.0)
 
-    for i in range(period, len(ohlcv)):
-        if vwap_vals[i] is None or atr_vals[i] is None or rsi_vals[i] is None:
+    vwap_vals    = calculate_vwap(ohlcv, period)
+    atr_vals     = calculate_atr(ohlcv, period)
+    rsi_vals     = calculate_rsi(ohlcv, rsi_period)
+    macd_line, signal_line, histogram = calculate_macd(
+        ohlcv, params["macd_fast"], params["macd_slow"], params["macd_signal"])
+    ma_vals      = calculate_ma(ohlcv, trend_period)
+    avg_vol      = calculate_avg_volume(ohlcv, period)
+    bb_upper, bb_middle, bb_lower = calculate_bollinger_bands(ohlcv, bb_period, bb_std)
+
+    start_idx = max(period, rsi_period, params["macd_slow"], params["macd_signal"], bb_period, trend_period)
+
+    for i in range(start_idx, len(ohlcv)):
+        if None in (vwap_vals[i], atr_vals[i], rsi_vals[i], macd_line[i], ma_vals[i], bb_upper[i]):
             continue
-        price    = ohlcv[i]["close"]
-        v        = vwap_vals[i]
-        a        = atr_vals[i]
-        r        = rsi_vals[i]
-        band     = a * atr_mult
-        if price > v + band and r < rsi_ob:
-            signals[i] = "BUY"
-        elif price < v - band and r > rsi_os:
-            signals[i] = "SELL"
 
-    current_signal = signals[-1] if signals else "HOLD"
-    current_price  = ohlcv[-1]["close"]
-    current_atr    = atr_vals[-1] if atr_vals and atr_vals[-1] is not None else 0.0
-    current_rsi    = rsi_vals[-1] if rsi_vals and rsi_vals[-1] is not None else 0.0
-    return current_signal, current_price, current_atr, current_rsi
+        price   = ohlcv[i]["close"]
+        v       = vwap_vals[i]
+        a       = atr_vals[i]
+        rsi     = rsi_vals[i]
+        vol     = ohlcv[i]["volume"]
+        trend   = ma_vals[i]
+        macd_h  = histogram[i]
+        sig_h   = histogram[i - 1] if i > 0 else 0
+        bb_up   = bb_upper[i]
+        bb_lo   = bb_lower[i]
+
+        # BUY: all filters must align
+        buy_ok = (
+            price > v and               # price above VWAP
+            rsi < rsi_oversold and      # RSI oversold (<32)
+            macd_h > 0 and             # MACD histogram positive
+            sig_h <= macd_h and         # MACD turning bullish
+            vol > avg_vol * vol_mult and # volume confirmation
+            price > trend               # above 50-MA trend
+        )
+
+        if buy_ok:
+            return "BUY", price, a, rsi
+
+        # SELL: all filters must align
+        sell_ok = (
+            price < v and               # price below VWAP
+            rsi > rsi_overbought and    # RSI overbought (>68)
+            macd_h < 0 and             # MACD histogram negative
+            sig_h >= macd_h and         # MACD turning bearish
+            vol > avg_vol * vol_mult and # volume confirmation
+            price < trend               # below 50-MA trend
+        )
+
+        if sell_ok:
+            return "SELL", price, a, rsi
+
+    return "HOLD", ohlcv[-1]["close"], atr_vals[-1] if atr_vals else 0.0, rsi_vals[-1]
 
 def place_groww_order(symbol, signal, quantity, price):
     """
