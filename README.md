@@ -44,12 +44,12 @@ cd deploy && for f in live_*.py; do python3 -m py_compile "$f" || echo "FAIL: $f
 | SBILIFE_NS | 0% | v8 LOWWR upgraded (2026-03-23) |
 | SHREECEM_NS | 0% | v8 LOWWR upgraded (2026-03-23) |
 | CIPLA | 0% | v8 LOWWR upgraded (2026-03-23) |
-| CYIENT.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
-| DSM | 0% | v8 LOWWR upgraded (2026-03-23) |
-| GAL | 0% | v8 LOWWR upgraded (2026-03-23) |
-| PRAKASHSTL.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
-| RUPA.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
-| INFY | 0% | v8 LOWWR upgraded (2026-03-23) |
+| CYIENT.BO | 0% | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
+| DSM | 0% (3 trades) | v8 LOWWR - trades too few for stats |
+| GAL | 0% (2 trades) | v8 LOWWR - trades too few for stats |
+| PRAKASHSTL.BO | 0% | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
+| RUPA.BO | 0% | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
+| INFY | 10% (21 trades) | v8 LOWWR (RSI 38/62) - 2026-03-23 |
 | SEL.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
 | SPAL.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
 | SUNDARAM.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
