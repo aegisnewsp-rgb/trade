@@ -1,0 +1,16 @@
+{
+  "id": "COALINDIA_1774236895420",
+  "symbol": "COALINDIA",
+  "exchange": "NSE",
+  "signal": "BUY",
+  "price": 467.7,
+  "quantity": 21,
+  "strategy": "VWAP_RSI_MACD_VOL_BB_v8_LOWWR",
+  "target": null,
+  "stop_loss": null,
+  "atr": 10.8177,
+  "confidence": null,
+  "timestamp": "2026-03-23T09:04:55.420075+00:00Z",
+  "status": "pending",
+  "source": "live_COALINDIA.py"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "GRASIM_1774236897309",
+  "symbol": "GRASIM",
+  "exchange": "NSE",
+  "signal": "SELL",
+  "price": 16527.0,
+  "quantity": 1,
+  "strategy": "AUTO_DETECTED",
+  "target": null,
+  "stop_loss": null,
+  "atr": 8698.2893,
+  "confidence": null,
+  "timestamp": "2026-03-23T09:04:57.309964+00:00Z",
+  "status": "pending"
+}
