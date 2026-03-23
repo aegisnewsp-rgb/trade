@@ -2,10 +2,13 @@
 """Live Trading Script - CRBEPOST.BO"""
 
 import os, sys, json, time, logging, requests
+import logging
 import groww_api
+import logging
 from datetime import datetime, time as dtime
 from pathlib import Path
-import yfinance
+import yfinance as yf
+import logging
 YFINANCE_AVAILABLE = True
 LOG_DIR = Path(__file__).parent / 'logs'
 LOG_DIR.mkdir(exist_ok=True)
@@ -39,7 +42,7 @@ GROWW_API_BASE   = "https://api.groww.in/v1"
 IST_TZ_OFFSET    = 5.5
 
 def ist_now() -> datetime:
-    return datetime.utcnow() + __import__("datetime").timedelta(hours=IST_TZ_OFFSET)
+    return datetime.now(datetime.UTC) + __import__("datetime").timedelta(hours=IST_TZ_OFFSET)
 
 # Smart entry: 9:30-14:30 IST
 def is_market_open() -> bool:

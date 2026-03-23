@@ -19,7 +19,7 @@ from datetime import datetime, time as dtime
 from pathlib import Path
 from typing import Optional
 
-import yfinance
+import yfinance as yf
 YFINANCE_AVAILABLE = True
 # ── Logging ───────────────────────────────────────────────────────────────────
 LOG_DIR = Path(__file__).parent / "logs"
@@ -82,7 +82,7 @@ IST_TZ_OFFSET = 5.5
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def ist_now() -> datetime:
-    return datetime.utcnow() + __import__("datetime").timedelta(hours=IST_TZ_OFFSET)
+    return datetime.now(datetime.UTC) + __import__("datetime").timedelta(hours=IST_TZ_OFFSET)
 
 def is_market_open() -> bool:
     now = ist_now()

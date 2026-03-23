@@ -60,7 +60,7 @@ IST_TZ_OFFSET = 5.5
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def ist_now() -> datetime:
-    return datetime.utcnow() + __import__("datetime").timedelta(hours=IST_TZ_OFFSET)
+    return datetime.now(datetime.UTC) + __import__("datetime").timedelta(hours=IST_TZ_OFFSET)
 
 # Smart entry: 9:30-14:30 IST
 def is_market_open() -> bool:

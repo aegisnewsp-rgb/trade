@@ -8,11 +8,14 @@ Enhanced: 2026-03-23 - v8 LOWWR: replaced MA_ENVELOPE with multi-filter VWAP str
 """
 
 import os, sys, json, time, logging, requests, math
+import logging
 import groww_api
+import logging
 from datetime import datetime, time as dtime
 from pathlib import Path
 
-import yfinance
+import yfinance as yf
+import logging
 YFINANCE_AVAILABLE = True
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -64,7 +67,7 @@ GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE   = "https://api.groww.in/v1"
 
 def ist_now() -> datetime:
-    return datetime.utcnow() + __import__("datetime").timedelta(hours=5.5)
+    return datetime.now(datetime.UTC) + __import__("datetime").timedelta(hours=5.5)
 
 def is_market_open() -> bool:
     now = ist_now()

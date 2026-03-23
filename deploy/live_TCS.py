@@ -16,10 +16,12 @@ Key enhancements (tomorrow edition):
 """
 
 import os, sys, json, time, logging, requests
+import logging
 from datetime import datetime, time as dtime
 from pathlib import Path
 
-import yfinance
+import yfinance as yf
+import logging
 YFINANCE_AVAILABLE = True
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -74,7 +76,7 @@ GROWW_API_SECRET = os.getenv("GROWW_API_SECRET")
 # ── Time Utilities ────────────────────────────────────────────────────────────
 
 def ist_now() -> datetime:
-    return datetime.utcnow() + __import__("datetime").timedelta(hours=5, minutes=30)
+    return datetime.now(datetime.UTC) + __import__("datetime").timedelta(hours=5, minutes=30)
 
 def is_market_open() -> bool:
     now = ist_now()

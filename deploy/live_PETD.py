@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Live Trading Script - PETD.BO | VWAP | Risk: ₹7000 | Stop: 0.8%% ATR | Target: 4.0× ATR"""
 import os,sys,json,time,logging,requests
+import logging
 import groww_api
+import logging
 from datetime import datetime,time as dtime
 from pathlib import Path
-import yfinance
+import yfinance as yf
+import logging
 YFINANCE_AVAILABLE = True
 LOG_DIR=Path(__file__).parent/"logs"; LOG_DIR.mkdir(exist_ok=True)
 logging.basicConfig(level=logging.INFO,format="%(asctime)s [%(levelname)s] %(message)s",handlers=[logging.FileHandler(LOG_DIR/"live_PETD.log"),logging.StreamHandler(sys.stdout)])
@@ -16,7 +19,7 @@ TARGET_2_MULT = 3.0
 TARGET_3_MULT = 5.0
 STOP_LOSS_PCT=0.008; TARGET_MULT=4.0; DAILY_LOSS_CAP=0.003; PARAMS={{"vwap_period":14,"atr_multiplier":1.5}}
 GROWW_API_KEY=os.getenv("GROWW_API_KEY"); GROWW_API_SECRET=os.getenv("GROWW_API_SECRET"); GROWW_API_BASE="https://api.groww.in/v1"; IST_TZ_OFFSET=5.5
-def ist_now(): return datetime.utcnow()+__import__("datetime").timedelta(hours=IST_TZ_OFFSET)
+def ist_now(): return datetime.now(datetime.UTC)+__import__("datetime").timedelta(hours=IST_TZ_OFFSET)
 # Smart entry: 9:30-14:30 IST
 def is_market_open(): now=ist_now(); return now.weekday()<5 and dtime(9,15)<=now.time()<=dtime(15,30)
 def is_pre_market(): now=ist_now(); return now.weekday()<5 and dtime(9,0)<=now.time()<dtime(9,15)

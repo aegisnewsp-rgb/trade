@@ -2,10 +2,13 @@
 """Live Trading Script - KESYC.BO
 Strategy: VWAP | Position: ₹7000 | Stop: 0.8%% ATR | Target: 4.0x ATR"""
 import os,sys,json,time,logging,requests
+import logging
 import groww_api
+import logging
 from datetime import datetime,time as dtime
 from pathlib import Path
-import yfinance
+import yfinance as yf
+import logging
 YFINANCE_AVAILABLE = True
 LOG_DIR=Path(__file__).parent/"logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -22,7 +25,7 @@ PARAMS={"vwap_period":14,"atr_multiplier":1.5}
 GROWW_API_KEY=os.getenv("GROWW_API_KEY"); GROWW_API_SECRET=os.getenv("GROWW_API_SECRET")
 GROWW_API_BASE="https://api.groww.in/v1"; IST_TZ_OFFSET=5.5
 
-def ist_now(): return datetime.utcnow()+__import__("datetime").timedelta(hours=IST_TZ_OFFSET)
+def ist_now(): return datetime.now(datetime.UTC)+__import__("datetime").timedelta(hours=IST_TZ_OFFSET)
 # Smart entry: 9:30-14:30 IST
 def is_market_open():
     now=ist_now()

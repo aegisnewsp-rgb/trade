@@ -6,11 +6,14 @@ Position: ₹7000 | Stop Loss: 0.8% ATR | Target: 4.0x ATR | Daily Loss Cap: 0.3
 """
 
 import os, sys, json, time, logging, requests
+import logging
 import groww_api
+import logging
 from datetime import datetime, time as dtime
 from pathlib import Path
 
-import yfinance
+import yfinance as yf
+import logging
 YFINANCE_AVAILABLE = True
 LOG_DIR = Path(__file__).parent / "logs"
 LOG_DIR.mkdir(exist_ok=True)
@@ -50,7 +53,7 @@ GROWW_API_BASE   = "https://api.groww.in/v1"
 
 
 def ist_now() -> datetime:
-    return datetime.utcnow() + __import__("datetime").timedelta(hours=5, minutes=30)
+    return datetime.now(datetime.UTC) + __import__("datetime").timedelta(hours=5, minutes=30)
 
 
 # Smart entry: 9:30-14:30 IST
