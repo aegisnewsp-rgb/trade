@@ -51,9 +51,9 @@ STRATEGY = "MEAN_REVERSION_RSI_V9C"
 POSITION       = 7000
 STOP_LOSS_PCT  = 0.006
 TARGET_MULT    = 2.5
-SIGNAL_MODE   = "MEAN_REVERSION"  # ENHANCED: was BREAKOUT, inverting for low win-rate stock
-DAILY_LOSS_CAP = 0.003
-PARAMS         = {"vwap_period": 14, "atr_multiplier": 0.5}
+SIGNAL_MODE   = "MEAN_REVERSION"
+DAILY_LOSS_CAP = 0.0025
+PARAMS         = {"vwap_period": 14, "atr_multiplier": 0.5, "rsi_period": 14, "rsi_oversold": 40, "rsi_overbought": 60, "volume_multiplier": 2.0}
 
 # 3-TIER EXIT SYSTEM (enhancement)
 SL_ATR_MULT      = 1.0     # Stop loss: 1.0x ATR
