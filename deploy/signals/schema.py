@@ -4,7 +4,7 @@ Signal Schema —统一信号格式
 All worker scripts write signals here, master orchestrator reads from here.
 """
 import os, json, time
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 SIGNAL_DIR = os.path.join(os.path.dirname(__file__), "pending")
 os.makedirs(SIGNAL_DIR, exist_ok=True)
@@ -39,7 +39,7 @@ class Signal:
         self.atr = round(atr, 4) if atr else None
         self.confidence = round(confidence, 4) if confidence else None
         self.metadata = metadata or {}
-        self.timestamp = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5, minutes=30).isoformat() + "Z"
+        self.timestamp = (datetime.now(timezone.utc) + timedelta(hours=5, minutes=30)).isoformat() + "Z" + datetime.timedelta(hours=5, minutes=30).isoformat() + "Z"
         self.status = "pending"
     
     def to_dict(self) -> dict:

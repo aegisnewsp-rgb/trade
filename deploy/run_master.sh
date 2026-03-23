@@ -25,7 +25,7 @@ sys.path.insert(0, str(ROOT))
 
 
 def log(msg: str):
-    ts = datetime.datetime.now(datetime.timezone.ist) + datetime.timedelta(hours=5, minutes=30).strftime("%H:%M:%S")
+    ts = $(date +%Y-%m-%dT%H:%M:%S%z) + datetime.timedelta(hours=5, minutes=30).strftime("%H:%M:%S")
     line = f"[{ts}] {msg}"
     print(line)
     with open(LOG_FILE, "a") as f:
@@ -57,7 +57,7 @@ Analyze this report and create a 2-3 sentence memory summary for future trading 
 Write your summary to MEMORY.md or memory/YYYY-MM-DD.md"""
         
         with open(delegate_file, "a") as f:
-            f.write(json.dumps({"prompt": prompt, "time": datetime.datetime.now(datetime.timezone.ist) + datetime.timedelta(hours=5, minutes=30).isoformat()}) + "\n")
+            f.write(json.dumps({"prompt": prompt, "time": $(date +%Y-%m-%dT%H:%M:%S%z) + datetime.timedelta(hours=5, minutes=30).isoformat()}) + "\n")
         
         log(f"DELEGATE: Summarization queued for MiniMax")
     except Exception as e:

@@ -7,7 +7,7 @@ Usage: python3 context_compactor.py [--check-only]
 """
 import os, sys, json, argparse
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 ROOT = Path(__file__).parent.parent
 LOG_FILE = ROOT / "logs" / "context_log.jsonl"
@@ -90,7 +90,7 @@ def compact_log() -> dict:
     keep = entries[len(entries)//2:]
     
     # Archive older half
-    arc_name = f"arc_{datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=5, minutes=30).strftime('%H%M%S')}_{len(entries)//2}.jsonl"
+    arc_name = f"arc_{datetime.now(timezone.utc) + datetime.timedelta(hours=5, minutes=30).strftime('%H%M%S')}_{len(entries)//2}.jsonl"
     arc_path = ARCHIVE_DIR / arc_name
     with open(arc_path, "w") as f:
         for e in entries[:len(entries)//2]:
