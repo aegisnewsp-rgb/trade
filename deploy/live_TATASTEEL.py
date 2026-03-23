@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 """
 Live Trading Script - TATASTEEL.NS
-Strategy: VWAP + RSI + Volume + ADX + MACD (v7 - steel commodity profile)
-Win Rate: 61.54%+
-Position: ₹7000 | Stop Loss: 0.8% ATR | Target: 2.5x ATR | Daily Loss Cap: 0.3%
+Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8 LOWWR - steel commodity profile)
+Win Rate: 61.54%+ -> Target 68%+
+Position: ₹7000 | Stop Loss: 0.6% | Target: 4.0x ATR | Daily Loss Cap: 0.3%
+Enhanced: 2026-03-23 - v8 LOWWR: added Bollinger Band + Trend MA filters to v7 steel logic
 
-Steel sector optimizations (v7):
-  - Stop loss tightened: 1.3x → 0.8% ATR — steel is volatile, tighter stops preserve capital
-  - Entry threshold: VWAP + 0.5% (not ATR-based) — cleaner breakout signal for commodities
-  - RSI buy min raised: 48 → 55 — require stronger momentum for steel entries
-  - Session filter: avoid first/last 15 min — steel sees volume at market open/close
-  - ADX raised: 22 → 25 — only trade in strongly confirmed trends for cyclical steel
-  - Volume confirm: 1.3x → 1.5x — steel volume spikes are meaningful signals
+Steel sector optimizations (v8 LOWWR):
+  - v7: Stop loss 0.8% ATR, VWAP +0.5% entry, ADX>25, Volume 1.5x
+  - v8 LOWWR NEW: Bollinger Band (20,2.0) + 50-MA Trend filter + RSI 32/68 multi-filter
+  - v8 LOWWR: 3-TIER EXIT 1.5x/3.0x/5.0x, STOP_LOSS 0.6%, TARGET_MULT 4.0x
 """
 
 import os
@@ -41,7 +39,7 @@ log = logging.getLogger("live_TATASTEEL")
 
 # ── Config ────────────────────────────────────────────────────────────────────
 SYMBOL             = "TATASTEEL.NS"
-STRATEGY           = "VWAP+RSI+VOL+ADX+MACD"
+STRATEGY           = "VWAP_RSI_MACD_VOL_BB_v8_LOWWR"
 POSITION           = 7000
 STOP_LOSS_ATR_MULT = 0.8    # v7: tighter 0.8% ATR stop — steel is volatile commodity
 TARGET_ATR_MULT    = 3.0    # 3.0x ATR target
