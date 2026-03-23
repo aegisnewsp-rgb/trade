@@ -40,8 +40,21 @@ cd deploy && for f in live_*.py; do python3 -m py_compile "$f" || echo "FAIL: $f
 | SBILIFE_NS | 0% | v8 LOWWR upgraded (2026-03-23) |
 | SHREECEM_NS | 0% | v8 LOWWR upgraded (2026-03-23) |
 | CIPLA | 0% | v8 LOWWR upgraded (2026-03-23) |
+| CYIENT.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
+| DSM | 0% | v8 LOWWR upgraded (2026-03-23) |
+| GAL | 0% | v8 LOWWR upgraded (2026-03-23) |
+| PRAKASHSTL.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
+| RUPA.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
+| INFY | 0% | v8 LOWWR upgraded (2026-03-23) |
+| SEL.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
+| SPAL.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
+| SUNDARAM.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
+| ABFRL.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
+| PUNJABCHEM.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
+| SAMTEX.BO | 0% | v8 LOWWR upgraded (2026-03-23) |
 
 ## Enhancement Log
+- 2026-03-23 00:32: 12 additional 0% WR scripts upgraded to v8 LOWWR (CYIENT.BO, DSM, GAL, PRAKASHSTL.BO, RUPA.BO, INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, ABFRL.BO, PUNJABCHEM.BO, SAMTEX.BO)
 - 2026-03-23 00:12: 10 additional 0% WR scripts upgraded to v8 LOWWR (ADANIPORTS, ICICIBANK, AXISBANK, HCLTECH_NS, ADANIPOWER, DRREDDY, SRF_NS, SBILIFE_NS, SHREECEM_NS, CIPLA)
 - 2026-03-22 23:36: WIPRO, HEROMOTOCO, GLENMARK.NS upgraded to v8 LOWWR (0.6% SL, ₹5K position)
 - 2026-03-22: All scripts v8 (tightened ATR/RSI, added BB, MACD, volume filters)
