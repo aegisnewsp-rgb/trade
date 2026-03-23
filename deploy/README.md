@@ -11,13 +11,13 @@ This directory contains live trading scripts (`live_*.py`) for automated trade e
 - Scripts run during market hours (9:30 AM - 3:30 PM IST)
 
 ## QA Status
-- **Last checked: 2026-03-23 03:36 UTC
+- **Last checked: 2026-03-23 05:06 UTC
 - **All 471 scripts:** ✅ PASS (syntax validation)
-- **Cycle:** #73 (qa_loop.py, 5-min cycles)
-- **Total v8 LOWWR enhanced:** 57 scripts
+- **Cycle:** #74 (qa_loop.py, 5-min cycles)
+- **Total v8 LOWWR enhanced:** 58 scripts
 - **Win-rate status:** All tracked scripts ≥ 45% (none below threshold)
 - **Loop status:** Running
-- **Working tree:** Clean (no uncommitted changes)
+- **Working tree:** NMDC v8 LOWWR enhanced (pending commit)
 
 ## Regime-Filter Enhancements (Iteration #14)
 Scripts with 0% WR in DOWNTREND/RANGE regime enhanced with NIFTY-based regime filtering:
@@ -63,8 +63,9 @@ Bottom 10 scripts with < 15% historical win rate enhanced with **MEAN_REVERSION*
 - TARGET_MULT: 4.0 → 2.5 (lower target, more achievable)
 - atr_multiplier: 1.5 → 1.0 (tighter VWAP bands)
 
-## v8 LOWWR Enhancements (Iteration #19 - 2026-03-23)
+## v8 LOWWR Enhancements (Iteration #20 - 2026-03-23)
 Basic low win-rate scripts upgraded to v8 multi-filter standard:
+- **live_NMDC.py** (13.3% WR scan / 11.1% historical) -> v8 LOWWR full multi-filter + NIFTY regime filter (RSI+MACD+VOL+BB+MA confirmation)
 - **live_MARUTI_NS.py** (low base) -> v8 multi-filter upgrade
 - **live_HINDPETRO_NS.py** (low base) -> v8 multi-filter upgrade
 - **live_NESTLEIND_NS.py** (low base) -> v8 multi-filter upgrade
@@ -93,6 +94,7 @@ Low win-rate scripts (benchmark, all below 70%):
 • CIPLA.NS: 60.07%
 • SRF_NS.NS: 60.13%
 
+• NMDC.NS: 13.3% → ✅ v8 LOWWR upgrade (2026-03-23) [RSI+MACD+VOL+BB+MA+NIFTY regime filter]
 • ONGC.NS: 25.0% → ✅ v8 LOWWR upgrade (2026-03-23)
 • M&M.NS: 16.7% → ✅ v8 LOWWR upgrade (2026-03-23) [preserved festive/tractor sales filters]
 
