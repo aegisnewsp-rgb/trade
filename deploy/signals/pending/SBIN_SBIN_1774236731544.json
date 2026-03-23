@@ -1,0 +1,15 @@
+{
+  "id": "SBIN_1774236731544",
+  "symbol": "SBIN",
+  "exchange": "NSE",
+  "signal": "SELL",
+  "price": 778180.0,
+  "quantity": 1,
+  "strategy": "AUTO_DETECTED",
+  "target": null,
+  "stop_loss": null,
+  "atr": 480616.5679,
+  "confidence": null,
+  "timestamp": "2026-03-23T09:02:11.544798+00:00Z",
+  "status": "pending"
+}

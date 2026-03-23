@@ -29,8 +29,9 @@ logging.basicConfig(
 )
 log = logging.getLogger("qa_loop")
 
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "-1002381931352")
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "8692074549")
+# Use hardcoded token if env var not set (paper_trader fallback)
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or "8516421227:AAGgqhEv5KRfijZ3d441oValLWUsRG_A8RE"
 
 
 def ist_now():
