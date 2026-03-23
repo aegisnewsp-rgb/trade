@@ -7,17 +7,18 @@
 - Exchange: NSE (`.NS`) and BSE (`.BO`)
 - Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8)
 
-## Status (2026-03-23 01:31 UTC)
-- ✅ All 471 scripts pass `py_compile` (QA cycle 39 ✓)
+## Status (2026-03-23 01:34 UTC)
+- ✅ All 471 scripts pass `py_compile` (QA cycle 40 ✓)
 - ✅ Strategy v8 enhancements applied (MACD, volume, trend, BB filters)
 - ✅ 3-tier exit system active
 - ✅ Telegram status reporting enabled
 - ✅ 25 scripts on v8 LOWWR (13 previous + 12 newly upgraded)
-- ✅ v8 LOWWR scripts (INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, etc.) confirmed 10-13% WR — monitoring
+- ✅ 7 more scripts pivoted to MEAN_REVERSION v9 (COMPINFO.BO, SHIVALIK.BO, AMTL.BO, ALANKIT.BO, COROMANDEL.BO, PATANJALI, ATGL.NS)
+  - v8 multi-filter (MACD+trend+BB) too restrictive for these low-liquidity small-caps
+  - v9: RSI-only + VWAP proximity + Volume (no trend filter)
+  - RSI widened to 38/62 for more signal opportunities
 - ✅ 3 x 0% WR scripts pivoted to MEAN_REVERSION v9 (CYIENT.BO, PRAKASHSTL.BO, RUPA.BO)
   - v8 trend filter blocked all signals in downtrends
-  - v9: RSI-only + VWAP proximity + Volume (no trend filter)
-  - RSI thresholds widened to 38/62 for more signal opportunities
 - ✅ QA compile check running — 471/471 OK, 0 fails
 
 ## Quick Check
@@ -33,7 +34,13 @@ cd deploy && for f in live_*.py; do python3 -m py_compile "$f" || echo "FAIL: $f
 | GLENMARK.NS | 56% | v8 LOWWR pharma (0.6% SL, ₹5K pos) |
 | DABUR | 57% | v8 enhanced |
 | GRASIM | 57% | v8 enhanced |
-| COMPINFO.BO | 5% (21 trades) | v8 LOWWR (RSI 38/62) |
+| COMPINFO.BO | 5% (21 trades) | v9 MEAN_REVERSION (RSI+VWAP, no trend) - 2026-03-23 |
+| SHIVALIK.BO | 5% (20 trades) | v9 MEAN_REVERSION - 2026-03-23 |
+| AMTL.BO | 6% (18 trades) | v9 MEAN_REVERSION - 2026-03-23 |
+| ALANKIT.BO | 6% (17 trades) | v9 MEAN_REVERSION - 2026-03-23 |
+| COROMANDEL.BO | 6% (16 trades) | v9 MEAN_REVERSION - 2026-03-23 |
+| PATANJALI | 8% (13 trades) | v9 MEAN_REVERSION - 2026-03-23 |
+| ATGL | 9% (22 trades) | v9 MEAN_REVERSION - 2026-03-23 |
 | ADANIPORTS | 28% (5 trades) | v8 LOWWR - few trades |
 | ICICIBANK | 25% (7 trades) | v8 LOWWR - few trades |
 | AXISBANK | 21% (5 trades) | v8 LOWWR - few trades |
