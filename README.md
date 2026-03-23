@@ -65,6 +65,7 @@ cd deploy && for f in live_*.py; do python3 -m py_compile "$f" || echo "FAIL: $f
 | SAMTEX.BO | 13% (23 trades) | v8 LOWWR (RSI 38/62) |
 
 ## Enhancement Log
+- 2026-03-23 01:34: 7 scripts pivoted to MEAN_REVERSION v9 (COMPINFO.BO, SHIVALIK.BO, AMTL.BO, ALANKIT.BO, COROMANDEL.BO, PATANJALI, ATGL.NS) - v8 multi-filter too restrictive, removed trend/MACD/BB filters
 - 2026-03-23 00:48: CYIENT.BO, PRAKASHSTL.BO, RUPA.BO pivoted to MEAN_REVERSION v9 (removed trend filter, widened RSI 38/62) - 0% WR under v8 was due to downtrend blocking all signals
 - 2026-03-23 00:32: 12 additional 0% WR scripts upgraded to v8 LOWWR (CYIENT.BO, DSM, GAL, PRAKASHSTL.BO, RUPA.BO, INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, ABFRL.BO, PUNJABCHEM.BO, SAMTEX.BO)
 - 2026-03-23 00:12: 10 additional 0% WR scripts upgraded to v8 LOWWR (ADANIPORTS, ICICIBANK, AXISBANK, HCLTECH_NS, ADANIPOWER, DRREDDY, SRF_NS, SBILIFE_NS, SHREECEM_NS, CIPLA)
