@@ -67,6 +67,7 @@ cd deploy && for f in live_*.py; do python3 -m py_compile "$f" || echo "FAIL: $f
 | SAMTEX.BO | 13% (23 trades) | **→ v9 MEAN_REVERSION** (RSI+VWAP, no trend) - 2026-03-23 |
 
 ## Enhancement Log
+- 2026-03-23 04:53: MM_NS (16.7%), ONGC (25%) pivoted to MEAN_REVERSION v9 - removed MACD/BB/trend multi-filter; COMPINFO.BO (4.8%) RSI crossover requirement removed (was too strict); all now using RSI 38/62 + vol 1.3x + no trend/MACD/BB
 - 2026-03-23 03:20: 10 x 0% WR scripts upgraded to v9 MEAN_REVERSION (ADANIPORTS, ICICIBANK, AXISBANK, HCLTECH_NS, ADANIPOWER, SRF_NS, DRREDDY, SBILIFE_NS, SHREECEM_NS, CIPLA) - removed trend/MACD/BB filters, RSI 38/62, vol 1.3x, atr 1.5 - same approach that fixed CYIENT, PRAKASHSTL, RUPA
 - 2026-03-23 03:16: WIPRO (52%), HEROMOTOCO (55%), GLENMARK.NS (56%) upgraded to v9 MEAN_REVERSION - removed trend/MACD/BB filters, RSI 38/62, vol 1.3x, atr 1.0 (same approach that fixed 0% WR scripts)
 - 2026-03-23 02:34: 7 x 10-13% WR scripts pivoted to MEAN_REVERSION v9 (INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, ABFRL.BO, PUNJABCHEM.BO, SAMTEX.BO) - removed trend/MACD/BB filters, RSI 38/62, vol 1.3x (same approach that fixed 0% WR scripts)
