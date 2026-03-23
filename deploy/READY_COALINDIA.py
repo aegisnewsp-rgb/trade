@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 #!/usr/bin/env python3
 """
 Groww Strategy: COALINDIA.NS — BUY on VWAP bounce + momentum breakout
@@ -69,7 +70,7 @@ def paper_trade(signal, price, qty):
 def main():
     import yfinance as yf
     from datetime import datetime
-    ist = datetime.utcnow() + __import__("datetime").timedelta(hours=5, minutes=30)
+    ist = datetime.utcnow() + datetime.timedelta(hours=5, minutes=30)
     print(f"\n{'='*60}")
     print(f"COALINDIA.NS  |  {ist.strftime('%H:%M IST')}  |  DOWNTREND REGIME")
     print(f"{'='*60}")
