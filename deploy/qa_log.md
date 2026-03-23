@@ -61,3 +61,9 @@
 - **live_LT.py**: N/A WR → v8 LOWWR (upgraded from VWAP_RSI to full multi-filter)
 ### BHARTIARTL Enhancement (01:35 UTC):
 - **live_BHARTIARTL.py**: N/A WR → v8 LOWWR (upgraded from Momentum RSI to full multi-filter)
+
+### SUNPHARMA Enhancement (01:40 UTC):
+- **live_SUNPHARMA.py**: N/A WR → v8 LOWWR (upgraded from VWAP Momentum to full multi-filter)
+  - Added calculate_macd, calculate_ma, calculate_avg_volume, calculate_bollinger_bands
+  - Updated vwap_signal with v8 multi-filter (RSI 32/68 + MACD + BB + Trend MA + Vol 2x)
+  - Updated PARAMS with v8 LOWWR standard
