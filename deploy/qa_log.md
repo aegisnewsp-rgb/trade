@@ -56,3 +56,8 @@
   - Full rewrite with v8 multi-filter (RSI 32/68 + MACD + BB + Trend MA + Volume 2x)
   - Added STOP_LOSS_PCT=0.006, TARGET_MULT=4.0, 3-TIER EXIT
   - Added all v8 calculation functions: calculate_rsi, calculate_macd, calculate_ma, calculate_avg_volume, calculate_bollinger_bands
+
+### LT Enhancement (01:35 UTC):
+- **live_LT.py**: N/A WR → v8 LOWWR (upgraded from VWAP_RSI to full multi-filter)
+### BHARTIARTL Enhancement (01:35 UTC):
+- **live_BHARTIARTL.py**: N/A WR → v8 LOWWR (upgraded from Momentum RSI to full multi-filter)
