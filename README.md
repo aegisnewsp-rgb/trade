@@ -7,8 +7,8 @@
 - Exchange: NSE (`.NS`) and BSE (`.BO`)
 - Strategy: VWAP + RSI + MACD + Volume + Trend + Bollinger Band (v8)
 
-## Status (2026-03-23 03:02 UTC)
-- ✅ All 471 scripts pass `py_compile` (QA cycle 44 ✓)
+## Status (2026-03-23 03:16 UTC)
+- ✅ All 471 scripts pass `py_compile` (QA cycle 45 ✓)
 - ✅ Strategy v8/v9 enhancements applied (MACD, volume, trend, BB, RSI filters)
 - ✅ 3-tier exit system active
 - ✅ Telegram status reporting enabled
@@ -17,6 +17,8 @@
 - ✅ 7 x 10-13% WR scripts pivoted to v9 MEAN_REVERSION (RSI 38/62 + vol 1.3x + no trend/MACD/BB)
   - INFY, SEL.BO, SPAL.BO, SUNDARAM.BO, ABFRL.BO, PUNJABCHEM.BO, SAMTEX.BO
   - Same simpler filter set that fixed 0% WR scripts (CYIENT, PRAKASHSTL, RUPA)
+- ✅ 3 x 52-56% WR scripts upgraded to v9 MEAN_REVERSION (WIPRO 52%, HEROMOTOCO 55%, GLENMARK 56%)
+  - Removed trend/MACD/BB filters, RSI 38/62, vol 1.3x — same approach that fixed 0% WR scripts
 - ✅ QA compile check running — 471/471 OK, 0 fails
 
 ## Quick Check
